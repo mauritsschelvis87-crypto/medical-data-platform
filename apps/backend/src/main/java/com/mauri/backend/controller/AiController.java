@@ -1,9 +1,8 @@
-package com.mauri.backend;
+package com.mauri.backend.controller;
 
+import com.mauri.backend.service.AiService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @RestController
 public class AiController {
@@ -14,8 +13,8 @@ public class AiController {
         this.aiService = aiService;
     }
 
-    @GetMapping("/api/predict")
-    public Map<String, Object> predict() {
+    @GetMapping("/api/ai/test")
+    public String testPrediction() {
         return aiService.getPrediction();
     }
 }

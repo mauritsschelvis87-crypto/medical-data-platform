@@ -1,0 +1,11 @@
+package com.mauri.backend.enums;
+
+public enum TimelineEventType {
+    CONSULT_NOTE_CREATED,
+    CONSULT_NOTE_UPDATED,
+    MEDICATION_STARTED,
+    MEDICATION_CHANGED,
+    MEDICATION_STOPPED,
+    PREDICTION_GENERATED,
+    VITAL_SIGNS_RECORDED
+}
