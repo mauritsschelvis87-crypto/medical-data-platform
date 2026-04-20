@@ -19,6 +19,19 @@ public class PredictionDto {
 
     private LocalDateTime predictionTimestamp;
 
+    // Risk comparison fields
+    private String previousRiskLevel;
+    private boolean riskIncreased;
+
+    // Warning system fields
+    private boolean requiresConfirmation;
+    private boolean confirmed;
+    private LocalDateTime confirmedAt;
+    private String confirmedBy;
+
+    private String modelVersion;
+    private boolean thresholdTriggered;
+
     public Long getId() {
         return id;
     }
@@ -81,5 +94,69 @@ public class PredictionDto {
 
     public void setPredictionTimestamp(LocalDateTime predictionTimestamp) {
         this.predictionTimestamp = predictionTimestamp;
+    }
+
+    public String getPreviousRiskLevel() {
+        return previousRiskLevel;
+    }
+
+    public void setPreviousRiskLevel(String previousRiskLevel) {
+        this.previousRiskLevel = previousRiskLevel;
+    }
+
+    public boolean isRiskIncreased() {
+        return riskIncreased;
+    }
+
+    public void setRiskIncreased(boolean riskIncreased) {
+        this.riskIncreased = riskIncreased;
+    }
+
+    public boolean isRequiresConfirmation() {
+        return requiresConfirmation;
+    }
+
+    public void setRequiresConfirmation(boolean requiresConfirmation) {
+        this.requiresConfirmation = requiresConfirmation;
+    }
+
+    public boolean isConfirmed() {
+        return confirmed;
+    }
+
+    public void setConfirmed(boolean confirmed) {
+        this.confirmed = confirmed;
+    }
+
+    public LocalDateTime getConfirmedAt() {
+        return confirmedAt;
+    }
+
+    public void setConfirmedAt(LocalDateTime confirmedAt) {
+        this.confirmedAt = confirmedAt;
+    }
+
+    public String getConfirmedBy() {
+        return confirmedBy;
+    }
+
+    public void setConfirmedBy(String confirmedBy) {
+        this.confirmedBy = confirmedBy;
+    }
+
+    public String getModelVersion() {
+        return modelVersion;
+    }
+
+    public void setModelVersion(String modelVersion) {
+        this.modelVersion = modelVersion;
+    }
+
+    public boolean isThresholdTriggered() {
+        return thresholdTriggered;
+    }
+
+    public void setThresholdTriggered(boolean thresholdTriggered) {
+        this.thresholdTriggered = thresholdTriggered;
     }
 }

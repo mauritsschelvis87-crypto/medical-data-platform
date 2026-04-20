@@ -5,6 +5,9 @@ import com.mauri.backend.enums.PredictionType;
 import com.mauri.backend.service.PredictionService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,5 +40,22 @@ public class PredictionController {
             @RequestParam PredictionType predictionType
     ) {
         return predictionService.getPredictionsForPatientByType(patientId, predictionType);
+    }
+
+    @PostMapping
+    public PredictionDto savePrediction(
+            @PathVariable Long patientId,
+            @RequestBody PredictionDto predictionDto
+    ) {
+        return predictionService.savePrediction(patientId, predictionDto);
+    }
+
+    @PutMapping("/{predictionId}/confirm")
+    public PredictionDto confirmPrediction(
+            @PathVariable Long patientId,
+            @PathVariable Long predictionId,
+            @RequestParam String doctorName
+    ) {
+        return predictionService.confirmPrediction(predictionId, doctorName);
     }
 }

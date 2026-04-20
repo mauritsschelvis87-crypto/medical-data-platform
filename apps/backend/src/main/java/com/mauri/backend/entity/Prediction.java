@@ -56,6 +56,33 @@ public class Prediction extends BaseEntity {
     @Column(name = "prediction_timestamp", nullable = false)
     private LocalDateTime predictionTimestamp;
 
+    // Risk comparison fields
+    @Column(name = "previous_risk_level", length = 20)
+    @Enumerated(EnumType.STRING)
+    private RiskLevel previousRiskLevel;
+
+    @Column(name = "risk_increased", nullable = false)
+    private boolean riskIncreased;
+
+    // Warning system fields
+    @Column(name = "requires_confirmation", nullable = false)
+    private boolean requiresConfirmation;
+
+    @Column(name = "is_confirmed", nullable = false)
+    private boolean confirmed;
+
+    @Column(name = "confirmed_at")
+    private LocalDateTime confirmedAt;
+
+    @Column(name = "confirmed_by")
+    private String confirmedBy;
+
+    @Column(name = "model_version", length = 50)
+    private String modelVersion;
+
+    @Column(name = "threshold_triggered", nullable = false)
+    private boolean thresholdTriggered;
+
     public Patient getPatient() {
         return patient;
     }
@@ -126,5 +153,69 @@ public class Prediction extends BaseEntity {
 
     public void setPredictionTimestamp(LocalDateTime predictionTimestamp) {
         this.predictionTimestamp = predictionTimestamp;
+    }
+
+    public RiskLevel getPreviousRiskLevel() {
+        return previousRiskLevel;
+    }
+
+    public void setPreviousRiskLevel(RiskLevel previousRiskLevel) {
+        this.previousRiskLevel = previousRiskLevel;
+    }
+
+    public boolean isRiskIncreased() {
+        return riskIncreased;
+    }
+
+    public void setRiskIncreased(boolean riskIncreased) {
+        this.riskIncreased = riskIncreased;
+    }
+
+    public boolean isRequiresConfirmation() {
+        return requiresConfirmation;
+    }
+
+    public void setRequiresConfirmation(boolean requiresConfirmation) {
+        this.requiresConfirmation = requiresConfirmation;
+    }
+
+    public boolean isConfirmed() {
+        return confirmed;
+    }
+
+    public void setConfirmed(boolean confirmed) {
+        this.confirmed = confirmed;
+    }
+
+    public LocalDateTime getConfirmedAt() {
+        return confirmedAt;
+    }
+
+    public void setConfirmedAt(LocalDateTime confirmedAt) {
+        this.confirmedAt = confirmedAt;
+    }
+
+    public String getConfirmedBy() {
+        return confirmedBy;
+    }
+
+    public void setConfirmedBy(String confirmedBy) {
+        this.confirmedBy = confirmedBy;
+    }
+
+    public String getModelVersion() {
+        return modelVersion;
+    }
+
+    public void setModelVersion(String modelVersion) {
+        this.modelVersion = modelVersion;
+    }
+
+    public boolean isThresholdTriggered() {
+        return thresholdTriggered;
+    }
+
+    public void setThresholdTriggered(boolean thresholdTriggered) {
+        this.thresholdTriggered = thresholdTriggered;
     }
 }
