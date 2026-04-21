@@ -2,6 +2,7 @@ package com.mauri.backend.controller;
 
 import com.mauri.backend.dto.prediction.PredictionDto;
 import com.mauri.backend.enums.PredictionType;
+import com.mauri.backend.service.PredictionWorkflowService;
 import com.mauri.backend.service.PredictionService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,9 +20,12 @@ import java.util.List;
 public class PredictionController {
 
     private final PredictionService predictionService;
+    private final PredictionWorkflowService predictionWorkflowService;
 
-    public PredictionController(PredictionService predictionService) {
+    public PredictionController(PredictionService predictionService,
+                                PredictionWorkflowService predictionWorkflowService) {
         this.predictionService = predictionService;
+        this.predictionWorkflowService = predictionWorkflowService;
     }
 
     @GetMapping
@@ -32,6 +36,11 @@ public class PredictionController {
     @GetMapping("/main")
     public List<PredictionDto> getMainPredictionsForPatient(@PathVariable Long patientId) {
         return predictionService.getMainPredictionsForPatient(patientId);
+    }
+
+    @GetMapping("/latest")
+    public List<PredictionDto> getLatestPredictionsForPatient(@PathVariable Long patientId) {
+        return predictionService.getLatestPredictionsForPatient(patientId);
     }
 
     @GetMapping("/by-type")
@@ -48,6 +57,12 @@ public class PredictionController {
             @RequestBody PredictionDto predictionDto
     ) {
         return predictionService.savePrediction(patientId, predictionDto);
+    }
+
+    @PostMapping("/recalculate")
+    public List<PredictionDto> recalculatePredictions(@PathVariable Long patientId,
+                                                      @RequestParam(defaultValue = "MANUAL") String triggerSource) {
+        return predictionWorkflowService.recalculatePredictions(patientId, triggerSource, null);
     }
 
     @PutMapping("/{predictionId}/confirm")

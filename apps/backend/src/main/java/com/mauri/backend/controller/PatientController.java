@@ -28,6 +28,11 @@ public class PatientController {
         return patientService.getPatientById(patientId);
     }
 
+    @GetMapping("/search")
+    public List<PatientSearchResultDto> search(@RequestParam("q") String query) {
+        return patientService.search(query);
+    }
+
     @GetMapping("/search/by-patient-number")
     public List<PatientSearchResultDto> searchByPatientNumber(@RequestParam String patientNumber) {
         return patientService.searchByPatientNumber(patientNumber);

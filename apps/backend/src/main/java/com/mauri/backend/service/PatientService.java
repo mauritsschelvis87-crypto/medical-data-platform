@@ -9,7 +9,10 @@ import com.mauri.backend.repository.PatientRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class PatientService {
@@ -61,6 +64,44 @@ public class PatientService {
                 .stream()
                 .map(patientMapper::toSearchResultDto)
                 .toList();
+    }
+
+    public List<PatientSearchResultDto> search(String query) {
+        if (query == null || query.isBlank()) {
+            return List.of();
+        }
+
+        String normalizedQuery = query.trim();
+        Map<Long, PatientSearchResultDto> results = new LinkedHashMap<>();
+
+        patientRepository.findByPatientNumber(normalizedQuery)
+                .map(patientMapper::toSearchResultDto)
+                .ifPresent(dto -> results.put(dto.getId(), dto));
+
+        patientRepository.findTop20ByPatientNumberContainingIgnoreCaseOrderByPatientNumberAsc(normalizedQuery)
+                .stream()
+                .map(patientMapper::toSearchResultDto)
+                .forEach(dto -> results.putIfAbsent(dto.getId(), dto));
+
+        patientRepository
+                .findTop20ByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrderByLastNameAscFirstNameAsc(
+                        normalizedQuery,
+                        normalizedQuery
+                )
+                .stream()
+                .map(patientMapper::toSearchResultDto)
+                .forEach(dto -> results.putIfAbsent(dto.getId(), dto));
+
+        try {
+            LocalDate birthDate = LocalDate.parse(normalizedQuery);
+            patientRepository.findByBirthDate(birthDate)
+                    .stream()
+                    .map(patientMapper::toSearchResultDto)
+                    .forEach(dto -> results.putIfAbsent(dto.getId(), dto));
+        } catch (DateTimeParseException ignored) {
+        }
+
+        return results.values().stream().limit(20).toList();
     }
 
     public Patient getPatientEntityById(Long patientId) {

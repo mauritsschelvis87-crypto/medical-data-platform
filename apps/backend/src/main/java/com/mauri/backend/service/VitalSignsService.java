@@ -9,6 +9,7 @@ import com.mauri.backend.enums.VitalSignSource;
 import com.mauri.backend.mapper.VitalSignsMapper;
 import com.mauri.backend.repository.VitalSignsRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,15 +21,18 @@ public class VitalSignsService {
     private final PatientService patientService;
     private final VitalSignsMapper vitalSignsMapper;
     private final TimelineService timelineService;
+    private final PredictionWorkflowService predictionWorkflowService;
 
     public VitalSignsService(VitalSignsRepository vitalSignsRepository,
                              PatientService patientService,
                              VitalSignsMapper vitalSignsMapper,
-                             TimelineService timelineService) {
+                             TimelineService timelineService,
+                             PredictionWorkflowService predictionWorkflowService) {
         this.vitalSignsRepository = vitalSignsRepository;
         this.patientService = patientService;
         this.vitalSignsMapper = vitalSignsMapper;
         this.timelineService = timelineService;
+        this.predictionWorkflowService = predictionWorkflowService;
     }
 
     public List<VitalSignsDto> getVitalSignsForPatient(Long patientId) {
@@ -49,6 +53,7 @@ public class VitalSignsService {
                 .toList();
     }
 
+    @Transactional
     public VitalSignsDto createVitalSigns(Long patientId, CreateVitalSignsRequest request) {
         Patient patient = patientService.getPatientEntityById(patientId);
 
@@ -78,6 +83,7 @@ public class VitalSignsService {
                 buildVitalSignsDescription(savedVitalSigns),
                 savedVitalSigns.getMeasuredAt()
         );
+        predictionWorkflowService.recalculatePredictions(patientId, "VITAL_SIGNS_RECORDED", savedVitalSigns.getId());
 
         return vitalSignsMapper.toDto(savedVitalSigns);
     }

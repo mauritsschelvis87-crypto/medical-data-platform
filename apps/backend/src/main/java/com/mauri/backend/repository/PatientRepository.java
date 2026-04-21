@@ -21,6 +21,13 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
 
     List<Patient> findByBirthDate(LocalDate birthDate);
 
+    List<Patient> findTop20ByPatientNumberContainingIgnoreCaseOrderByPatientNumberAsc(String patientNumber);
+
+    List<Patient> findTop20ByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrderByLastNameAscFirstNameAsc(
+            String firstName,
+            String lastName
+    );
+
     List<Patient> findByFirstNameContainingIgnoreCaseAndLastNameContainingIgnoreCase(
             String firstName,
             String lastName

@@ -17,4 +17,9 @@ public interface PatientMedicationRepository extends JpaRepository<PatientMedica
             Patient patient,
             MedicationStatus status
     );
+
+    List<PatientMedication> findByPatientAndStatusInOrderByStartDateDesc(
+            Patient patient,
+            List<MedicationStatus> statuses
+    );
 }

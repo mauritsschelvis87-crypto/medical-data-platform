@@ -13,4 +13,6 @@ public interface DatasetImportRepository extends JpaRepository<DatasetImport, Lo
     List<DatasetImport> findByDatasetNameOrderByStartedAtDesc(String datasetName);
 
     List<DatasetImport> findByImportStatusOrderByStartedAtDesc(DatasetImportStatus importStatus);
+
+    List<DatasetImport> findAllByOrderByStartedAtDesc();
 }

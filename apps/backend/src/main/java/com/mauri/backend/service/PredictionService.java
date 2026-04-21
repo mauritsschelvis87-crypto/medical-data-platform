@@ -59,12 +59,27 @@ public class PredictionService {
                 .toList();
     }
 
+    public List<PredictionDto> getLatestPredictionsForPatient(Long patientId) {
+        Patient patient = patientService.getPatientEntityById(patientId);
+
+        return predictionRepository.findLatestPredictionsPerType(patient)
+                .stream()
+                .map(predictionMapper::toDto)
+                .toList();
+    }
+
     @Transactional
     public PredictionDto savePrediction(Long patientId, PredictionDto predictionDto) {
+        return savePrediction(patientId, predictionDto, null);
+    }
+
+    @Transactional
+    public PredictionDto savePrediction(Long patientId, PredictionDto predictionDto, Long triggeredByReferenceId) {
         Patient patient = patientService.getPatientEntityById(patientId);
         Prediction prediction = predictionMapper.toEntity(predictionDto);
         prediction.setPatient(patient);
         prediction.setPredictionTimestamp(LocalDateTime.now());
+        prediction.setTriggeredByReferenceId(triggeredByReferenceId);
 
         // 1. Zoek de vorige voorspelling van hetzelfde type om risico te vergelijken
         Optional<Prediction> previousPrediction = predictionRepository
@@ -99,7 +114,15 @@ public class PredictionService {
         if (prediction.isRiskIncreased()) {
             summary += " (RISICO GESTEGEN)";
         }
-        timelineService.createEvent(patientId, "PREDICTION", savedPrediction.getId(), "predictions", summary);
+        timelineService.createEvent(
+                patient,
+                com.mauri.backend.enums.TimelineEventType.PREDICTION_GENERATED,
+                savedPrediction.getId(),
+                "Prediction",
+                "Prediction generated",
+                summary,
+                savedPrediction.getPredictionTimestamp()
+        );
 
         return predictionMapper.toDto(savedPrediction);
     }
@@ -117,9 +140,15 @@ public class PredictionService {
         Prediction updatedPrediction = predictionRepository.save(prediction);
         
         // Optioneel: Tijdlijn event voor bevestiging
-        timelineService.createEvent(prediction.getPatient().getId(), "PREDICTION_CONFIRMED", 
-                updatedPrediction.getId(), "predictions", 
-                "Risico bevestigd door arts: " + doctorName);
+        timelineService.createEvent(
+                prediction.getPatient(),
+                com.mauri.backend.enums.TimelineEventType.PREDICTION_GENERATED,
+                updatedPrediction.getId(),
+                "Prediction",
+                "Prediction confirmed",
+                "Risico bevestigd door arts: " + doctorName,
+                updatedPrediction.getConfirmedAt()
+        );
 
         return predictionMapper.toDto(updatedPrediction);
     }

@@ -19,4 +19,9 @@ public interface MedicationCatalogRepository extends JpaRepository<MedicationCat
     List<MedicationCatalog> findByLatinNameContainingIgnoreCase(String latinName);
 
     List<MedicationCatalog> findByActiveTrueOrderByDutchNameAsc();
+
+    List<MedicationCatalog> findTop20ByActiveTrueAndDutchNameContainingIgnoreCaseOrActiveTrueAndLatinNameContainingIgnoreCaseOrderByDutchNameAsc(
+            String dutchName,
+            String latinName
+    );
 }

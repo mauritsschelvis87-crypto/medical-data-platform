@@ -2,6 +2,7 @@ package com.mauri.backend.controller;
 
 import com.mauri.backend.dto.medication.CreatePatientMedicationRequest;
 import com.mauri.backend.dto.medication.PatientMedicationDto;
+import com.mauri.backend.dto.medication.UpdatePatientMedicationRequest;
 import com.mauri.backend.enums.MedicationStatus;
 import com.mauri.backend.service.PatientMedicationService;
 import org.springframework.web.bind.annotation.*;
@@ -35,5 +36,12 @@ public class PatientMedicationController {
     public PatientMedicationDto createPatientMedication(@PathVariable Long patientId,
                                                         @RequestBody CreatePatientMedicationRequest request) {
         return patientMedicationService.createPatientMedication(patientId, request);
+    }
+
+    @PutMapping("/{medicationId}")
+    public PatientMedicationDto updatePatientMedication(@PathVariable Long patientId,
+                                                        @PathVariable Long medicationId,
+                                                        @RequestBody UpdatePatientMedicationRequest request) {
+        return patientMedicationService.updatePatientMedication(patientId, medicationId, request);
     }
 }
