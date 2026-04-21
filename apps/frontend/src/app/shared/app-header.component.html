@@ -1,0 +1,64 @@
+<header class="topbar">
+  <a class="brand" routerLink="/">
+    <span class="brand__mark">MD</span>
+    <span class="brand__text">
+      <strong>Medical Data Platform</strong>
+      <small>Hospital demo workspace</small>
+    </span>
+  </a>
+
+  <div class="topbar__actions">
+    <div class="doctor-card">
+      <div class="doctor-card__identity">
+        <span class="doctor-card__name">{{ doctor.shortName }}</span>
+        <span class="doctor-card__role">{{ doctor.specialty }} | {{ doctor.department }}</span>
+      </div>
+      <span class="doctor-card__badge">{{ doctor.status }}</span>
+    </div>
+
+    <button class="switch-user" type="button" (click)="demoLoginClick.emit()">
+      {{ text.t('switchUser') }}
+    </button>
+
+    <div class="settings">
+      <button class="settings__toggle" type="button" (click)="toggleSettings()" [attr.aria-expanded]="settingsOpen()">
+        <span class="sr-only">{{ text.t('settings') }}</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M19.14 12.94a7.91 7.91 0 0 0 .05-.94 7.91 7.91 0 0 0-.05-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.28 7.28 0 0 0-1.63-.94l-.36-2.54A.48.48 0 0 0 13.92 2h-3.84a.48.48 0 0 0-.49.41l-.36 2.54a7.28 7.28 0 0 0-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.69 8.47a.5.5 0 0 0 .12.64l2.03 1.58a7.91 7.91 0 0 0-.05.94 7.91 7.91 0 0 0 .05.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.39 1.05.71 1.63.94l.36 2.54a.48.48 0 0 0 .49.41h3.84a.48.48 0 0 0 .49-.41l.36-2.54c.58-.23 1.13-.55 1.63-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64Zm-7.14 2.56A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7Z"
+          />
+        </svg>
+      </button>
+
+      @if (settingsOpen()) {
+        <div class="settings__panel">
+          <div class="settings__group">
+            <span class="settings__label">{{ text.t('language') }}</span>
+            <div class="segmented">
+              <button type="button" [class.active]="language === 'en'" (click)="setLanguage('en')">EN</button>
+              <button type="button" [class.active]="language === 'nl'" (click)="setLanguage('nl')">NL</button>
+            </div>
+          </div>
+
+          <div class="settings__group">
+            <span class="settings__label">{{ text.t('theme') }}</span>
+            <div class="segmented">
+              <button type="button" [class.active]="theme === 'dark'" (click)="setTheme('dark')">{{ text.t('darkMode') }}</button>
+              <button type="button" [class.active]="theme === 'light'" (click)="setTheme('light')">{{ text.t('lightMode') }}</button>
+            </div>
+          </div>
+
+          <div class="settings__group settings__meta">
+            <span>{{ doctor.accessLevel }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</header>
+
+@if (notice) {
+  <div class="notice-banner">
+    {{ notice }}
+  </div>
+}

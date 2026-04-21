@@ -1,1 +1,65 @@
-/* You can add global styles to this file, and also import other style files */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --app-background: #0d1720;
+  --surface-elevated: rgba(16, 30, 40, 0.92);
+  --surface-panel: rgba(19, 36, 48, 0.9);
+  --text-primary: #edf5fb;
+  --text-secondary: #b7c7d4;
+  --text-muted: #86a0b4;
+  --border-subtle: rgba(127, 164, 189, 0.18);
+  --accent-strong: #6eb4d7;
+  --accent-soft: #8bc7e5;
+  --accent-faint: rgba(110, 180, 215, 0.14);
+  --risk-low: #6cc5a0;
+  --risk-medium: #de9a5c;
+  --risk-high: #e17e7e;
+  --shadow-panel: 0 24px 55px rgba(4, 12, 18, 0.34);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --app-background: #eef4f7;
+  --surface-elevated: rgba(255, 255, 255, 0.95);
+  --surface-panel: rgba(248, 251, 253, 0.94);
+  --text-primary: #11212d;
+  --text-secondary: #425766;
+  --text-muted: #637988;
+  --border-subtle: rgba(82, 111, 131, 0.16);
+  --accent-strong: #2c7da8;
+  --accent-soft: #4d93bb;
+  --accent-faint: rgba(44, 125, 168, 0.12);
+  --risk-low: #2f8a63;
+  --risk-medium: #b77038;
+  --risk-high: #bd4e4e;
+  --shadow-panel: 0 18px 44px rgba(26, 53, 74, 0.12);
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--app-background);
+  color: var(--text-primary);
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
