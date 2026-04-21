@@ -13,4 +13,6 @@ public interface VitalSignsRepository extends JpaRepository<VitalSigns, Long> {
     List<VitalSigns> findByPatientOrderByMeasuredAtDesc(Patient patient);
 
     List<VitalSigns> findTop10ByPatientOrderByMeasuredAtDesc(Patient patient);
+
+    void deleteByPatient(Patient patient);
 }

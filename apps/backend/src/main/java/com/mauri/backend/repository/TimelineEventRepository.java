@@ -13,4 +13,6 @@ public interface TimelineEventRepository extends JpaRepository<TimelineEvent, Lo
     List<TimelineEvent> findByPatientOrderByEventTimestampDesc(Patient patient);
 
     List<TimelineEvent> findTop50ByPatientOrderByEventTimestampDesc(Patient patient);
+
+    void deleteByPatient(Patient patient);
 }

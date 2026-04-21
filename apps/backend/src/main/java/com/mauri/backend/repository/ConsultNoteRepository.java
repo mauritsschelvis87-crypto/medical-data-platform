@@ -13,4 +13,6 @@ public interface ConsultNoteRepository extends JpaRepository<ConsultNote, Long> 
     List<ConsultNote> findByPatientOrderByCreatedAtDesc(Patient patient);
 
     List<ConsultNote> findTop5ByPatientOrderByCreatedAtDesc(Patient patient);
+
+    void deleteByPatient(Patient patient);
 }

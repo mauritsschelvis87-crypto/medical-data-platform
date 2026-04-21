@@ -7,6 +7,7 @@ import com.mauri.backend.enums.DatasetImportStatus;
 import com.mauri.backend.exception.ResourceNotFoundException;
 import com.mauri.backend.mapper.DatasetImportMapper;
 import com.mauri.backend.repository.DatasetImportRepository;
+import com.mauri.backend.service.dataset.SyntheaCsvImportService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,11 +19,14 @@ public class DatasetImportService {
 
     private final DatasetImportRepository datasetImportRepository;
     private final DatasetImportMapper datasetImportMapper;
+    private final SyntheaCsvImportService syntheaCsvImportService;
 
     public DatasetImportService(DatasetImportRepository datasetImportRepository,
-                                DatasetImportMapper datasetImportMapper) {
+                                DatasetImportMapper datasetImportMapper,
+                                SyntheaCsvImportService syntheaCsvImportService) {
         this.datasetImportRepository = datasetImportRepository;
         this.datasetImportMapper = datasetImportMapper;
+        this.syntheaCsvImportService = syntheaCsvImportService;
     }
 
     public List<DatasetImportDto> getAllImports() {
@@ -40,6 +44,10 @@ public class DatasetImportService {
 
     @Transactional
     public DatasetImportDto registerImport(CreateDatasetImportRequest request) {
+        if (shouldImportSynthea(request)) {
+            return datasetImportMapper.toDto(syntheaCsvImportService.importDataset(request));
+        }
+
         DatasetImport datasetImport = new DatasetImport();
         datasetImport.setDatasetName(request.getDatasetName());
         datasetImport.setSourceFileName(buildSourceName(request));
@@ -78,5 +86,20 @@ public class DatasetImportService {
 
     private int defaultCount(Integer count) {
         return count != null ? count : 0;
+    }
+
+    private boolean shouldImportSynthea(CreateDatasetImportRequest request) {
+        if (request.getSourcePath() == null || request.getSourcePath().isBlank()) {
+            return false;
+        }
+
+        if (request.getImportType() == null || request.getImportType().isBlank()) {
+            return true;
+        }
+
+        String normalizedType = request.getImportType().trim().toUpperCase();
+        return normalizedType.equals("SYNTHEA")
+                || normalizedType.equals("SYNTHEA_CSV")
+                || normalizedType.equals("CSV");
     }
 }

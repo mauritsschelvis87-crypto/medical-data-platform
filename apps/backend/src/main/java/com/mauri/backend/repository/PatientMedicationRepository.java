@@ -22,4 +22,6 @@ public interface PatientMedicationRepository extends JpaRepository<PatientMedica
             Patient patient,
             List<MedicationStatus> statuses
     );
+
+    void deleteByPatient(Patient patient);
 }

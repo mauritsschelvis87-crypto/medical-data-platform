@@ -39,4 +39,6 @@ public interface PredictionRepository extends JpaRepository<Prediction, Long> {
             order by p.mainPrediction desc, p.predictionTimestamp desc
             """)
     List<Prediction> findLatestPredictionsPerType(Patient patient);
+
+    void deleteByPatient(Patient patient);
 }

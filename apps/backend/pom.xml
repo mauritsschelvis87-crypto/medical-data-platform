@@ -53,6 +53,12 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+			<version>1.14.1</version>
+		</dependency>
+
 		<!-- Lombok (BELANGRIJK voor @Data etc) -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>

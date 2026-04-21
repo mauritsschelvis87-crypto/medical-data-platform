@@ -9,6 +9,8 @@ public class CreateDatasetImportRequest {
     private Integer recordCount;
     private String checksum;
     private String versionTag;
+    private String sourcePath;
+    private Boolean replaceExisting;
 
     public String getDatasetName() {
         return datasetName;
@@ -64,5 +66,21 @@ public class CreateDatasetImportRequest {
 
     public void setVersionTag(String versionTag) {
         this.versionTag = versionTag;
+    }
+
+    public String getSourcePath() {
+        return sourcePath;
+    }
+
+    public void setSourcePath(String sourcePath) {
+        this.sourcePath = sourcePath;
+    }
+
+    public Boolean getReplaceExisting() {
+        return replaceExisting;
+    }
+
+    public void setReplaceExisting(Boolean replaceExisting) {
+        this.replaceExisting = replaceExisting;
     }
 }
