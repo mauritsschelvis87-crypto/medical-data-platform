@@ -4,8 +4,10 @@ from pathlib import Path
 
 import pandas as pd
 
+from app.core.config import settings
 
-DEFAULT_SYNTHEA_CSV_DIR = Path(r"C:\Users\mauri\Projects\synthea\output\csv")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_SYNTHEA_CSV_DIR = PROJECT_ROOT / "datasets"
 
 DEFAULT_TABLES = (
     "patients",
@@ -16,10 +18,10 @@ DEFAULT_TABLES = (
 
 
 def load_synthea_csv_tables(
-    base_dir: Path | str = DEFAULT_SYNTHEA_CSV_DIR,
+    base_dir: Path | str | None = None,
     tables: tuple[str, ...] = DEFAULT_TABLES,
 ) -> dict[str, pd.DataFrame]:
-    csv_dir = Path(base_dir)
+    csv_dir = Path(base_dir or settings.synthea_csv_dir or DEFAULT_SYNTHEA_CSV_DIR)
     if not csv_dir.exists():
         raise FileNotFoundError(f"Synthea CSV directory not found: {csv_dir}")
 

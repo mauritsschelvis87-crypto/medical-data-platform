@@ -1,0 +1,251 @@
+DATE,PATIENT,ENCOUNTER,CATEGORY,CODE,DESCRIPTION,VALUE,UNITS,TYPE
+2016-08-08T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-b836-699c374fecc4,vital-signs,8302-2,Body Height,119.3,cm,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,vital-signs,8302-2,Body Height,50.7,cm,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,0.0,{score},numeric
+2016-08-08T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-b836-699c374fecc4,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,1.0,{score},numeric
+2016-08-08T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-b836-699c374fecc4,vital-signs,29463-7,Body Weight,21.3,kg,numeric
+2016-08-08T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-b836-699c374fecc4,vital-signs,39156-5,Body mass index (BMI) [Ratio],15.0,kg/m2,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,vital-signs,29463-7,Body Weight,3.2,kg,numeric
+2016-08-08T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-b836-699c374fecc4,vital-signs,59576-9,Body mass index (BMI) [Percentile] Per age and sex,34.7,%,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,vital-signs,77606-2,Weight-for-length Per age and sex,7.6,%,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,vital-signs,8289-1,Head Occipital-frontal circumference Percentile,24.4,%,numeric
+2016-08-08T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-b836-699c374fecc4,vital-signs,8462-4,Diastolic Blood Pressure,90.0,mm[Hg],numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,vital-signs,9843-4,Head Occipital-frontal circumference,34.4,cm,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,vital-signs,8462-4,Diastolic Blood Pressure,76.0,mm[Hg],numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,vital-signs,8480-6,Systolic Blood Pressure,106.0,mm[Hg],numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,vital-signs,8867-4,Heart rate,72.0,/min,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,vital-signs,9279-1,Respiratory rate,13.0,/min,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,laboratory,6690-2,Leukocytes [#/volume] in Blood by Automated count,4.0,10*3/uL,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,laboratory,789-8,Erythrocytes [#/volume] in Blood by Automated count,5.0,10*6/uL,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,laboratory,718-7,Hemoglobin [Mass/volume] in Blood,13.9,g/dL,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,laboratory,4544-3,Hematocrit [Volume Fraction] of Blood by Automated count,46.5,%,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,laboratory,787-2,MCV [Entitic mean volume] in Red Blood Cells by Automated count,82.9,fL,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,laboratory,785-6,MCH [Entitic mass] by Automated count,27.8,pg,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,laboratory,786-4,MCHC [Entitic Mass/volume] in Red Blood Cells by Automated count,35.3,g/dL,numeric
+2016-08-08T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-b836-699c374fecc4,vital-signs,8480-6,Systolic Blood Pressure,131.0,mm[Hg],numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,laboratory,788-0,Erythrocyte [DistWidth] in Blood by Automated count,39.1,fL,numeric
+2016-08-08T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-b836-699c374fecc4,vital-signs,8867-4,Heart rate,94.0,/min,numeric
+2016-08-08T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-b836-699c374fecc4,vital-signs,9279-1,Respiratory rate,15.0,/min,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,laboratory,777-3,Platelets [#/volume] in Blood by Automated count,160.3,10*3/uL,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,laboratory,32207-3,Platelet distribution width [Entitic volume] in Blood by Automated count,279.4,fL,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,laboratory,32623-1,Platelet [Entitic mean volume] in Blood by Automated count,9.6,fL,numeric
+2019-09-10T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-73b1-09735410738b,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2016-08-08T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-b836-699c374fecc4,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2019-10-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-a67e-99103873e50d,vital-signs,8302-2,Body Height,54.7,cm,numeric
+2019-10-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-a67e-99103873e50d,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,3.0,{score},numeric
+2019-10-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-a67e-99103873e50d,vital-signs,29463-7,Body Weight,4.0,kg,numeric
+2019-10-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-a67e-99103873e50d,vital-signs,77606-2,Weight-for-length Per age and sex,2.8,%,numeric
+2019-10-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-a67e-99103873e50d,vital-signs,8289-1,Head Occipital-frontal circumference Percentile,24.4,%,numeric
+2019-10-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-a67e-99103873e50d,vital-signs,9843-4,Head Occipital-frontal circumference,38.1,cm,numeric
+2019-10-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-a67e-99103873e50d,vital-signs,8462-4,Diastolic Blood Pressure,79.0,mm[Hg],numeric
+2019-10-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-a67e-99103873e50d,vital-signs,8480-6,Systolic Blood Pressure,108.0,mm[Hg],numeric
+2019-10-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-a67e-99103873e50d,vital-signs,8867-4,Heart rate,66.0,/min,numeric
+2019-10-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-a67e-99103873e50d,vital-signs,9279-1,Respiratory rate,12.0,/min,numeric
+2019-10-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-a67e-99103873e50d,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2019-12-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-26a0-c6716d513154,vital-signs,8302-2,Body Height,60.2,cm,numeric
+2019-12-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-26a0-c6716d513154,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,3.0,{score},numeric
+2019-12-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-26a0-c6716d513154,vital-signs,29463-7,Body Weight,5.4,kg,numeric
+2019-12-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-26a0-c6716d513154,vital-signs,77606-2,Weight-for-length Per age and sex,8.7,%,numeric
+2019-12-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-26a0-c6716d513154,vital-signs,8289-1,Head Occipital-frontal circumference Percentile,24.4,%,numeric
+2019-12-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-26a0-c6716d513154,vital-signs,9843-4,Head Occipital-frontal circumference,40.8,cm,numeric
+2019-12-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-26a0-c6716d513154,vital-signs,8462-4,Diastolic Blood Pressure,76.0,mm[Hg],numeric
+2019-12-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-26a0-c6716d513154,vital-signs,8480-6,Systolic Blood Pressure,105.0,mm[Hg],numeric
+2019-12-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-26a0-c6716d513154,vital-signs,8867-4,Heart rate,72.0,/min,numeric
+2019-12-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-26a0-c6716d513154,vital-signs,9279-1,Respiratory rate,13.0,/min,numeric
+2019-12-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-26a0-c6716d513154,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2020-02-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-d68a-bffa5f7e4c12,vital-signs,8302-2,Body Height,64.2,cm,numeric
+2020-02-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-d68a-bffa5f7e4c12,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,2.0,{score},numeric
+2020-02-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-d68a-bffa5f7e4c12,vital-signs,29463-7,Body Weight,6.6,kg,numeric
+2020-02-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-d68a-bffa5f7e4c12,vital-signs,77606-2,Weight-for-length Per age and sex,20.1,%,numeric
+2020-02-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-d68a-bffa5f7e4c12,vital-signs,8289-1,Head Occipital-frontal circumference Percentile,24.4,%,numeric
+2020-02-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-d68a-bffa5f7e4c12,vital-signs,9843-4,Head Occipital-frontal circumference,42.5,cm,numeric
+2020-02-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-d68a-bffa5f7e4c12,vital-signs,8462-4,Diastolic Blood Pressure,77.0,mm[Hg],numeric
+2020-02-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-d68a-bffa5f7e4c12,vital-signs,8480-6,Systolic Blood Pressure,113.0,mm[Hg],numeric
+2020-02-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-d68a-bffa5f7e4c12,vital-signs,8867-4,Heart rate,92.0,/min,numeric
+2020-02-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-d68a-bffa5f7e4c12,vital-signs,9279-1,Respiratory rate,16.0,/min,numeric
+2020-02-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-d68a-bffa5f7e4c12,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2020-04-12T00:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-dab1-96d2c6d71ae5,vital-signs,8310-5,Body temperature,37.8,Cel,numeric
+2016-09-03T22:33:58Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-0447-94724e8e43a8,social-history,82810-3,Pregnancy status,Pregnant,,text
+2020-05-19T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-0163-d1dee585ef56,vital-signs,8302-2,Body Height,68.9,cm,numeric
+2020-05-19T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-0163-d1dee585ef56,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,3.0,{score},numeric
+2020-05-19T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-0163-d1dee585ef56,vital-signs,29463-7,Body Weight,7.9,kg,numeric
+2020-05-19T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-0163-d1dee585ef56,vital-signs,77606-2,Weight-for-length Per age and sex,25.9,%,numeric
+2020-05-19T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-0163-d1dee585ef56,vital-signs,8289-1,Head Occipital-frontal circumference Percentile,24.4,%,numeric
+2020-05-19T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-0163-d1dee585ef56,vital-signs,9843-4,Head Occipital-frontal circumference,44.2,cm,numeric
+2020-05-19T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-0163-d1dee585ef56,vital-signs,8462-4,Diastolic Blood Pressure,78.0,mm[Hg],numeric
+2020-05-19T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-0163-d1dee585ef56,vital-signs,8480-6,Systolic Blood Pressure,105.0,mm[Hg],numeric
+2020-05-19T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-0163-d1dee585ef56,vital-signs,8867-4,Heart rate,79.0,/min,numeric
+2020-05-19T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-0163-d1dee585ef56,vital-signs,9279-1,Respiratory rate,14.0,/min,numeric
+2020-05-19T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-0163-d1dee585ef56,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2017-08-14T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-12c5-7baabca22236,vital-signs,8302-2,Body Height,125.3,cm,numeric
+2017-08-14T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-12c5-7baabca22236,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,1.0,{score},numeric
+2017-08-14T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-12c5-7baabca22236,vital-signs,29463-7,Body Weight,23.0,kg,numeric
+2017-08-14T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-12c5-7baabca22236,vital-signs,39156-5,Body mass index (BMI) [Ratio],14.6,kg/m2,numeric
+2017-08-14T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-12c5-7baabca22236,vital-signs,59576-9,Body mass index (BMI) [Percentile] Per age and sex,20.4,%,numeric
+2017-08-14T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-12c5-7baabca22236,vital-signs,8462-4,Diastolic Blood Pressure,94.0,mm[Hg],numeric
+2017-08-14T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-12c5-7baabca22236,vital-signs,8480-6,Systolic Blood Pressure,125.0,mm[Hg],numeric
+2017-08-14T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-12c5-7baabca22236,vital-signs,8867-4,Heart rate,86.0,/min,numeric
+2017-08-14T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-12c5-7baabca22236,vital-signs,9279-1,Respiratory rate,15.0,/min,numeric
+2017-08-14T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-12c5-7baabca22236,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2020-08-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-1b4a-3eba9ab38b05,vital-signs,8302-2,Body Height,72.7,cm,numeric
+2020-08-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-1b4a-3eba9ab38b05,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,4.0,{score},numeric
+2020-08-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-1b4a-3eba9ab38b05,vital-signs,29463-7,Body Weight,8.8,kg,numeric
+2020-08-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-1b4a-3eba9ab38b05,vital-signs,77606-2,Weight-for-length Per age and sex,24.6,%,numeric
+2020-08-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-1b4a-3eba9ab38b05,vital-signs,8289-1,Head Occipital-frontal circumference Percentile,24.4,%,numeric
+2020-08-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-1b4a-3eba9ab38b05,vital-signs,9843-4,Head Occipital-frontal circumference,45.3,cm,numeric
+2020-08-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-1b4a-3eba9ab38b05,vital-signs,8462-4,Diastolic Blood Pressure,75.0,mm[Hg],numeric
+2020-08-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-1b4a-3eba9ab38b05,vital-signs,8480-6,Systolic Blood Pressure,113.0,mm[Hg],numeric
+2020-08-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-1b4a-3eba9ab38b05,vital-signs,8867-4,Heart rate,81.0,/min,numeric
+2020-08-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-1b4a-3eba9ab38b05,vital-signs,9279-1,Respiratory rate,13.0,/min,numeric
+2020-08-18T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-1b4a-3eba9ab38b05,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2017-08-12T22:33:58Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,vital-signs,8302-2,Body Height,158.3,cm,numeric
+2017-08-12T22:33:58Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,3.0,{score},numeric
+2017-08-12T22:33:58Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,vital-signs,29463-7,Body Weight,69.2,kg,numeric
+2017-08-12T22:33:58Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,vital-signs,39156-5,Body mass index (BMI) [Ratio],27.6,kg/m2,numeric
+2017-08-12T22:33:58Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,vital-signs,8462-4,Diastolic Blood Pressure,81.0,mm[Hg],numeric
+2020-11-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-853e-bb37055c80b4,vital-signs,8302-2,Body Height,76.1,cm,numeric
+2020-11-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-853e-bb37055c80b4,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,0.0,{score},numeric
+2017-08-12T22:33:58Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,vital-signs,8480-6,Systolic Blood Pressure,129.0,mm[Hg],numeric
+2020-11-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-853e-bb37055c80b4,vital-signs,29463-7,Body Weight,9.6,kg,numeric
+2017-08-12T22:33:58Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,vital-signs,8867-4,Heart rate,75.0,/min,numeric
+2020-11-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-853e-bb37055c80b4,vital-signs,77606-2,Weight-for-length Per age and sex,30.7,%,numeric
+2017-08-12T22:33:58Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,vital-signs,9279-1,Respiratory rate,12.0,/min,numeric
+2020-11-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-853e-bb37055c80b4,vital-signs,8289-1,Head Occipital-frontal circumference Percentile,24.4,%,numeric
+2017-08-12T22:33:58Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,laboratory,2093-3,Cholesterol [Mass/volume] in Serum or Plasma,197.8,mg/dL,numeric
+2020-11-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-853e-bb37055c80b4,vital-signs,9843-4,Head Occipital-frontal circumference,46.1,cm,numeric
+2017-08-12T22:33:58Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,laboratory,2571-8,Triglyceride [Mass/volume] in Serum or Plasma,119.2,mg/dL,numeric
+2020-11-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-853e-bb37055c80b4,vital-signs,8462-4,Diastolic Blood Pressure,76.0,mm[Hg],numeric
+2017-08-12T22:33:58Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,laboratory,18262-6,Cholesterol in LDL [Mass/volume] in Serum or Plasma by Direct assay,120.7,mg/dL,numeric
+2020-11-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-853e-bb37055c80b4,vital-signs,8480-6,Systolic Blood Pressure,104.0,mm[Hg],numeric
+2017-08-12T22:33:58Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,laboratory,2085-9,Cholesterol in HDL [Mass/volume] in Serum or Plasma,53.3,mg/dL,numeric
+2017-08-12T22:33:58Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,76501-6,Within the last year  have you been afraid of your partner or ex-partner,No,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,93026-3,Do you feel physically and emotionally safe where you currently live [PRAPARE],Yes,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,93027-1,Are you a refugee,No,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,93028-9,Have you spent more than 2 nights in a row in a jail  prison  detention center  or juvenile correctional facility in past 1 year [PRAPARE],No,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,93038-8,Stress level,Not at all,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,93029-7,How often do you see or talk to people that you care about and feel close to [PRAPARE],5 or more times a week,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,93030-5,Has lack of transportation kept you from medical appointments  meetings  work  or from getting things needed for daily living,No,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,93031-3,Have you or any family members you live with been unable to get any of the following when it was really needed in past 1 year [PRAPARE],Utilities,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,63586-2,What was your best estimate of the total income of all family members from all sources  before taxes  in last year [PhenX],51919,/a,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,76437-3,Primary insurance,Private insurance,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,67875-5,Employment status - current,Full-time work,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,82589-3,Highest level of education,More than high school,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,56799-0,Address,864 Wisozk Skyway Suite 4,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,93033-9,Are you worried about losing your housing [PRAPARE],No,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,71802-3,Housing status,I have housing,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,63512-8,How many people are living or staying at this address [#],2.0,{#},numeric
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,54899-0,Preferred language,English,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,93034-7,Discharged from the U.S. Armed Forces,No,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,93035-4,Has season or migrant farm work been your or your family's main source of income at any point in past 2 years [PRAPARE],No,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,32624-9,Race,White,,text
+2017-08-12T23:07:31Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,56051-6,Hispanic or Latino,No,,text
+2017-08-12T23:50:56Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,76504-0,Total score [HARK],0.0,{score},numeric
+2017-08-13T00:32:39Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,55758-7,Patient Health Questionnaire 2 item (PHQ-2) total score [Reported],1.0,{score},numeric
+2017-08-13T01:09:26Z,982750f4-569b-5949-196b-60699bdda3fb,982750f4-569b-5949-8085-d51af099357c,survey,75626-2,Total score [AUDIT-C],1.0,{score},numeric
+2020-11-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-853e-bb37055c80b4,vital-signs,8867-4,Heart rate,99.0,/min,numeric
+2020-11-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-853e-bb37055c80b4,vital-signs,9279-1,Respiratory rate,13.0,/min,numeric
+2020-11-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-853e-bb37055c80b4,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2021-02-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-3c7a-a9d25dc4d2cd,vital-signs,8302-2,Body Height,79.0,cm,numeric
+2021-02-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-3c7a-a9d25dc4d2cd,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,4.0,{score},numeric
+2021-02-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-3c7a-a9d25dc4d2cd,vital-signs,29463-7,Body Weight,10.1,kg,numeric
+2021-02-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-3c7a-a9d25dc4d2cd,vital-signs,77606-2,Weight-for-length Per age and sex,23.4,%,numeric
+2021-02-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-3c7a-a9d25dc4d2cd,vital-signs,8289-1,Head Occipital-frontal circumference Percentile,24.4,%,numeric
+2021-02-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-3c7a-a9d25dc4d2cd,vital-signs,9843-4,Head Occipital-frontal circumference,46.8,cm,numeric
+2021-02-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-3c7a-a9d25dc4d2cd,vital-signs,8462-4,Diastolic Blood Pressure,76.0,mm[Hg],numeric
+2021-02-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-3c7a-a9d25dc4d2cd,vital-signs,8480-6,Systolic Blood Pressure,107.0,mm[Hg],numeric
+2021-02-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-3c7a-a9d25dc4d2cd,vital-signs,8867-4,Heart rate,88.0,/min,numeric
+2021-02-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-3c7a-a9d25dc4d2cd,vital-signs,9279-1,Respiratory rate,14.0,/min,numeric
+2021-02-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-3c7a-a9d25dc4d2cd,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2018-08-20T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-0b77-98d141b55aee,vital-signs,8302-2,Body Height,131.2,cm,numeric
+2021-08-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-8a5e-0f64ebf6b87c,vital-signs,8302-2,Body Height,84.1,cm,numeric
+2018-08-20T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-0b77-98d141b55aee,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,2.0,{score},numeric
+2021-08-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-8a5e-0f64ebf6b87c,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,2.0,{score},numeric
+2018-08-20T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-0b77-98d141b55aee,vital-signs,29463-7,Body Weight,24.0,kg,numeric
+2021-08-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-8a5e-0f64ebf6b87c,vital-signs,29463-7,Body Weight,11.0,kg,numeric
+2021-08-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-8a5e-0f64ebf6b87c,vital-signs,77606-2,Weight-for-length Per age and sex,17.3,%,numeric
+2021-08-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-8a5e-0f64ebf6b87c,vital-signs,8289-1,Head Occipital-frontal circumference Percentile,24.4,%,numeric
+2021-08-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-8a5e-0f64ebf6b87c,vital-signs,9843-4,Head Occipital-frontal circumference,47.6,cm,numeric
+2021-08-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-8a5e-0f64ebf6b87c,vital-signs,8462-4,Diastolic Blood Pressure,82.0,mm[Hg],numeric
+2021-08-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-8a5e-0f64ebf6b87c,vital-signs,8480-6,Systolic Blood Pressure,117.0,mm[Hg],numeric
+2021-08-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-8a5e-0f64ebf6b87c,vital-signs,8867-4,Heart rate,71.0,/min,numeric
+2021-08-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-8a5e-0f64ebf6b87c,vital-signs,9279-1,Respiratory rate,14.0,/min,numeric
+2021-08-17T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-8a5e-0f64ebf6b87c,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2018-08-20T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-0b77-98d141b55aee,vital-signs,39156-5,Body mass index (BMI) [Ratio],13.9,kg/m2,numeric
+2018-08-20T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-0b77-98d141b55aee,vital-signs,59576-9,Body mass index (BMI) [Percentile] Per age and sex,4.5,%,numeric
+2018-08-20T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-0b77-98d141b55aee,vital-signs,8462-4,Diastolic Blood Pressure,89.0,mm[Hg],numeric
+2018-08-20T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-0b77-98d141b55aee,vital-signs,8480-6,Systolic Blood Pressure,125.0,mm[Hg],numeric
+2018-08-20T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-0b77-98d141b55aee,vital-signs,8867-4,Heart rate,70.0,/min,numeric
+2018-08-20T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-0b77-98d141b55aee,vital-signs,9279-1,Respiratory rate,14.0,/min,numeric
+2018-08-20T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-0b77-98d141b55aee,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2022-02-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-dfb4-11b429a2c24e,vital-signs,8302-2,Body Height,87.8,cm,numeric
+2022-02-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-dfb4-11b429a2c24e,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,3.0,{score},numeric
+2019-08-26T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-21a1-e3e85458644e,vital-signs,8302-2,Body Height,136.1,cm,numeric
+2022-02-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-dfb4-11b429a2c24e,vital-signs,29463-7,Body Weight,11.7,kg,numeric
+2022-02-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-dfb4-11b429a2c24e,vital-signs,77606-2,Weight-for-length Per age and sex,13.3,%,numeric
+2019-08-26T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-21a1-e3e85458644e,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,0.0,{score},numeric
+2022-02-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-dfb4-11b429a2c24e,vital-signs,8289-1,Head Occipital-frontal circumference Percentile,24.4,%,numeric
+2019-08-26T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-21a1-e3e85458644e,vital-signs,29463-7,Body Weight,26.0,kg,numeric
+2022-02-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-dfb4-11b429a2c24e,vital-signs,9843-4,Head Occipital-frontal circumference,48.2,cm,numeric
+2019-08-26T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-21a1-e3e85458644e,vital-signs,39156-5,Body mass index (BMI) [Ratio],14.0,kg/m2,numeric
+2022-02-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-dfb4-11b429a2c24e,vital-signs,39156-5,Body mass index (BMI) [Ratio],15.2,kg/m2,numeric
+2022-02-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-dfb4-11b429a2c24e,vital-signs,59576-9,Body mass index (BMI) [Percentile] Per age and sex,16.5,%,numeric
+2019-08-26T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-21a1-e3e85458644e,vital-signs,59576-9,Body mass index (BMI) [Percentile] Per age and sex,3.5,%,numeric
+2022-02-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-dfb4-11b429a2c24e,vital-signs,8462-4,Diastolic Blood Pressure,80.0,mm[Hg],numeric
+2022-02-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-dfb4-11b429a2c24e,vital-signs,8480-6,Systolic Blood Pressure,111.0,mm[Hg],numeric
+2019-08-26T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-21a1-e3e85458644e,vital-signs,8462-4,Diastolic Blood Pressure,94.0,mm[Hg],numeric
+2022-02-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-dfb4-11b429a2c24e,vital-signs,8867-4,Heart rate,85.0,/min,numeric
+2019-08-26T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-21a1-e3e85458644e,vital-signs,8480-6,Systolic Blood Pressure,130.0,mm[Hg],numeric
+2022-02-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-dfb4-11b429a2c24e,vital-signs,9279-1,Respiratory rate,15.0,/min,numeric
+2019-08-26T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-21a1-e3e85458644e,vital-signs,8867-4,Heart rate,73.0,/min,numeric
+2022-02-15T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-dfb4-11b429a2c24e,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2019-08-26T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-21a1-e3e85458644e,vital-signs,9279-1,Respiratory rate,14.0,/min,numeric
+2019-08-26T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-21a1-e3e85458644e,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2022-08-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-36f6-449ec7bd3ca4,vital-signs,8302-2,Body Height,91.7,cm,numeric
+2022-08-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-36f6-449ec7bd3ca4,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,3.0,{score},numeric
+2022-08-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-36f6-449ec7bd3ca4,vital-signs,29463-7,Body Weight,12.6,kg,numeric
+2022-08-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-36f6-449ec7bd3ca4,vital-signs,77606-2,Weight-for-length Per age and sex,14.4,%,numeric
+2022-08-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-36f6-449ec7bd3ca4,vital-signs,8289-1,Head Occipital-frontal circumference Percentile,24.4,%,numeric
+2022-08-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-36f6-449ec7bd3ca4,vital-signs,9843-4,Head Occipital-frontal circumference,48.5,cm,numeric
+2020-03-20T11:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-f8ee-630445830776,vital-signs,8310-5,Body temperature,37.5,Cel,numeric
+2022-08-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-36f6-449ec7bd3ca4,vital-signs,39156-5,Body mass index (BMI) [Ratio],15.0,kg/m2,numeric
+2022-08-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-36f6-449ec7bd3ca4,vital-signs,59576-9,Body mass index (BMI) [Percentile] Per age and sex,16.7,%,numeric
+2022-08-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-36f6-449ec7bd3ca4,vital-signs,8462-4,Diastolic Blood Pressure,76.0,mm[Hg],numeric
+2022-08-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-36f6-449ec7bd3ca4,vital-signs,8480-6,Systolic Blood Pressure,104.0,mm[Hg],numeric
+2022-08-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-36f6-449ec7bd3ca4,vital-signs,8867-4,Heart rate,70.0,/min,numeric
+2022-08-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-36f6-449ec7bd3ca4,vital-signs,9279-1,Respiratory rate,12.0,/min,numeric
+2022-08-16T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-36f6-449ec7bd3ca4,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2023-02-14T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-c223-c601cac08ba2,vital-signs,8302-2,Body Height,95.3,cm,numeric
+2023-02-14T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-c223-c601cac08ba2,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,2.0,{score},numeric
+2023-02-14T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-c223-c601cac08ba2,vital-signs,29463-7,Body Weight,14.0,kg,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,vital-signs,8302-2,Body Height,140.8,cm,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,vital-signs,72514-3,Pain severity - 0-10 verbal numeric rating [Score] - Reported,1.0,{score},numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,vital-signs,29463-7,Body Weight,28.7,kg,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,vital-signs,39156-5,Body mass index (BMI) [Ratio],14.5,kg/m2,numeric
+2023-02-14T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-c223-c601cac08ba2,vital-signs,77606-2,Weight-for-length Per age and sex,20.0,%,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,vital-signs,59576-9,Body mass index (BMI) [Percentile] Per age and sex,4.1,%,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,vital-signs,8462-4,Diastolic Blood Pressure,93.0,mm[Hg],numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,vital-signs,8480-6,Systolic Blood Pressure,127.0,mm[Hg],numeric
+2023-02-14T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-c223-c601cac08ba2,vital-signs,8289-1,Head Occipital-frontal circumference Percentile,24.4,%,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,vital-signs,8867-4,Heart rate,80.0,/min,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,vital-signs,9279-1,Respiratory rate,15.0,/min,numeric
+2023-02-14T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-c223-c601cac08ba2,vital-signs,9843-4,Head Occipital-frontal circumference,48.5,cm,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,laboratory,6690-2,Leukocytes [#/volume] in Blood by Automated count,7.8,10*3/uL,numeric
+2023-02-14T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-c223-c601cac08ba2,vital-signs,39156-5,Body mass index (BMI) [Ratio],15.4,kg/m2,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,laboratory,789-8,Erythrocytes [#/volume] in Blood by Automated count,5.0,10*6/uL,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,laboratory,718-7,Hemoglobin [Mass/volume] in Blood,15.5,g/dL,numeric
+2023-02-14T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-c223-c601cac08ba2,vital-signs,59576-9,Body mass index (BMI) [Percentile] Per age and sex,35.8,%,numeric
+2023-02-14T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-c223-c601cac08ba2,vital-signs,8462-4,Diastolic Blood Pressure,75.0,mm[Hg],numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,laboratory,4544-3,Hematocrit [Volume Fraction] of Blood by Automated count,43.8,%,numeric
+2023-02-14T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-c223-c601cac08ba2,vital-signs,8480-6,Systolic Blood Pressure,115.0,mm[Hg],numeric
+2023-02-14T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-c223-c601cac08ba2,vital-signs,8867-4,Heart rate,96.0,/min,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,laboratory,787-2,MCV [Entitic mean volume] in Red Blood Cells by Automated count,92.3,fL,numeric
+2023-02-14T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-c223-c601cac08ba2,vital-signs,9279-1,Respiratory rate,12.0,/min,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,laboratory,785-6,MCH [Entitic mass] by Automated count,30.8,pg,numeric
+2023-02-14T08:06:56Z,2d68ad16-268a-478c-1f84-d0f1976e1a46,2d68ad16-268a-478c-c223-c601cac08ba2,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,laboratory,786-4,MCHC [Entitic Mass/volume] in Red Blood Cells by Automated count,34.7,g/dL,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,laboratory,788-0,Erythrocyte [DistWidth] in Blood by Automated count,40.4,fL,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,laboratory,777-3,Platelets [#/volume] in Blood by Automated count,200.7,10*3/uL,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,laboratory,32207-3,Platelet distribution width [Entitic volume] in Blood by Automated count,264.4,fL,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,laboratory,32623-1,Platelet [Entitic mean volume] in Blood by Automated count,11.5,fL,numeric
+2020-08-31T02:57:01Z,5e688e99-61b3-5c88-3f60-21df8aaced27,5e688e99-61b3-5c88-2810-105aef5f07cd,social-history,72166-2,Tobacco smoking status,Never smoked tobacco (finding),,text
