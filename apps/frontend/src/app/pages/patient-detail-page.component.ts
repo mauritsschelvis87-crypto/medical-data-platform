@@ -9,11 +9,14 @@ import {
   ConsultNote,
   MedicationCatalogItem,
   Patient,
+  PatientAddress,
   PatientMedication,
   Prediction,
   TimelineEvent,
+  UpdatePatientAddressPayload,
   VitalSigns,
 } from '../models/medical.models';
+import { AppNoticeService } from '../state/app-notice.service';
 import { AppPreferencesService } from '../state/app-preferences.service';
 
 type VitalMetricKey =
@@ -37,12 +40,15 @@ export class PatientDetailPageComponent {
   private readonly api = inject(PatientApiService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
+  private readonly noticeService = inject(AppNoticeService);
 
   protected readonly preferences = inject(AppPreferencesService);
 
   protected readonly loading = signal(true);
   protected readonly drawerOpen = signal(false);
+  protected readonly editingAddress = signal(false);
   protected readonly medicationLookup = signal<MedicationCatalogItem[]>([]);
+  protected readonly submittingAddress = signal(false);
   protected readonly submittingNote = signal(false);
   protected readonly submittingMedication = signal(false);
 
@@ -69,6 +75,14 @@ export class PatientDetailPageComponent {
     startDate: [new Date().toISOString().slice(0, 10), Validators.required],
     endDate: [''],
     reason: ['', Validators.required],
+  });
+
+  protected readonly addressForm = this.fb.nonNullable.group({
+    addressLine: [''],
+    city: [''],
+    state: [''],
+    county: [''],
+    zipCode: [''],
   });
 
   protected readonly mainPrediction = computed(
@@ -117,6 +131,7 @@ export class PatientDetailPageComponent {
           this.predictions.set(data.predictions);
           this.consultNotes.set(data.consultNotes);
           this.medications.set(data.medications);
+          this.patchAddressForm(data.patient.address);
           this.loading.set(false);
         },
         error: () => {
@@ -139,6 +154,46 @@ export class PatientDetailPageComponent {
 
   protected toggleDrawer(): void {
     this.drawerOpen.update((open) => !open);
+  }
+
+  protected toggleAddressEdit(): void {
+    const patient = this.patient();
+    if (!patient) {
+      return;
+    }
+
+    if (!this.editingAddress()) {
+      this.patchAddressForm(patient.address);
+    }
+
+    this.editingAddress.update((open) => !open);
+  }
+
+  protected cancelAddressEdit(): void {
+    this.patchAddressForm(this.patient()?.address);
+    this.editingAddress.set(false);
+  }
+
+  protected saveAddress(): void {
+    const patient = this.patient();
+    if (!patient) {
+      return;
+    }
+
+    this.submittingAddress.set(true);
+    this.api
+      .updatePatientAddress(patient.id, this.buildAddressPayload())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (updatedPatient) => {
+          this.patient.set(updatedPatient);
+          this.patchAddressForm(updatedPatient.address);
+          this.editingAddress.set(false);
+          this.submittingAddress.set(false);
+          this.noticeService.show(this.preferences.t('sessionNotice'));
+        },
+        error: () => this.submittingAddress.set(false),
+      });
   }
 
   protected selectMedication(item: MedicationCatalogItem): void {
@@ -379,5 +434,30 @@ export class PatientDetailPageComponent {
       return '—';
     }
     return `${value}${suffix}`;
+  }
+
+  private patchAddressForm(address?: PatientAddress | null): void {
+    this.addressForm.reset({
+      addressLine: address?.addressLine ?? '',
+      city: address?.city ?? '',
+      state: address?.state ?? '',
+      county: address?.county ?? '',
+      zipCode: address?.zipCode ?? '',
+    });
+  }
+
+  private buildAddressPayload(): UpdatePatientAddressPayload {
+    return {
+      addressLine: this.normalizeAddressValue(this.addressForm.controls.addressLine.value),
+      city: this.normalizeAddressValue(this.addressForm.controls.city.value),
+      state: this.normalizeAddressValue(this.addressForm.controls.state.value),
+      county: this.normalizeAddressValue(this.addressForm.controls.county.value),
+      zipCode: this.normalizeAddressValue(this.addressForm.controls.zipCode.value),
+    };
+  }
+
+  private normalizeAddressValue(value: string): string | null {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
   }
 }

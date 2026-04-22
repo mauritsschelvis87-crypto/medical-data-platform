@@ -10,6 +10,7 @@ import {
   PatientSearchResult,
   Prediction,
   TimelineEvent,
+  UpdatePatientAddressPayload,
   VitalSigns,
 } from '../models/medical.models';
 
@@ -31,6 +32,10 @@ export class PatientApiService {
 
   getPatient(patientId: string) {
     return this.http.get<Patient>(`${this.baseUrl}/patients/${patientId}`);
+  }
+
+  updatePatientAddress(patientId: string, payload: UpdatePatientAddressPayload) {
+    return this.http.put<Patient>(`${this.baseUrl}/patients/${patientId}/address`, payload);
   }
 
   getTimeline(patientId: string) {

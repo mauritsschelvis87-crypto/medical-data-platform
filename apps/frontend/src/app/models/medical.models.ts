@@ -137,6 +137,14 @@ export interface CreateMedicationPayload {
   prescribedBy: string;
 }
 
+export interface UpdatePatientAddressPayload {
+  addressLine?: string | null;
+  city?: string | null;
+  state?: string | null;
+  county?: string | null;
+  zipCode?: string | null;
+}
+
 export interface UserProfile {
   name: string;
   shortName: string;

@@ -66,8 +66,8 @@
 .doctor-card {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.7rem 0.9rem;
+  gap: 0.8rem;
+  padding: 0.62rem 0.78rem;
   border: 1px solid var(--border-subtle);
   border-radius: 1rem;
   background: var(--surface-panel);
@@ -99,7 +99,7 @@
 .doctor-card__headline {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.48rem;
   flex-wrap: wrap;
 }
 
@@ -108,11 +108,11 @@
 }
 
 .doctor-card__badge {
-  padding: 0.2rem 0.5rem;
+  padding: 0.18rem 0.46rem;
   border-radius: 999px;
   background: var(--accent-faint);
   color: var(--accent-strong);
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   line-height: 1.1;
   white-space: nowrap;
   font-weight: 700;

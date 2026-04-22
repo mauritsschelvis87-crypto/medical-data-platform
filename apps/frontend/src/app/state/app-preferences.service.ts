@@ -37,8 +37,8 @@ const TEXT: TranslationMap = {
   loading: { en: 'Loading data...', nl: 'Gegevens laden...' },
   staleWeight: { en: 'Weight measurement is older than one year.', nl: 'Gewichtsmeting is ouder dan één jaar.' },
   sessionNotice: {
-    en: 'Login and logout stay simulated for this demo.',
-    nl: 'In- en uitloggen blijft gesimuleerd voor deze demo.'
+    en: 'For this demo, changes stay simulated.',
+    nl: 'Voor deze demo blijven wijzigingen gesimuleerd.'
   }
 };
 

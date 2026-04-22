@@ -18,10 +18,68 @@
             <span class="record-header__secondary">Age: {{ patientAge() ?? '—' }}</span>
           </div>
 
-          <div class="record-header__block">
-            <span class="record-header__label">Address</span>
-            <strong class="record-header__primary">{{ patientStreetLine() }}</strong>
-            <span class="record-header__secondary">{{ patientCityLine() }}</span>
+          <div class="record-header__block record-header__block--address">
+            <div class="record-header__label-row">
+              <span class="record-header__label">Address</span>
+              <button
+                type="button"
+                class="record-header__icon-button"
+                (click)="toggleAddressEdit()"
+                [attr.aria-label]="editingAddress() ? 'Close address editor' : 'Edit address'"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M3 17.25V21h3.75L17.8 9.94l-3.75-3.75L3 17.25Zm2.92 2.33H5v-.92l9.06-9.06.92.92L5.92 19.58ZM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.13 1.13 3.75 3.75 1.13-1.13Z"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            @if (editingAddress()) {
+              <form class="address-editor" [formGroup]="addressForm" (ngSubmit)="saveAddress()">
+                <label class="address-editor__field address-editor__field--full">
+                  <span>Street</span>
+                  <input type="text" formControlName="addressLine" />
+                </label>
+
+                <label class="address-editor__field">
+                  <span>City</span>
+                  <input type="text" formControlName="city" />
+                </label>
+
+                <label class="address-editor__field">
+                  <span>State</span>
+                  <input type="text" formControlName="state" />
+                </label>
+
+                <label class="address-editor__field">
+                  <span>County</span>
+                  <input type="text" formControlName="county" />
+                </label>
+
+                <label class="address-editor__field">
+                  <span>ZIP</span>
+                  <input type="text" formControlName="zipCode" />
+                </label>
+
+                <div class="address-editor__actions">
+                  <button type="submit" [disabled]="submittingAddress()">
+                    {{ submittingAddress() ? 'Saving...' : 'Save' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="address-editor__secondary"
+                    (click)="cancelAddressEdit()"
+                    [disabled]="submittingAddress()"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            } @else {
+              <strong class="record-header__primary">{{ patientStreetLine() }}</strong>
+              <span class="record-header__secondary">{{ patientCityLine() }}</span>
+            }
           </div>
         </div>
 
