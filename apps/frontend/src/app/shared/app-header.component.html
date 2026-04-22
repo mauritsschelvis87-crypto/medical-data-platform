@@ -3,22 +3,47 @@
     <span class="brand__mark">MD</span>
     <span class="brand__text">
       <strong>Medical Data Platform</strong>
-      <small>Hospital demo workspace</small>
     </span>
   </a>
 
   <div class="topbar__actions">
-    <div class="doctor-card">
-      <div class="doctor-card__identity">
-        <span class="doctor-card__name">{{ doctor.shortName }}</span>
-        <span class="doctor-card__role">{{ doctor.specialty }} | {{ doctor.department }}</span>
-      </div>
-      <span class="doctor-card__badge">{{ doctor.status }}</span>
-    </div>
+    <div class="doctor-menu">
+      <button class="doctor-card" type="button" (click)="toggleAccount()" [attr.aria-expanded]="accountOpen()">
+        <div class="doctor-card__identity">
+          <div class="doctor-card__headline">
+            <span class="doctor-card__name">{{ doctor.shortName }}</span>
+            <span class="doctor-card__badge">{{ doctor.status }}</span>
+          </div>
+          <span class="doctor-card__role">{{ doctor.specialty }} | {{ doctor.department }}</span>
+        </div>
+      </button>
 
-    <button class="switch-user" type="button" (click)="demoLoginClick.emit()">
-      {{ text.t('switchUser') }}
-    </button>
+      @if (accountOpen()) {
+        <div class="account__panel">
+          <div class="account__actions">
+            <button
+              type="button"
+              class="account__action"
+              [class.is-active]="loggedIn"
+              (click)="setSession('login')"
+            >
+              {{ text.t('login') }}
+            </button>
+            <button
+              type="button"
+              class="account__action"
+              [class.is-active]="!loggedIn"
+              (click)="setSession('logout')"
+            >
+              {{ text.t('logout') }}
+            </button>
+          </div>
+          <div class="account__meta">
+            <span>{{ doctor.accessLevel }}</span>
+          </div>
+        </div>
+      }
+    </div>
 
     <div class="settings">
       <button class="settings__toggle" type="button" (click)="toggleSettings()" [attr.aria-expanded]="settingsOpen()">
@@ -43,13 +68,13 @@
           <div class="settings__group">
             <span class="settings__label">{{ text.t('theme') }}</span>
             <div class="segmented">
-              <button type="button" [class.active]="theme === 'dark'" (click)="setTheme('dark')">{{ text.t('darkMode') }}</button>
-              <button type="button" [class.active]="theme === 'light'" (click)="setTheme('light')">{{ text.t('lightMode') }}</button>
+              <button type="button" [class.active]="theme === 'dark'" (click)="setTheme('dark')">
+                {{ text.t('darkMode') }}
+              </button>
+              <button type="button" [class.active]="theme === 'light'" (click)="setTheme('light')">
+                {{ text.t('lightMode') }}
+              </button>
             </div>
-          </div>
-
-          <div class="settings__group settings__meta">
-            <span>{{ doctor.accessLevel }}</span>
           </div>
         </div>
       }

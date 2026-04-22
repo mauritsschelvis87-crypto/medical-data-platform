@@ -1,59 +1,91 @@
 # Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.7.
+Angular frontend for the medical data platform.
 
-## Development server
+## What the UI currently shows
 
-To start a local development server, run:
+- patient search with live backend results
+- patient detail page
+- latest vital signs
+- risk summary area
+- timeline area
+- consult notes area
+- medications area
 
-```bash
-ng serve
+For the current imported full dataset, the most important working screens are:
+
+- patient search
+- patient detail
+- vital signs display
+
+## Local URL
+
+- `http://localhost:4200`
+
+## Start locally
+
+From `apps/frontend`:
+
+```powershell
+npm install
+npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Build:
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```powershell
+npm run build
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Backend dependency
 
-```bash
-ng generate --help
-```
+The frontend expects the backend at:
 
-## Building
+- `http://localhost:8081/api`
 
-To build the project run:
+Before starting the frontend, make sure:
 
-```bash
-ng build
-```
+1. PostgreSQL is running.
+2. The backend is running.
+3. The full dataset has been generated and imported.
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Expected local flow
 
-## Running unit tests
+1. Run the notebook pipeline in `apps/ai-service`.
+2. Start the Spring Boot backend.
+3. Import the generated dataset into the backend.
+4. Start the Angular frontend.
+5. Search for a patient.
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Search examples
 
-```bash
-ng test
-```
+Known working example after full import:
 
-## Running end-to-end tests
+- `Thomas`
 
-For end-to-end (e2e) testing, run:
+You can also search by:
 
-```bash
-ng e2e
-```
+- patient number
+- first name
+- last name
+- full name
+- birth date if supported by the backend search input
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Data expectations
 
-## Additional Resources
+The frontend is aligned with the current backend contract:
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- UUID patient ids
+- patient address nested under `address`
+- vital signs stored one measurement per row in the backend and aggregated in the UI for display
+
+## Current empty states
+
+The current imported dataset does not currently preload:
+
+- predictions
+- timeline events
+- consult notes
+- medication records
+
+So those panels can still render empty-state content even though the pages themselves work correctly.

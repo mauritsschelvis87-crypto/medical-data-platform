@@ -1,12 +1,13 @@
 <div class="app-shell" [attr.data-theme]="preferences.theme()">
   <app-header
     [doctor]="doctor()"
+    [loggedIn]="loggedIn()"
     [language]="preferences.language()"
     [theme]="preferences.theme()"
     [notice]="notice()"
     (languageChange)="preferences.setLanguage($event)"
     (themeChange)="preferences.setTheme($event)"
-    (demoLoginClick)="showDemoLoginNotice()"
+    (sessionAction)="handleSessionAction($event)"
   />
 
   <main class="app-content">

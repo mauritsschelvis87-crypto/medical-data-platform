@@ -45,21 +45,22 @@
 
 .brand__text {
   display: flex;
-  flex-direction: column;
+  align-items: center;
 }
 
 .brand__text strong {
   font-size: 0.98rem;
 }
 
-.brand__text small {
-  color: var(--text-muted);
-}
-
 .topbar__actions {
   display: flex;
   align-items: center;
   gap: 0.9rem;
+}
+
+.doctor-menu,
+.settings {
+  position: relative;
 }
 
 .doctor-card {
@@ -70,6 +71,23 @@
   border: 1px solid var(--border-subtle);
   border-radius: 1rem;
   background: var(--surface-panel);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease;
+}
+
+.doctor-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent-soft);
+}
+
+.doctor-card[aria-expanded='true'] {
+  border-color: var(--accent-soft);
+  background: var(--accent-faint);
 }
 
 .doctor-card__identity {
@@ -78,7 +96,25 @@
   gap: 0.15rem;
 }
 
+.doctor-card__headline {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
 .doctor-card__name {
+  font-weight: 700;
+}
+
+.doctor-card__badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: var(--accent-faint);
+  color: var(--accent-strong);
+  font-size: 0.68rem;
+  line-height: 1.1;
+  white-space: nowrap;
   font-weight: 700;
 }
 
@@ -87,17 +123,8 @@
   color: var(--text-muted);
 }
 
-.doctor-card__badge {
-  padding: 0.35rem 0.65rem;
-  border-radius: 999px;
-  background: var(--accent-faint);
-  color: var(--accent-strong);
-  font-size: 0.74rem;
-  font-weight: 700;
-}
-
-.switch-user,
 .settings__toggle,
+.account__action,
 .segmented button {
   border: 1px solid var(--border-subtle);
   background: var(--surface-panel);
@@ -109,26 +136,22 @@
     transform 140ms ease;
 }
 
-.switch-user {
-  border-radius: 999px;
-  padding: 0.8rem 1rem;
-  font-weight: 600;
+.account__action,
+.segmented button {
+  padding: 0.7rem 0.9rem;
 }
 
-.switch-user:hover,
+.account__action:hover,
 .settings__toggle:hover,
 .segmented button:hover {
   transform: translateY(-1px);
   border-color: var(--accent-soft);
 }
 
-.settings {
-  position: relative;
-}
-
 .settings__toggle {
   width: 3rem;
   height: 3rem;
+  padding: 0;
   border-radius: 999px;
   display: grid;
   place-items: center;
@@ -140,6 +163,7 @@
   fill: currentColor;
 }
 
+.account__panel,
 .settings__panel {
   position: absolute;
   top: calc(100% + 0.75rem);
@@ -152,6 +176,34 @@
   box-shadow: var(--shadow-panel);
   display: grid;
   gap: 1rem;
+}
+
+.account__panel {
+  min-width: 14rem;
+  gap: 0.8rem;
+}
+
+.account__actions {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.account__action {
+  border-radius: 0.8rem;
+  text-align: left;
+  font-weight: 600;
+}
+
+.account__action.is-active {
+  border-color: var(--accent-soft);
+  background: var(--accent-faint);
+}
+
+.account__meta {
+  padding-top: 0.2rem;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: 0.9rem;
 }
 
 .settings__group {
@@ -184,13 +236,6 @@
   color: white;
 }
 
-.settings__meta {
-  padding-top: 0.2rem;
-  border-top: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
-
 .notice-banner {
   position: fixed;
   top: 5.4rem;
@@ -214,9 +259,12 @@
     flex-wrap: wrap;
   }
 
-  .doctor-card {
+  .doctor-menu {
     flex: 1 1 100%;
-    justify-content: space-between;
+  }
+
+  .doctor-card {
+    width: 100%;
   }
 }
 
@@ -226,10 +274,10 @@
   }
 
   .doctor-card {
-    flex-direction: column;
-    align-items: flex-start;
+    width: 100%;
   }
 
+  .account__panel,
   .settings__panel {
     right: auto;
     left: 0;

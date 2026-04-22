@@ -1,27 +1,43 @@
 export interface PatientSearchResult {
-  id: number;
+  id: string;
   patientNumber: string;
   fullName: string;
   birthDate: string;
 }
 
+export interface PatientAddress {
+  id: string;
+  patientId: string;
+  addressLine?: string | null;
+  city?: string | null;
+  state?: string | null;
+  county?: string | null;
+  zipCode?: string | null;
+}
+
 export interface Patient {
-  id: number;
+  id: string;
   patientNumber: string;
+  sourcePatientId?: string | null;
   firstName: string;
   lastName: string;
+  fullName?: string;
   birthDate: string;
   gender: string;
-  phone?: string | null;
-  email?: string | null;
-  addressLine?: string | null;
-  postalCode?: string | null;
-  city?: string | null;
-  country?: string | null;
+  deceased?: boolean;
+  deathDate?: string | null;
+  maritalStatus?: string | null;
+  race?: string | null;
+  ethnicity?: string | null;
+  address?: PatientAddress | null;
 }
 
 export interface VitalSigns {
-  id: number;
+  id: string;
+  patientId?: string;
+  type?: string | null;
+  value?: number | null;
+  unit?: string | null;
   bloodPressureSystolic?: number | null;
   bloodPressureDiastolic?: number | null;
   heartRate?: number | null;
@@ -32,12 +48,13 @@ export interface VitalSigns {
   oxygenSaturation?: number | null;
   cholesterol?: number | null;
   measuredAt: string;
-  recordedAt: string;
-  source: string;
+  source?: string | null;
+  sourceObservationCode?: string | null;
+  sourceDescription?: string | null;
 }
 
 export interface TimelineEvent {
-  id: number;
+  id: string;
   eventType: string;
   title: string;
   description?: string | null;
@@ -45,7 +62,7 @@ export interface TimelineEvent {
 }
 
 export interface Prediction {
-  id: number;
+  id: string;
   predictionType: string;
   riskLevel: string;
   riskScore: number;
@@ -64,7 +81,7 @@ export interface Prediction {
 }
 
 export interface ConsultNoteVersion {
-  id: number;
+  id: string;
   versionNumber: string;
   subjective?: string | null;
   objective?: string | null;
@@ -75,7 +92,7 @@ export interface ConsultNoteVersion {
 }
 
 export interface ConsultNote {
-  id: number;
+  id: string;
   status: string;
   createdBy: string;
   createdAt: string;
@@ -83,7 +100,7 @@ export interface ConsultNote {
 }
 
 export interface MedicationCatalogItem {
-  id: number;
+  id: string;
   code: string;
   dutchName: string;
   latinName?: string | null;
@@ -92,7 +109,7 @@ export interface MedicationCatalogItem {
 }
 
 export interface PatientMedication {
-  id: number;
+  id: string;
   medicationName: string;
   dosage: string;
   frequency: string;
@@ -111,7 +128,7 @@ export interface CreateConsultNotePayload {
 }
 
 export interface CreateMedicationPayload {
-  medicationCatalogId: number;
+  medicationCatalogId: string;
   dosage: string;
   frequency: string;
   startDate: string;
@@ -120,7 +137,7 @@ export interface CreateMedicationPayload {
   prescribedBy: string;
 }
 
-export interface DemoDoctor {
+export interface UserProfile {
   name: string;
   shortName: string;
   specialty: string;

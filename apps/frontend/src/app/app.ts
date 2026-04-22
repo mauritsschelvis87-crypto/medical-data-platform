@@ -1,25 +1,36 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AppHeaderComponent } from './shared/app-header.component';
-import { DemoUserService } from './state/demo-user.service';
 import { AppPreferencesService } from './state/app-preferences.service';
+import { UserSessionService } from './state/user-session.service';
 
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, AppHeaderComponent],
   templateUrl: './app.html',
-  styleUrl: './app.scss'
+  styleUrl: './app.scss',
 })
 export class App {
   protected readonly preferences = inject(AppPreferencesService);
-  private readonly demoUserService = inject(DemoUserService);
+  private readonly userSessionService = inject(UserSessionService);
 
-  protected readonly doctor = this.demoUserService.doctor;
+  protected readonly doctor = this.userSessionService.doctor;
+  protected readonly loggedIn = this.userSessionService.loggedIn;
   protected readonly notice = signal<string | null>(null);
   protected readonly title = computed(() => 'Medical Data Platform');
 
-  protected showDemoLoginNotice(): void {
-    this.notice.set('For the demo, this physician remains signed in.');
+  protected handleSessionAction(action: 'login' | 'logout'): void {
+    if (action === 'login') {
+      this.userSessionService.login();
+    } else {
+      this.userSessionService.logout();
+    }
+
+    this.showSessionNotice();
+  }
+
+  protected showSessionNotice(): void {
+    this.notice.set(this.preferences.t('sessionNotice'));
     window.setTimeout(() => this.notice.set(null), 3200);
   }
 }

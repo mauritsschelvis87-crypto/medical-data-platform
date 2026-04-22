@@ -26,14 +26,42 @@ export class PatientSearchPageComponent {
   protected readonly highlighted = signal<number>(0);
 
   constructor() {
+    this.loading.set(true);
+    this.api
+      .getInitialPatients()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (results) => {
+          this.results.set(results);
+          this.highlighted.set(0);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.results.set([]);
+          this.loading.set(false);
+        }
+      });
+
     this.searchControl.valueChanges
       .pipe(
         debounceTime(220),
         distinctUntilChanged(),
         tap((query) => {
           if (query.trim().length < 2) {
-            this.results.set([]);
+            this.highlighted.set(0);
             this.loading.set(false);
+            this.api
+              .getInitialPatients()
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe({
+                next: (results) => {
+                  this.results.set(results);
+                  this.highlighted.set(0);
+                },
+                error: () => {
+                  this.results.set([]);
+                }
+              });
           } else {
             this.loading.set(true);
           }
@@ -49,13 +77,12 @@ export class PatientSearchPageComponent {
           this.loading.set(false);
         },
         error: () => {
-          this.results.set([]);
           this.loading.set(false);
         }
       });
   }
 
-  protected openPatient(patientId: number): void {
+  protected openPatient(patientId: string): void {
     this.router.navigate(['/patients', patientId]);
   }
 

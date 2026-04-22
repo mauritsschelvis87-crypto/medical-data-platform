@@ -3,186 +3,200 @@
 } @else if (patient(); as patient) {
   <section class="detail-layout">
     <div class="detail-main">
-      <div class="record-header panel">
-        <div>
-          <a class="back-link" routerLink="/">← Back to search</a>
-          <h1>{{ patient.firstName }} {{ patient.lastName }}</h1>
-          <p>{{ patient.patientNumber }} | {{ patient.gender }} | Age {{ patientAge() ?? '—' }}</p>
+      <div class="detail-content">
+        <div class="record-header panel">
+          <div class="record-header__block">
+            <span class="record-header__label">Patient</span>
+            <strong class="record-header__primary">{{ patient.firstName }} {{ patient.lastName }}</strong>
+            <span class="record-header__secondary">{{ patient.patientNumber }}</span>
+            <span class="record-header__secondary">{{ patient.gender }}</span>
+          </div>
+
+          <div class="record-header__block">
+            <span class="record-header__label">Birth date</span>
+            <strong class="record-header__primary">{{ formatDateOnly(patient.birthDate) }}</strong>
+            <span class="record-header__secondary">Age: {{ patientAge() ?? '—' }}</span>
+          </div>
+
+          <div class="record-header__block">
+            <span class="record-header__label">Address</span>
+            <strong class="record-header__primary">{{ patientStreetLine() }}</strong>
+            <span class="record-header__secondary">{{ patientCityLine() }}</span>
+          </div>
         </div>
 
-        <div class="record-header__meta">
-          <div>
-            <span>Birth date</span>
-            <strong>{{ formatDate(patient.birthDate) }}</strong>
-          </div>
-          <div>
-            <span>Contact</span>
-            <strong>{{ patient.phone || patient.email || 'Not available' }}</strong>
-          </div>
-          <div>
-            <span>Location</span>
-            <strong>{{ patient.city || patient.country || 'Not available' }}</strong>
-          </div>
+        <div class="bottom-panels">
+          <section class="panel vitals-panel">
+            <div class="panel__header">
+              <h2>{{ preferences.t('vitals') }}</h2>
+            </div>
+
+            @if (vitals().length > 0) {
+              <div class="metric-grid">
+                <article [class.metric-alert]="isVitalStale('BLOOD_PRESSURE_SYSTOLIC') || isVitalStale('BLOOD_PRESSURE_DIASTOLIC')">
+                  <span>Blood pressure</span>
+                  <strong>{{ getVitalValue('bloodPressure') }}</strong>
+                  <small>{{ formatDateOnly(getVitalMeasuredAt('BLOOD_PRESSURE_SYSTOLIC') || getVitalMeasuredAt('BLOOD_PRESSURE_DIASTOLIC')) }}</small>
+                </article>
+
+                <article [class.metric-alert]="isVitalStale('HEART_RATE')">
+                  <span>Heart rate</span>
+                  <strong>{{ getVitalValue('heartRate') }}</strong>
+                  <small>{{ formatDateOnly(getVitalMeasuredAt('HEART_RATE')) }}</small>
+                </article>
+
+                <article [class.metric-alert]="isVitalStale('BODY_TEMPERATURE')">
+                  <span>Temperature</span>
+                  <strong>{{ getVitalValue('temperature') }}</strong>
+                  <small>{{ formatDateOnly(getVitalMeasuredAt('BODY_TEMPERATURE')) }}</small>
+                </article>
+
+                <article [class.metric-alert]="isVitalStale('GLUCOSE')">
+                  <span>Glucose</span>
+                  <strong>{{ getVitalValue('glucose') }}</strong>
+                  <small>{{ formatDateOnly(getVitalMeasuredAt('GLUCOSE')) }}</small>
+                </article>
+
+                <article [class.metric-alert]="isVitalStale('BMI')">
+                  <span>BMI</span>
+                  <strong>{{ getVitalValue('bmi') }}</strong>
+                  <small>{{ formatDateOnly(getVitalMeasuredAt('BMI')) }}</small>
+                </article>
+
+                <article [class.metric-alert]="isVitalStale('WEIGHT')">
+                  <span>Weight</span>
+                  <strong>{{ getVitalValue('weight') }}</strong>
+                  <small>{{ formatDateOnly(getVitalMeasuredAt('WEIGHT')) }}</small>
+                </article>
+
+                <article [class.metric-alert]="isVitalStale('OXYGEN_SATURATION')">
+                  <span>O₂ saturation</span>
+                  <strong>{{ getVitalValue('oxygenSaturation') }}</strong>
+                  <small>{{ formatDateOnly(getVitalMeasuredAt('OXYGEN_SATURATION')) }}</small>
+                </article>
+
+                <article [class.metric-alert]="isVitalStale('CHOLESTEROL')">
+                  <span>Cholesterol</span>
+                  <strong>{{ getVitalValue('cholesterol') }}</strong>
+                  <small>{{ formatDateOnly(getVitalMeasuredAt('CHOLESTEROL')) }}</small>
+                </article>
+              </div>
+            } @else {
+              <p class="empty-copy">No vital signs registered yet.</p>
+            }
+          </section>
+
+          <section class="panel medications-panel medications-panel--status">
+            <div class="panel__header">
+              <h2>{{ preferences.t('activeMedication') }}</h2>
+              <span>{{ medications().length }} entries</span>
+            </div>
+
+            <div class="medication-status-list">
+              @for (medication of medications(); track medication.id) {
+                <article
+                  class="medication-status-item"
+                  [class.medication-status-item--active]="isMedicationActive(medication)"
+                  [class.medication-status-item--inactive]="!isMedicationActive(medication)"
+                >
+                  <div class="medication-status-item__main">
+                    <strong>{{ medication.medicationName }}</strong>
+                    <span>
+                      {{ formatDateOnly(medication.startDate) }}
+                      @if (medication.endDate) {
+                        - {{ formatDateOnly(medication.endDate) }}
+                      } @else {
+                        - ongoing
+                      }
+                    </span>
+                  </div>
+
+                  <div class="medication-status-item__meta">
+                    <small>{{ medication.dosage || '—' }} | {{ medication.frequency || '—' }}</small>
+                    <small>{{ medication.status || 'Unknown' }}</small>
+                  </div>
+                </article>
+              } @empty {
+                <p class="empty-copy">No medication records available.</p>
+              }
+            </div>
+          </section>
+
+          <section class="panel risk-panel risk-panel--inline">
+            <div class="panel__header">
+              <h2>{{ preferences.t('riskSummary') }}</h2>
+              @if (mainPrediction(); as activePrediction) {
+                @if (activePrediction.requiresConfirmation) {
+                  <span class="risk-pill risk-pill--alert">Needs confirmation</span>
+                }
+              }
+            </div>
+
+            @if (mainPrediction(); as prediction) {
+              <div class="risk-score">
+                <span>{{ prediction.riskScore }}%</span>
+                <small>{{ prediction.predictionType.replaceAll('_', ' ') }}</small>
+              </div>
+
+              <div class="risk-level" [attr.data-level]="prediction.riskLevel">
+                {{ prediction.riskLevel.replaceAll('_', ' ') }}
+              </div>
+
+              <p class="risk-explanation">{{ prediction.explanation || 'No explanation available.' }}</p>
+            } @else {
+              <p class="empty-copy">No prediction available yet.</p>
+            }
+
+            @if (otherPredictions().length > 0) {
+              <div class="risk-secondary">
+                @for (prediction of otherPredictions(); track prediction.id) {
+                  <article>
+                    <strong>{{ prediction.predictionType.replaceAll('_', ' ') }}</strong>
+                    <span>{{ prediction.riskLevel.replaceAll('_', ' ') }} | {{ prediction.riskScore }}%</span>
+                  </article>
+                }
+              </div>
+            }
+          </section>
         </div>
       </div>
 
-      <div class="content-grid">
-        <section class="panel vitals-panel">
-          <div class="panel__header">
-            <h2>{{ preferences.t('vitals') }}</h2>
-            @if (latestVital(); as currentVital) {
-              <span>Last updated {{ formatDate(currentVital.measuredAt) }}</span>
-            }
-          </div>
+      <section class="panel timeline-panel timeline-panel--edge">
+        <div class="panel__header">
+          <h2>{{ preferences.t('timeline') }}</h2>
+          <span>{{ timeline().length }} events</span>
+        </div>
 
-          @if (latestVital(); as vital) {
-            <div class="metric-grid">
-              <article>
-                <span>Blood pressure</span>
-                <strong>{{ vital.bloodPressureSystolic || '—' }}/{{ vital.bloodPressureDiastolic || '—' }}</strong>
-              </article>
-              <article>
-                <span>Heart rate</span>
-                <strong>{{ vital.heartRate || '—' }} bpm</strong>
-              </article>
-              <article>
-                <span>Temperature</span>
-                <strong>{{ vital.temperature || '—' }} °C</strong>
-              </article>
-              <article>
-                <span>Glucose</span>
-                <strong>{{ vital.glucose || '—' }}</strong>
-              </article>
-              <article>
-                <span>BMI</span>
-                <strong>{{ vital.bmi || '—' }}</strong>
-              </article>
-              <article [class.metric-alert]="staleWeight()">
-                <span>Weight</span>
-                <strong>{{ vital.weight || '—' }} kg</strong>
-                @if (staleWeight()) {
-                  <small>{{ preferences.t('staleWeight') }}</small>
-                }
-              </article>
-              <article>
-                <span>O₂ saturation</span>
-                <strong>{{ vital.oxygenSaturation || '—' }}%</strong>
-              </article>
-              <article>
-                <span>Cholesterol</span>
-                <strong>{{ vital.cholesterol || '—' }}</strong>
-              </article>
-            </div>
-          } @else {
-            <p class="empty-copy">No vital signs registered yet.</p>
-          }
-        </section>
+        <div class="timeline-list timeline-list--stacked">
+          @for (event of timeline(); track event.id) {
+            <article
+              class="timeline-item"
+              [class.timeline-item--medication-active]="isMedicationTimelineEventActive(event)"
+              [class.timeline-item--medication-inactive]="isMedicationTimelineEventInactive(event)"
+              [class.timeline-item--note]="isNoteTimelineEvent(event)"
+            >
+              <div class="timeline-item__line"></div>
+              <div class="timeline-item__dot"></div>
 
-        <section class="panel timeline-panel">
-          <div class="panel__header">
-            <h2>{{ preferences.t('timeline') }}</h2>
-            <span>{{ timeline().length }} events</span>
-          </div>
-
-          <div class="timeline-list">
-            @for (event of timeline(); track event.id) {
-              <article class="timeline-item">
-                <div class="timeline-item__dot"></div>
-                <div class="timeline-item__content">
+              <div class="timeline-item__content">
+                <div class="timeline-item__top">
                   <strong>{{ event.title }}</strong>
-                  <p>{{ event.description || event.eventType }}</p>
                   <span>{{ formatDate(event.eventTimestamp) }}</span>
                 </div>
-              </article>
-            } @empty {
-              <p class="empty-copy">No timeline events available.</p>
-            }
-          </div>
-        </section>
 
-        <section class="panel medications-panel">
-          <div class="panel__header">
-            <h2>{{ preferences.t('activeMedication') }}</h2>
-            <span>{{ medications().length }} active or historical orders</span>
-          </div>
+                <p>{{ event.description || event.eventType }}</p>
 
-          <div class="medication-list">
-            @for (medication of medications(); track medication.id) {
-              <article class="medication-item">
-                <strong>{{ medication.medicationName }}</strong>
-                <p>{{ medication.dosage }} | {{ medication.frequency }}</p>
-                <span>{{ medication.status }} | {{ medication.startDate }}</span>
-              </article>
-            } @empty {
-              <p class="empty-copy">No medication records available.</p>
-            }
-          </div>
-        </section>
-
-        <section class="panel notes-panel">
-          <div class="panel__header">
-            <h2>{{ preferences.t('consultNotes') }}</h2>
-            <span>{{ consultNotes().length }} entries</span>
-          </div>
-
-          <div class="notes-list">
-            @for (note of consultNotes(); track note.id) {
-              <article class="note-item">
-                <div class="note-item__head">
-                  <strong>{{ note.currentVersion.versionNumber }}</strong>
-                  <span>{{ formatDate(note.createdAt) }}</span>
-                </div>
-                <p><b>S:</b> {{ note.currentVersion.subjective || '—' }}</p>
-                <p><b>O:</b> {{ note.currentVersion.objective || '—' }}</p>
-                <p><b>A:</b> {{ note.currentVersion.assessment || '—' }}</p>
-                <p><b>P:</b> {{ note.currentVersion.plan || '—' }}</p>
-              </article>
-            } @empty {
-              <p class="empty-copy">No consult notes available.</p>
-            }
-          </div>
-        </section>
-      </div>
-    </div>
-
-    <aside class="detail-side">
-      <section class="panel risk-panel">
-        <div class="panel__header">
-          <h2>{{ preferences.t('riskSummary') }}</h2>
-          @if (mainPrediction(); as activePrediction) {
-            @if (activePrediction.requiresConfirmation) {
-              <span class="risk-pill risk-pill--alert">Needs confirmation</span>
-            }
+                <small class="timeline-badge">
+                  {{ event.eventType.replaceAll('_', ' ') }}
+                </small>
+              </div>
+            </article>
+          } @empty {
+            <p class="empty-copy">No timeline events available.</p>
           }
         </div>
-
-        @if (mainPrediction(); as prediction) {
-          <div class="risk-score">
-            <span>{{ prediction.riskScore }}%</span>
-            <small>{{ prediction.predictionType.replaceAll('_', ' ') }}</small>
-          </div>
-
-          <div class="risk-level" [attr.data-level]="prediction.riskLevel">
-            {{ prediction.riskLevel.replaceAll('_', ' ') }}
-          </div>
-
-          <p class="risk-explanation">{{ prediction.explanation || 'No explanation available.' }}</p>
-        } @else {
-          <p class="empty-copy">No prediction available yet.</p>
-        }
-
-        @if (otherPredictions().length > 0) {
-          <div class="risk-secondary">
-            @for (prediction of otherPredictions(); track prediction.id) {
-              <article>
-                <strong>{{ prediction.predictionType.replaceAll('_', ' ') }}</strong>
-                <span>{{ prediction.riskLevel.replaceAll('_', ' ') }} | {{ prediction.riskScore }}%</span>
-              </article>
-            }
-          </div>
-        }
       </section>
-    </aside>
+    </div>
 
     <button class="drawer-toggle" type="button" (click)="toggleDrawer()" [class.open]="drawerOpen()">
       <span>{{ drawerOpen() ? preferences.t('closeDrawer') : preferences.t('openDrawer') }}</span>
@@ -228,6 +242,7 @@
             <span>Medication</span>
             <input type="text" formControlName="medicationQuery" autocomplete="off" />
           </label>
+
           @if (medicationLookup().length > 0) {
             <div class="lookup-list">
               @for (item of medicationLookup(); track item.id) {
@@ -238,6 +253,7 @@
               }
             </div>
           }
+
           <label>
             <span>Dosage</span>
             <input type="text" formControlName="dosage" />

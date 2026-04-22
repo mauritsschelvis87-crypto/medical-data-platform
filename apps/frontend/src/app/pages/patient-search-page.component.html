@@ -1,13 +1,6 @@
-<section class="search-hero">
-  <div class="search-hero__panel">
-    <div class="search-hero__copy">
-      <p class="eyebrow">{{ preferences.t('searchTitle') }}</p>
-      <h1>Central patient record access</h1>
-      <p class="description">{{ preferences.t('searchSubtitle') }}</p>
-    </div>
-
+<section class="search-shell">
+  <div class="search-panel">
     <div class="search-box">
-      <label class="search-box__label" for="patient-search">Patient search</label>
       <div class="search-box__input-shell">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path
@@ -28,51 +21,23 @@
       } @else if (searchControl.value.trim().length >= 2 && results().length === 0) {
         <div class="search-feedback">{{ preferences.t('noResults') }}</div>
       }
-
-      @if (results().length > 0) {
-        <div class="suggestions">
-          @for (patient of results(); track patient.id; let index = $index) {
-            <button
-              type="button"
-              class="suggestion-card"
-              [class.is-active]="highlighted() === index"
-              (click)="openPatient(patient.id)"
-            >
-              <span class="suggestion-card__number">{{ patient.patientNumber }}</span>
-              <span class="suggestion-card__name">{{ patient.fullName }}</span>
-              <span class="suggestion-card__meta">{{ formatDate(patient.birthDate) }}</span>
-            </button>
-          }
-        </div>
-      }
     </div>
+
+    @if (results().length > 0) {
+      <div class="suggestions">
+        @for (patient of results(); track patient.id; let index = $index) {
+          <button
+            type="button"
+            class="suggestion-card"
+            [class.is-active]="highlighted() === index"
+            (click)="openPatient(patient.id)"
+          >
+            <span class="suggestion-card__number">{{ patient.patientNumber }}</span>
+            <span class="suggestion-card__name">{{ patient.fullName }}</span>
+            <span class="suggestion-card__meta">{{ formatDate(patient.birthDate) }}</span>
+          </button>
+        }
+      </div>
+    }
   </div>
-
-  <aside class="search-hero__summary">
-    <div class="summary-card">
-      <span class="summary-card__label">Live workflow</span>
-      <strong>Search, open, review, document, predict.</strong>
-      <p>
-        This demo starts in English and is designed around a hospital workflow rather than a generic dashboard.
-      </p>
-    </div>
-
-    <div class="summary-grid">
-      <article>
-        <span>01</span>
-        <h2>Patient search</h2>
-        <p>Live suggestions from the backend search endpoint.</p>
-      </article>
-      <article>
-        <span>02</span>
-        <h2>Record review</h2>
-        <p>Vitals, timeline, medications, SOAP notes, and risk insight.</p>
-      </article>
-      <article>
-        <span>03</span>
-        <h2>Clinical action</h2>
-        <p>Right-side action drawer for SOAP updates and medication changes.</p>
-      </article>
-    </div>
-  </aside>
 </section>

@@ -13,6 +13,8 @@ const TEXT: TranslationMap = {
   quickAccess: { en: 'Quick access', nl: 'Snelle toegang' },
   doctorSignedIn: { en: 'Signed in physician', nl: 'Ingelogde arts' },
   switchUser: { en: 'Switch User', nl: 'Wissel gebruiker' },
+  login: { en: 'Login', nl: 'Inloggen' },
+  logout: { en: 'Logout', nl: 'Uitloggen' },
   settings: { en: 'Settings', nl: 'Instellingen' },
   language: { en: 'Language', nl: 'Taal' },
   theme: { en: 'Theme', nl: 'Thema' },
@@ -34,7 +36,10 @@ const TEXT: TranslationMap = {
   noResults: { en: 'No patients found yet.', nl: 'Nog geen patiënten gevonden.' },
   loading: { en: 'Loading data...', nl: 'Gegevens laden...' },
   staleWeight: { en: 'Weight measurement is older than one year.', nl: 'Gewichtsmeting is ouder dan één jaar.' },
-  demoLoginNotice: { en: 'For the demo, this physician remains signed in.', nl: 'Voor de demo blijft deze arts ingelogd.' }
+  sessionNotice: {
+    en: 'Login and logout stay simulated for this demo.',
+    nl: 'In- en uitloggen blijft gesimuleerd voor deze demo.'
+  }
 };
 
 @Injectable({

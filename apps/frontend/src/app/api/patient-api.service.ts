@@ -10,42 +10,46 @@ import {
   PatientSearchResult,
   Prediction,
   TimelineEvent,
-  VitalSigns
+  VitalSigns,
 } from '../models/medical.models';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PatientApiService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8080/api';
+  private readonly baseUrl = 'http://localhost:8081/api';
 
   searchPatients(query: string) {
     const params = new HttpParams().set('q', query);
     return this.http.get<PatientSearchResult[]>(`${this.baseUrl}/patients/search`, { params });
   }
 
-  getPatient(patientId: number) {
+  getInitialPatients() {
+    return this.http.get<PatientSearchResult[]>(`${this.baseUrl}/patients`);
+  }
+
+  getPatient(patientId: string) {
     return this.http.get<Patient>(`${this.baseUrl}/patients/${patientId}`);
   }
 
-  getTimeline(patientId: number) {
+  getTimeline(patientId: string) {
     return this.http.get<TimelineEvent[]>(`${this.baseUrl}/patients/${patientId}/timeline`);
   }
 
-  getLatestVitals(patientId: number) {
+  getLatestVitals(patientId: string) {
     return this.http.get<VitalSigns[]>(`${this.baseUrl}/patients/${patientId}/vitals/latest`);
   }
 
-  getLatestPredictions(patientId: number) {
+  getLatestPredictions(patientId: string) {
     return this.http.get<Prediction[]>(`${this.baseUrl}/patients/${patientId}/predictions/latest`);
   }
 
-  getConsultNotes(patientId: number) {
+  getConsultNotes(patientId: string) {
     return this.http.get<ConsultNote[]>(`${this.baseUrl}/patients/${patientId}/consult-notes`);
   }
 
-  getPatientMedications(patientId: number) {
+  getPatientMedications(patientId: string) {
     return this.http.get<PatientMedication[]>(`${this.baseUrl}/patients/${patientId}/medications`);
   }
 
@@ -54,11 +58,17 @@ export class PatientApiService {
     return this.http.get<MedicationCatalogItem[]>(`${this.baseUrl}/medications/search`, { params });
   }
 
-  createConsultNote(patientId: number, payload: CreateConsultNotePayload) {
-    return this.http.post<ConsultNote>(`${this.baseUrl}/patients/${patientId}/consult-notes`, payload);
+  createConsultNote(patientId: string, payload: CreateConsultNotePayload) {
+    return this.http.post<ConsultNote>(
+      `${this.baseUrl}/patients/${patientId}/consult-notes`,
+      payload,
+    );
   }
 
-  createMedication(patientId: number, payload: CreateMedicationPayload) {
-    return this.http.post<PatientMedication>(`${this.baseUrl}/patients/${patientId}/medications`, payload);
+  createMedication(patientId: string, payload: CreateMedicationPayload) {
+    return this.http.post<PatientMedication>(
+      `${this.baseUrl}/patients/${patientId}/medications`,
+      payload,
+    );
   }
 }

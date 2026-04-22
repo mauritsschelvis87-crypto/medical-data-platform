@@ -6,8 +6,8 @@
 .app-shell {
   min-height: 100dvh;
   background:
-    radial-gradient(circle at top left, rgba(86, 111, 138, 0.22), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(75, 141, 170, 0.18), transparent 24%),
+    radial-gradient(circle at top left, var(--app-glow-1), transparent 28%),
+    radial-gradient(circle at bottom right, var(--app-glow-2), transparent 24%),
     var(--app-background);
   color: var(--text-primary);
   transition:
