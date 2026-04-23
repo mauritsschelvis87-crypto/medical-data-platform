@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/patients/{patientId}/timeline")
@@ -29,7 +30,7 @@ public class TimelineController {
     }
 
     @GetMapping
-    public List<TimelineEventDto> getTimelineForPatient(@PathVariable Long patientId) {
+    public List<TimelineEventDto> getTimelineForPatient(@PathVariable UUID patientId) {
         Patient patient = patientService.getPatientEntityById(patientId);
 
         return timelineEventRepository.findTop50ByPatientOrderByEventTimestampDesc(patient)

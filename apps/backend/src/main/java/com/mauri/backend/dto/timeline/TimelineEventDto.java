@@ -1,10 +1,11 @@
 package com.mauri.backend.dto.timeline;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class TimelineEventDto {
 
-    private Long id;
+    private UUID id;
     private String eventType;
 
     private String title;
@@ -12,7 +13,7 @@ public class TimelineEventDto {
 
     private LocalDateTime eventTimestamp;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
@@ -32,7 +33,7 @@ public class TimelineEventDto {
         return eventTimestamp;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

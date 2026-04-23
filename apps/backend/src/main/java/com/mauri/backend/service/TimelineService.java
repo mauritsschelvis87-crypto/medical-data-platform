@@ -7,6 +7,7 @@ import com.mauri.backend.repository.TimelineEventRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 public class TimelineService {
@@ -19,7 +20,7 @@ public class TimelineService {
 
     public void createEvent(Patient patient,
                             TimelineEventType eventType,
-                            Long referenceId,
+                            UUID referenceId,
                             String referenceType,
                             String title,
                             String description,

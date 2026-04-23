@@ -4,13 +4,14 @@ import com.mauri.backend.entity.base.BaseEntity;
 import com.mauri.backend.enums.Gender;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -18,14 +19,16 @@ import java.util.List;
 
 @Entity
 @Table(
-        name = "patients",
+        name = "patient",
         indexes = {
                 @Index(name = "idx_patient_patient_number", columnList = "patient_number"),
-                @Index(name = "idx_patient_last_name", columnList = "last_name"),
+                @Index(name = "idx_patient_source_patient_id", columnList = "source_patient_id"),
+                @Index(name = "idx_patient_full_name", columnList = "full_name"),
                 @Index(name = "idx_patient_birth_date", columnList = "birth_date")
         },
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_patient_patient_number", columnNames = "patient_number")
+                @UniqueConstraint(name = "uk_patient_patient_number", columnNames = "patient_number"),
+                @UniqueConstraint(name = "uk_patient_source_patient_id", columnNames = "source_patient_id")
         }
 )
 public class Patient extends BaseEntity {
@@ -33,11 +36,17 @@ public class Patient extends BaseEntity {
     @Column(name = "patient_number", nullable = false, length = 50)
     private String patientNumber;
 
+    @Column(name = "source_patient_id", nullable = false, length = 100)
+    private String sourcePatientId;
+
     @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;
 
     @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
+
+    @Column(name = "full_name", nullable = false, length = 250)
+    private String fullName;
 
     @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
@@ -46,23 +55,23 @@ public class Patient extends BaseEntity {
     @Column(name = "gender", nullable = false, length = 20)
     private Gender gender = Gender.UNKNOWN;
 
-    @Column(name = "phone", length = 30)
-    private String phone;
+    @Column(name = "deceased", nullable = false)
+    private boolean deceased;
 
-    @Column(name = "email", length = 255)
-    private String email;
+    @Column(name = "death_date")
+    private LocalDate deathDate;
 
-    @Column(name = "address_line", length = 255)
-    private String addressLine;
+    @Column(name = "marital_status", length = 50)
+    private String maritalStatus;
 
-    @Column(name = "postal_code", length = 20)
-    private String postalCode;
+    @Column(name = "race", length = 100)
+    private String race;
 
-    @Column(name = "city", length = 100)
-    private String city;
+    @Column(name = "ethnicity", length = 100)
+    private String ethnicity;
 
-    @Column(name = "country", length = 100)
-    private String country;
+    @OneToOne(mappedBy = "patient", fetch = FetchType.LAZY)
+    private PatientAddress address;
 
     @OneToMany(mappedBy = "patient", fetch = FetchType.LAZY)
     private List<VitalSigns> vitalSigns = new ArrayList<>();
@@ -87,6 +96,14 @@ public class Patient extends BaseEntity {
         this.patientNumber = patientNumber;
     }
 
+    public String getSourcePatientId() {
+        return sourcePatientId;
+    }
+
+    public void setSourcePatientId(String sourcePatientId) {
+        this.sourcePatientId = sourcePatientId;
+    }
+
     public String getFirstName() {
         return firstName;
     }
@@ -101,6 +118,14 @@ public class Patient extends BaseEntity {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public LocalDate getBirthDate() {
@@ -119,52 +144,52 @@ public class Patient extends BaseEntity {
         this.gender = gender;
     }
 
-    public String getPhone() {
-        return phone;
+    public boolean isDeceased() {
+        return deceased;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setDeceased(boolean deceased) {
+        this.deceased = deceased;
     }
 
-    public String getEmail() {
-        return email;
+    public LocalDate getDeathDate() {
+        return deathDate;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setDeathDate(LocalDate deathDate) {
+        this.deathDate = deathDate;
     }
 
-    public String getAddressLine() {
-        return addressLine;
+    public String getMaritalStatus() {
+        return maritalStatus;
     }
 
-    public void setAddressLine(String addressLine) {
-        this.addressLine = addressLine;
+    public void setMaritalStatus(String maritalStatus) {
+        this.maritalStatus = maritalStatus;
     }
 
-    public String getPostalCode() {
-        return postalCode;
+    public String getRace() {
+        return race;
     }
 
-    public void setPostalCode(String postalCode) {
-        this.postalCode = postalCode;
+    public void setRace(String race) {
+        this.race = race;
     }
 
-    public String getCity() {
-        return city;
+    public String getEthnicity() {
+        return ethnicity;
     }
 
-    public void setCity(String city) {
-        this.city = city;
+    public void setEthnicity(String ethnicity) {
+        this.ethnicity = ethnicity;
     }
 
-    public String getCountry() {
-        return country;
+    public PatientAddress getAddress() {
+        return address;
     }
 
-    public void setCountry(String country) {
-        this.country = country;
+    public void setAddress(PatientAddress address) {
+        this.address = address;
     }
 
     public List<VitalSigns> getVitalSigns() {

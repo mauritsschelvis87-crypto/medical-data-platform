@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class ConsultNoteService {
@@ -42,7 +43,7 @@ public class ConsultNoteService {
         this.predictionWorkflowService = predictionWorkflowService;
     }
 
-    public List<ConsultNoteDto> getConsultNotesForPatient(Long patientId) {
+    public List<ConsultNoteDto> getConsultNotesForPatient(UUID patientId) {
         Patient patient = patientService.getPatientEntityById(patientId);
 
         return consultNoteRepository.findByPatientOrderByCreatedAtDesc(patient)
@@ -52,7 +53,7 @@ public class ConsultNoteService {
     }
 
     @Transactional
-    public ConsultNoteDto createConsultNote(Long patientId, CreateConsultNoteRequest request) {
+    public ConsultNoteDto createConsultNote(UUID patientId, CreateConsultNoteRequest request) {
         Patient patient = patientService.getPatientEntityById(patientId);
 
         ConsultNote consultNote = new ConsultNote();
@@ -93,11 +94,11 @@ public class ConsultNoteService {
         return consultNoteMapper.toDto(updatedConsultNote);
     }
 
-    public ConsultNoteDto getConsultNoteById(Long consultNoteId) {
+    public ConsultNoteDto getConsultNoteById(UUID consultNoteId) {
         return consultNoteMapper.toDto(getConsultNoteEntity(consultNoteId));
     }
 
-    public List<ConsultNoteVersionDto> getVersionsForConsultNote(Long consultNoteId) {
+    public List<ConsultNoteVersionDto> getVersionsForConsultNote(UUID consultNoteId) {
         ConsultNote consultNote = getConsultNoteEntity(consultNoteId);
         return consultNoteVersionRepository.findByConsultNoteOrderByCreatedAtDesc(consultNote)
                 .stream()
@@ -106,7 +107,7 @@ public class ConsultNoteService {
     }
 
     @Transactional
-    public ConsultNoteDto addVersion(Long consultNoteId, CreateConsultNoteVersionRequest request) {
+    public ConsultNoteDto addVersion(UUID consultNoteId, CreateConsultNoteVersionRequest request) {
         ConsultNote consultNote = getConsultNoteEntity(consultNoteId);
 
         ConsultNoteVersion version = new ConsultNoteVersion();
@@ -149,7 +150,7 @@ public class ConsultNoteService {
         return "SOAP consult note added";
     }
 
-    private ConsultNote getConsultNoteEntity(Long consultNoteId) {
+    private ConsultNote getConsultNoteEntity(UUID consultNoteId) {
         return consultNoteRepository.findById(consultNoteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Consult note not found with id: " + consultNoteId));
     }

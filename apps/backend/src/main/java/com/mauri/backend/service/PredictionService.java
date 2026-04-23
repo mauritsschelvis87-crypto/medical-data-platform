@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class PredictionService {
@@ -32,7 +33,7 @@ public class PredictionService {
         this.timelineService = timelineService;
     }
 
-    public List<PredictionDto> getPredictionsForPatient(Long patientId) {
+    public List<PredictionDto> getPredictionsForPatient(UUID patientId) {
         Patient patient = patientService.getPatientEntityById(patientId);
 
         return predictionRepository.findByPatientOrderByPredictionTimestampDesc(patient)
@@ -41,7 +42,7 @@ public class PredictionService {
                 .toList();
     }
 
-    public List<PredictionDto> getPredictionsForPatientByType(Long patientId, PredictionType predictionType) {
+    public List<PredictionDto> getPredictionsForPatientByType(UUID patientId, PredictionType predictionType) {
         Patient patient = patientService.getPatientEntityById(patientId);
 
         return predictionRepository.findByPatientAndPredictionTypeOrderByPredictionTimestampDesc(patient, predictionType)
@@ -50,7 +51,7 @@ public class PredictionService {
                 .toList();
     }
 
-    public List<PredictionDto> getMainPredictionsForPatient(Long patientId) {
+    public List<PredictionDto> getMainPredictionsForPatient(UUID patientId) {
         Patient patient = patientService.getPatientEntityById(patientId);
 
         return predictionRepository.findByPatientAndMainPredictionTrueOrderByPredictionTimestampDesc(patient)
@@ -59,7 +60,7 @@ public class PredictionService {
                 .toList();
     }
 
-    public List<PredictionDto> getLatestPredictionsForPatient(Long patientId) {
+    public List<PredictionDto> getLatestPredictionsForPatient(UUID patientId) {
         Patient patient = patientService.getPatientEntityById(patientId);
 
         return predictionRepository.findLatestPredictionsPerType(patient)
@@ -69,12 +70,12 @@ public class PredictionService {
     }
 
     @Transactional
-    public PredictionDto savePrediction(Long patientId, PredictionDto predictionDto) {
+    public PredictionDto savePrediction(UUID patientId, PredictionDto predictionDto) {
         return savePrediction(patientId, predictionDto, null);
     }
 
     @Transactional
-    public PredictionDto savePrediction(Long patientId, PredictionDto predictionDto, Long triggeredByReferenceId) {
+    public PredictionDto savePrediction(UUID patientId, PredictionDto predictionDto, UUID triggeredByReferenceId) {
         Patient patient = patientService.getPatientEntityById(patientId);
         Prediction prediction = predictionMapper.toEntity(predictionDto);
         prediction.setPatient(patient);
@@ -128,7 +129,7 @@ public class PredictionService {
     }
 
     @Transactional
-    public PredictionDto confirmPrediction(Long predictionId, String doctorName) {
+    public PredictionDto confirmPrediction(UUID predictionId, String doctorName) {
         Prediction prediction = predictionRepository.findById(predictionId)
                 .orElseThrow(() -> new RuntimeException("Voorspelling niet gevonden met id: " + predictionId));
 

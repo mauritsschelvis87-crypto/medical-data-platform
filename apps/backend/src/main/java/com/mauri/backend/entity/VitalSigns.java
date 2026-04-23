@@ -2,6 +2,7 @@ package com.mauri.backend.entity;
 
 import com.mauri.backend.entity.base.BaseEntity;
 import com.mauri.backend.enums.VitalSignSource;
+import com.mauri.backend.enums.VitalSignType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,7 +20,8 @@ import java.time.LocalDateTime;
 @Table(
         name = "vital_signs",
         indexes = {
-                @Index(name = "idx_vital_signs_patient_measured_at", columnList = "patient_id, measured_at")
+                @Index(name = "idx_vital_signs_patient_measured_at", columnList = "patient_id, measured_at"),
+                @Index(name = "idx_vital_signs_patient_type", columnList = "patient_id, type")
         }
 )
 public class VitalSigns extends BaseEntity {
@@ -28,38 +30,24 @@ public class VitalSigns extends BaseEntity {
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
 
-    @Column(name = "blood_pressure_systolic")
-    private Integer bloodPressureSystolic;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false, length = 50)
+    private VitalSignType type;
 
-    @Column(name = "blood_pressure_diastolic")
-    private Integer bloodPressureDiastolic;
+    @Column(name = "measurement_value", nullable = false, precision = 12, scale = 4)
+    private BigDecimal value;
 
-    @Column(name = "heart_rate")
-    private Integer heartRate;
-
-    @Column(name = "temperature", precision = 5, scale = 2)
-    private BigDecimal temperature;
-
-    @Column(name = "glucose", precision = 10, scale = 2)
-    private BigDecimal glucose;
-
-    @Column(name = "bmi", precision = 5, scale = 2)
-    private BigDecimal bmi;
-
-    @Column(name = "weight", precision = 6, scale = 2)
-    private BigDecimal weight;
-
-    @Column(name = "oxygen_saturation", precision = 5, scale = 2)
-    private BigDecimal oxygenSaturation;
-
-    @Column(name = "cholesterol", precision = 10, scale = 2)
-    private BigDecimal cholesterol;
+    @Column(name = "unit", nullable = false, length = 30)
+    private String unit;
 
     @Column(name = "measured_at", nullable = false)
     private LocalDateTime measuredAt;
 
-    @Column(name = "recorded_at", nullable = false)
-    private LocalDateTime recordedAt;
+    @Column(name = "source_observation_code", length = 50)
+    private String sourceObservationCode;
+
+    @Column(name = "source_description", length = 255)
+    private String sourceDescription;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "source", nullable = false, length = 20)
@@ -73,76 +61,28 @@ public class VitalSigns extends BaseEntity {
         this.patient = patient;
     }
 
-    public Integer getBloodPressureSystolic() {
-        return bloodPressureSystolic;
+    public VitalSignType getType() {
+        return type;
     }
 
-    public void setBloodPressureSystolic(Integer bloodPressureSystolic) {
-        this.bloodPressureSystolic = bloodPressureSystolic;
+    public void setType(VitalSignType type) {
+        this.type = type;
     }
 
-    public Integer getBloodPressureDiastolic() {
-        return bloodPressureDiastolic;
+    public BigDecimal getValue() {
+        return value;
     }
 
-    public void setBloodPressureDiastolic(Integer bloodPressureDiastolic) {
-        this.bloodPressureDiastolic = bloodPressureDiastolic;
+    public void setValue(BigDecimal value) {
+        this.value = value;
     }
 
-    public Integer getHeartRate() {
-        return heartRate;
+    public String getUnit() {
+        return unit;
     }
 
-    public void setHeartRate(Integer heartRate) {
-        this.heartRate = heartRate;
-    }
-
-    public BigDecimal getTemperature() {
-        return temperature;
-    }
-
-    public void setTemperature(BigDecimal temperature) {
-        this.temperature = temperature;
-    }
-
-    public BigDecimal getGlucose() {
-        return glucose;
-    }
-
-    public void setGlucose(BigDecimal glucose) {
-        this.glucose = glucose;
-    }
-
-    public BigDecimal getBmi() {
-        return bmi;
-    }
-
-    public void setBmi(BigDecimal bmi) {
-        this.bmi = bmi;
-    }
-
-    public BigDecimal getWeight() {
-        return weight;
-    }
-
-    public void setWeight(BigDecimal weight) {
-        this.weight = weight;
-    }
-
-    public BigDecimal getOxygenSaturation() {
-        return oxygenSaturation;
-    }
-
-    public void setOxygenSaturation(BigDecimal oxygenSaturation) {
-        this.oxygenSaturation = oxygenSaturation;
-    }
-
-    public BigDecimal getCholesterol() {
-        return cholesterol;
-    }
-
-    public void setCholesterol(BigDecimal cholesterol) {
-        this.cholesterol = cholesterol;
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
 
     public LocalDateTime getMeasuredAt() {
@@ -153,12 +93,20 @@ public class VitalSigns extends BaseEntity {
         this.measuredAt = measuredAt;
     }
 
-    public LocalDateTime getRecordedAt() {
-        return recordedAt;
+    public String getSourceObservationCode() {
+        return sourceObservationCode;
     }
 
-    public void setRecordedAt(LocalDateTime recordedAt) {
-        this.recordedAt = recordedAt;
+    public void setSourceObservationCode(String sourceObservationCode) {
+        this.sourceObservationCode = sourceObservationCode;
+    }
+
+    public String getSourceDescription() {
+        return sourceDescription;
+    }
+
+    public void setSourceDescription(String sourceDescription) {
+        this.sourceDescription = sourceDescription;
     }
 
     public VitalSignSource getSource() {

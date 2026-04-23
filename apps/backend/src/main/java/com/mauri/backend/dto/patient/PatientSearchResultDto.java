@@ -1,15 +1,16 @@
 package com.mauri.backend.dto.patient;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 public class PatientSearchResultDto {
 
-    private Long id;
+    private UUID id;
     private String patientNumber;
     private String fullName;
     private LocalDate birthDate;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
@@ -25,7 +26,7 @@ public class PatientSearchResultDto {
         return birthDate;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

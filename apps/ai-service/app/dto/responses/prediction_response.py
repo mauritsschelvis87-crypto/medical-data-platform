@@ -17,7 +17,7 @@ class PredictionItemResponse(BaseModel):
 
 
 class PredictionResponse(BaseModel):
-    patient_id: int = Field(alias="patientId")
+    patient_id: str = Field(alias="patientId")
     generated_at: str = Field(alias="generatedAt")
     predictions: List[PredictionItemResponse]
 

@@ -6,9 +6,8 @@
       <div class="detail-content">
         <div class="record-header panel">
           <div class="record-header__block">
-            <span class="record-header__label">Patient</span>
+            <span class="record-header__label">Patient | {{ patient.patientNumber }}</span>
             <strong class="record-header__primary">{{ patient.firstName }} {{ patient.lastName }}</strong>
-            <span class="record-header__secondary">{{ patient.patientNumber }}</span>
             <span class="record-header__secondary">{{ patient.gender }}</span>
           </div>
 
@@ -93,7 +92,7 @@
               @for (metric of sortedVitalMetricConfigs(); track metric.key) {
                 <article
                   class="metric-card"
-                  [attr.data-clinical-status]="getClinicalStatusForMetric(metric)"
+                  [attr.data-clinical-status]="getMetricCardTone(metric)"
                   [class.metric-card--editing]="editingVitalKey() === metric.key"
                   [class.metric-card--readonly]="!isVitalEditable(metric)"
                   [title]="getClinicalSummaryForMetric(metric)"
@@ -102,14 +101,21 @@
                     <div class="metric-card__main">
                       <span>{{ metric.label }}</span>
                       <small class="metric-card__clinical-status">
-                        {{ getClinicalStatusForMetric(metric) }} | {{ getVitalValue(metric.key) }}
+                        {{ getMetricValueLine(metric) }}
                       </small>
                     </div>
 
                     <div class="metric-card__value-group">
                       <small
+                        class="metric-card__freshness-label"
+                        [attr.data-freshness-label]="getFreshnessLabelForMetric(metric)"
+                        [title]="getFreshnessMessageForMetric(metric)"
+                      >
+                        {{ getFreshnessLabelForMetric(metric) }}
+                      </small>
+                      <small
                         class="metric-card__date"
-                        [attr.data-freshness-status]="getFreshnessStatusForMetric(metric)"
+                        [attr.data-freshness-status]="getFreshnessLabelForMetric(metric)"
                         [title]="getFreshnessMessageForMetric(metric)"
                       >
                         {{ formatDateOnly(getVitalMeasuredAtForMetric(metric)) }}
@@ -200,12 +206,42 @@
             @if (sortedPredictions().length > 0) {
               <div class="risk-secondary">
                 @for (prediction of sortedPredictions(); track prediction.id) {
-                  <article [attr.data-level]="prediction.riskLevel">
-                    <strong>{{ formatPredictionType(prediction) }}</strong>
-                    <span>{{ formatRiskLevel(prediction.riskLevel) }} | {{ prediction.riskScore }}%</span>
-                    @if (cleanPredictionExplanation(prediction.explanation)) {
-                      <small>{{ cleanPredictionExplanation(prediction.explanation) }}</small>
-                    }
+                <article
+                  class="metric-card risk-card"
+                  [attr.data-clinical-status]="getPredictionCardTone(prediction)"
+                  [title]="getPredictionSourceSummary(prediction)"
+                >
+                  <div class="metric-card__content">
+                    <div class="metric-card__main">
+                      <span>{{ formatPredictionType(prediction) }}</span>
+                      <small class="metric-card__clinical-status">
+                          {{ getPredictionRiskLine(prediction) }}
+                      </small>
+                    </div>
+
+                      <div class="metric-card__value-group">
+                        <small
+                          class="metric-card__freshness-label"
+                          [attr.data-freshness-label]="predictionDataFreshnessStatus(prediction)"
+                          [title]="predictionDataFreshnessTitle(prediction)"
+                        >
+                          {{ predictionDataFreshnessLabel(prediction) }}
+                        </small>
+                        <small
+                          class="metric-card__date"
+                          [attr.data-freshness-status]="predictionDataFreshnessStatus(prediction)"
+                          [title]="predictionDataFreshnessTitle(prediction)"
+                        >
+                          {{ formatDateOnly(prediction.predictionTimestamp) }}
+                        </small>
+                      </div>
+                    </div>
+
+                    <div class="metric-card__derived risk-card__details">
+                      @for (sourceLine of getPredictionSourceLines(prediction); track sourceLine) {
+                        <small>{{ sourceLine }}</small>
+                      }
+                    </div>
                   </article>
                 }
               </div>
@@ -218,85 +254,165 @@
 
     </div>
 
-    <button class="drawer-toggle" type="button" (click)="toggleDrawer()" [class.open]="drawerOpen()">
-      <span>{{ drawerOpen() ? preferences.t('closeDrawer') : preferences.t('openDrawer') }}</span>
-    </button>
+    <div class="action-sidebar" [class.open]="drawerOpen()">
+      <button
+        class="drawer-toggle"
+        type="button"
+        (click)="toggleDrawer()"
+        [class.open]="drawerOpen()"
+        [attr.aria-expanded]="drawerOpen()"
+        [attr.aria-label]="drawerOpen() ? preferences.t('closeDrawer') : preferences.t('openDrawer')"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M15.7 5.3a1 1 0 0 1 0 1.4L10.41 12l5.29 5.3a1 1 0 0 1-1.42 1.4l-6-6a1 1 0 0 1 0-1.4l6-6a1 1 0 0 1 1.42 0Z"
+          />
+        </svg>
+        <span class="sr-only">{{ drawerOpen() ? preferences.t('closeDrawer') : preferences.t('openDrawer') }}</span>
+      </button>
 
-    <aside class="action-drawer" [class.open]="drawerOpen()">
-      <div class="action-drawer__header">
-        <strong>Clinical actions</strong>
-        <button type="button" (click)="toggleDrawer()">×</button>
-      </div>
+      <aside class="action-drawer" [class.open]="drawerOpen()">
+        <div class="action-drawer__header">
+          <div class="action-tabs" role="tablist" aria-label="Clinical action tabs">
+            <button
+              type="button"
+              class="action-tabs__tab"
+              [class.active]="actionTab() === 'soap'"
+              [attr.aria-selected]="actionTab() === 'soap'"
+              (click)="setActionTab('soap')"
+            >
+              SOAP
+            </button>
+            <button
+              type="button"
+              class="action-tabs__tab"
+              [class.active]="actionTab() === 'medicine'"
+              [attr.aria-selected]="actionTab() === 'medicine'"
+              (click)="setActionTab('medicine')"
+            >
+              Medicine
+            </button>
+            <button
+              type="button"
+              class="action-tabs__tab"
+              [class.active]="actionTab() === 'history'"
+              [attr.aria-selected]="actionTab() === 'history'"
+              (click)="setActionTab('history')"
+            >
+              History
+            </button>
+          </div>
+          <button type="button" (click)="toggleDrawer()">×</button>
+        </div>
 
-      <section class="drawer-section">
-        <h3>{{ preferences.t('soapForm') }}</h3>
-        <form [formGroup]="noteForm" (ngSubmit)="saveNote()">
-          <label>
-            <span>Subjective</span>
-            <textarea formControlName="subjective" rows="3"></textarea>
-          </label>
-          <label>
-            <span>Objective</span>
-            <textarea formControlName="objective" rows="3"></textarea>
-          </label>
-          <label>
-            <span>Assessment</span>
-            <textarea formControlName="assessment" rows="3"></textarea>
-          </label>
-          <label>
-            <span>Plan</span>
-            <textarea formControlName="plan" rows="3"></textarea>
-          </label>
-          <label>
-            <span>Change reason</span>
-            <input type="text" formControlName="changeReason" />
-          </label>
-          <button type="submit" [disabled]="submittingNote()">{{ preferences.t('saveNote') }}</button>
-        </form>
-      </section>
+        @if (actionTab() === 'soap') {
+          <section class="drawer-section">
+            <form [formGroup]="noteForm" (ngSubmit)="saveNote()">
+              <label>
+                <span>Subjective</span>
+                <textarea formControlName="subjective" rows="2"></textarea>
+              </label>
+              <label>
+                <span>Objective</span>
+                <textarea formControlName="objective" rows="2"></textarea>
+              </label>
+              <label>
+                <span>Assessment</span>
+                <textarea formControlName="assessment" rows="2"></textarea>
+              </label>
+              <label>
+                <span>Plan</span>
+                <textarea formControlName="plan" rows="2"></textarea>
+              </label>
+              <label>
+                <span>Change reason</span>
+                <input type="text" formControlName="changeReason" />
+              </label>
+              <button type="submit" [disabled]="submittingNote()">{{ preferences.t('saveNote') }}</button>
+            </form>
+          </section>
+        } @else if (actionTab() === 'medicine') {
+          <section class="drawer-section">
+            <form [formGroup]="medicationForm" (ngSubmit)="saveMedication()">
+              <label>
+                <span>Medication</span>
+                <input type="text" formControlName="medicationQuery" autocomplete="off" />
+              </label>
 
-      <section class="drawer-section">
-        <h3>{{ preferences.t('medicationOrder') }}</h3>
-        <form [formGroup]="medicationForm" (ngSubmit)="saveMedication()">
-          <label>
-            <span>Medication</span>
-            <input type="text" formControlName="medicationQuery" autocomplete="off" />
-          </label>
-
-          @if (medicationLookup().length > 0) {
-            <div class="lookup-list">
-              @for (item of medicationLookup(); track item.id) {
-                <button type="button" (click)="selectMedication(item)">
-                  <strong>{{ item.dutchName }}</strong>
-                  <span>{{ item.latinName || item.code }}</span>
-                </button>
+              @if (hasMedicationSuggestions()) {
+                <div class="lookup-list">
+                  @for (item of medicationLookup(); track item.id) {
+                    <button
+                      type="button"
+                      [class.lookup-list__item--selected]="isSelectedMedication(item)"
+                      (click)="selectMedication(item)"
+                    >
+                      <strong>{{ item.dutchName }}</strong>
+                      <span>
+                        @if (item.latinName) {
+                          {{ item.latinName }} |
+                        }
+                        {{ item.defaultDosage || 'Recommended dose follows selection' }}
+                      </span>
+                    </button>
+                  }
+                </div>
               }
-            </div>
-          }
 
-          <label>
-            <span>Dosage</span>
-            <input type="text" formControlName="dosage" />
-          </label>
-          <label>
-            <span>Frequency</span>
-            <input type="text" formControlName="frequency" />
-          </label>
-          <label>
-            <span>Start date</span>
-            <input type="date" formControlName="startDate" />
-          </label>
-          <label>
-            <span>End date</span>
-            <input type="date" formControlName="endDate" />
-          </label>
-          <label>
-            <span>Prescription reason</span>
-            <textarea formControlName="reason" rows="3"></textarea>
-          </label>
-          <button type="submit" [disabled]="submittingMedication()">{{ preferences.t('saveMedication') }}</button>
-        </form>
-      </section>
-    </aside>
+              <label>
+                <span>Dosage</span>
+                <input type="text" formControlName="dosage" />
+              </label>
+              <label>
+                <span>Frequency</span>
+                <input type="text" formControlName="frequency" />
+              </label>
+              <label>
+                <span>Start date</span>
+                <input type="date" formControlName="startDate" />
+              </label>
+              <label>
+                <span>End date</span>
+                <input type="date" formControlName="endDate" />
+              </label>
+              <label>
+                <span>Prescription reason</span>
+                <textarea formControlName="reason" rows="3"></textarea>
+              </label>
+              <button type="submit" [disabled]="submittingMedication()">{{ preferences.t('saveMedication') }}</button>
+            </form>
+          </section>
+        } @else {
+          <section class="drawer-section drawer-section--history">
+            @for (note of sortedConsultNotes(); track note.id) {
+              <article class="history-card">
+                <div class="history-card__meta">
+                  <strong>{{ note.createdBy }}</strong>
+                  <span>{{ formatDate(note.currentVersion.createdAt || note.createdAt) }}</span>
+                </div>
+                <div class="history-card__block">
+                  <small>Subjective</small>
+                  <p>{{ getConsultNotePreview(note.currentVersion.subjective) }}</p>
+                </div>
+                <div class="history-card__block">
+                  <small>Objective</small>
+                  <p>{{ getConsultNotePreview(note.currentVersion.objective) }}</p>
+                </div>
+                <div class="history-card__block">
+                  <small>Assessment</small>
+                  <p>{{ getConsultNotePreview(note.currentVersion.assessment) }}</p>
+                </div>
+                <div class="history-card__block">
+                  <small>Plan</small>
+                  <p>{{ getConsultNotePreview(note.currentVersion.plan) }}</p>
+                </div>
+              </article>
+            } @empty {
+              <p class="empty-copy empty-copy--drawer">No clinical notes saved yet.</p>
+            }
+          </section>
+        }
+      </aside>
+    </div>
   </section>
 }

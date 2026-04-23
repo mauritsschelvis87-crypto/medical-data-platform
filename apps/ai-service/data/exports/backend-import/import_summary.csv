@@ -1,0 +1,2 @@
+recordsReceived,recordsProcessed,recordsFailed,patientCount,patientAddressCount,vitalSignsCount,skippedRecords,validationSummary
+152,152,0,25,25,102,0,Generated from ai-service notebook pipeline

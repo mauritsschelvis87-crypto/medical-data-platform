@@ -2,10 +2,11 @@ package com.mauri.backend.dto.prediction;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class PredictionDto {
 
-    private Long id;
+    private UUID id;
 
     private String predictionType;
     private String riskLevel;
@@ -32,7 +33,7 @@ public class PredictionDto {
     private String modelVersion;
     private boolean thresholdTriggered;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
@@ -64,7 +65,7 @@ public class PredictionDto {
         return predictionTimestamp;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

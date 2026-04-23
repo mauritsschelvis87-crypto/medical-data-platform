@@ -53,6 +53,10 @@ export interface VitalSigns {
   freshnessStatus?: 'CURRENT' | 'AGING' | 'OUTDATED' | 'UNKNOWN' | string | null;
   clinicalMessage?: string | null;
   freshnessMessage?: string | null;
+  ageGroup?: string | null;
+  interpretationStatus?: string | null;
+  interpretationMessage?: string | null;
+  contextComplete?: boolean | null;
   editable?: boolean;
   source?: string | null;
   sourceObservationCode?: string | null;

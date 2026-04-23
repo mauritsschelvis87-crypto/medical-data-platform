@@ -2,6 +2,7 @@ package com.mauri.backend.entity;
 
 import com.mauri.backend.entity.base.BaseEntity;
 import com.mauri.backend.enums.DatasetImportStatus;
+import com.mauri.backend.enums.DatasetType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,131 +16,67 @@ import java.time.LocalDateTime;
 @Table(
         name = "dataset_imports",
         indexes = {
-                @Index(name = "idx_dataset_import_dataset_name", columnList = "dataset_name"),
-                @Index(name = "idx_dataset_import_status", columnList = "import_status")
+                @Index(name = "idx_dataset_import_source_name", columnList = "source_name"),
+                @Index(name = "idx_dataset_import_dataset_type", columnList = "dataset_type"),
+                @Index(name = "idx_dataset_import_status", columnList = "status")
         }
 )
 public class DatasetImport extends BaseEntity {
 
-    @Column(name = "dataset_name", nullable = false, length = 255)
-    private String datasetName;
-
-    @Column(name = "source_file_name", nullable = false, length = 255)
-    private String sourceFileName;
+    @Column(name = "source_name", nullable = false, length = 255)
+    private String sourceName;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "import_status", nullable = false, length = 30)
-    private DatasetImportStatus importStatus = DatasetImportStatus.PENDING;
+    @Column(name = "dataset_type", nullable = false, length = 50)
+    private DatasetType datasetType;
 
-    @Column(name = "records_received")
-    private Integer recordsReceived;
+    @Column(name = "imported_at", nullable = false)
+    private LocalDateTime importedAt;
 
-    @Column(name = "records_processed")
-    private Integer recordsProcessed;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 30)
+    private DatasetImportStatus status = DatasetImportStatus.CREATED;
 
-    @Column(name = "records_failed")
-    private Integer recordsFailed;
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
 
-    @Column(name = "started_at")
-    private LocalDateTime startedAt;
-
-    @Column(name = "finished_at")
-    private LocalDateTime finishedAt;
-
-    @Column(name = "error_message", columnDefinition = "TEXT")
-    private String errorMessage;
-
-    @Column(name = "checksum", length = 255)
-    private String checksum;
-
-    @Column(name = "version_tag", length = 100)
-    private String versionTag;
-
-    public String getDatasetName() {
-        return datasetName;
+    public String getSourceName() {
+        return sourceName;
     }
 
-    public void setDatasetName(String datasetName) {
-        this.datasetName = datasetName;
+    public void setSourceName(String sourceName) {
+        this.sourceName = sourceName;
     }
 
-    public String getSourceFileName() {
-        return sourceFileName;
+    public DatasetType getDatasetType() {
+        return datasetType;
     }
 
-    public void setSourceFileName(String sourceFileName) {
-        this.sourceFileName = sourceFileName;
+    public void setDatasetType(DatasetType datasetType) {
+        this.datasetType = datasetType;
     }
 
-    public DatasetImportStatus getImportStatus() {
-        return importStatus;
+    public LocalDateTime getImportedAt() {
+        return importedAt;
     }
 
-    public void setImportStatus(DatasetImportStatus importStatus) {
-        this.importStatus = importStatus;
+    public void setImportedAt(LocalDateTime importedAt) {
+        this.importedAt = importedAt;
     }
 
-    public Integer getRecordsReceived() {
-        return recordsReceived;
+    public DatasetImportStatus getStatus() {
+        return status;
     }
 
-    public void setRecordsReceived(Integer recordsReceived) {
-        this.recordsReceived = recordsReceived;
+    public void setStatus(DatasetImportStatus status) {
+        this.status = status;
     }
 
-    public Integer getRecordsProcessed() {
-        return recordsProcessed;
+    public String getNotes() {
+        return notes;
     }
 
-    public void setRecordsProcessed(Integer recordsProcessed) {
-        this.recordsProcessed = recordsProcessed;
-    }
-
-    public Integer getRecordsFailed() {
-        return recordsFailed;
-    }
-
-    public void setRecordsFailed(Integer recordsFailed) {
-        this.recordsFailed = recordsFailed;
-    }
-
-    public LocalDateTime getStartedAt() {
-        return startedAt;
-    }
-
-    public void setStartedAt(LocalDateTime startedAt) {
-        this.startedAt = startedAt;
-    }
-
-    public LocalDateTime getFinishedAt() {
-        return finishedAt;
-    }
-
-    public void setFinishedAt(LocalDateTime finishedAt) {
-        this.finishedAt = finishedAt;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
-
-    public String getChecksum() {
-        return checksum;
-    }
-
-    public void setChecksum(String checksum) {
-        this.checksum = checksum;
-    }
-
-    public String getVersionTag() {
-        return versionTag;
-    }
-
-    public void setVersionTag(String versionTag) {
-        this.versionTag = versionTag;
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 }

@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(
@@ -32,7 +33,7 @@ public class TimelineEvent extends BaseEntity {
     private TimelineEventType eventType;
 
     @Column(name = "reference_id")
-    private Long referenceId;
+    private UUID referenceId;
 
     @Column(name = "reference_type", length = 100)
     private String referenceType;
@@ -62,11 +63,11 @@ public class TimelineEvent extends BaseEntity {
         this.eventType = eventType;
     }
 
-    public Long getReferenceId() {
+    public UUID getReferenceId() {
         return referenceId;
     }
 
-    public void setReferenceId(Long referenceId) {
+    public void setReferenceId(UUID referenceId) {
         this.referenceId = referenceId;
     }
 

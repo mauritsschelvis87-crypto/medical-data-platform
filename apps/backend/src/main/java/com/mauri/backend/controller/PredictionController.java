@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/patients/{patientId}/predictions")
@@ -29,23 +30,23 @@ public class PredictionController {
     }
 
     @GetMapping
-    public List<PredictionDto> getPredictionsForPatient(@PathVariable Long patientId) {
+    public List<PredictionDto> getPredictionsForPatient(@PathVariable UUID patientId) {
         return predictionService.getPredictionsForPatient(patientId);
     }
 
     @GetMapping("/main")
-    public List<PredictionDto> getMainPredictionsForPatient(@PathVariable Long patientId) {
+    public List<PredictionDto> getMainPredictionsForPatient(@PathVariable UUID patientId) {
         return predictionService.getMainPredictionsForPatient(patientId);
     }
 
     @GetMapping("/latest")
-    public List<PredictionDto> getLatestPredictionsForPatient(@PathVariable Long patientId) {
+    public List<PredictionDto> getLatestPredictionsForPatient(@PathVariable UUID patientId) {
         return predictionService.getLatestPredictionsForPatient(patientId);
     }
 
     @GetMapping("/by-type")
     public List<PredictionDto> getPredictionsForPatientByType(
-            @PathVariable Long patientId,
+            @PathVariable UUID patientId,
             @RequestParam PredictionType predictionType
     ) {
         return predictionService.getPredictionsForPatientByType(patientId, predictionType);
@@ -53,22 +54,22 @@ public class PredictionController {
 
     @PostMapping
     public PredictionDto savePrediction(
-            @PathVariable Long patientId,
+            @PathVariable UUID patientId,
             @RequestBody PredictionDto predictionDto
     ) {
         return predictionService.savePrediction(patientId, predictionDto);
     }
 
     @PostMapping("/recalculate")
-    public List<PredictionDto> recalculatePredictions(@PathVariable Long patientId,
+    public List<PredictionDto> recalculatePredictions(@PathVariable UUID patientId,
                                                       @RequestParam(defaultValue = "MANUAL") String triggerSource) {
         return predictionWorkflowService.recalculatePredictions(patientId, triggerSource, null);
     }
 
     @PutMapping("/{predictionId}/confirm")
     public PredictionDto confirmPrediction(
-            @PathVariable Long patientId,
-            @PathVariable Long predictionId,
+            @PathVariable UUID patientId,
+            @PathVariable UUID predictionId,
             @RequestParam String doctorName
     ) {
         return predictionService.confirmPrediction(predictionId, doctorName);

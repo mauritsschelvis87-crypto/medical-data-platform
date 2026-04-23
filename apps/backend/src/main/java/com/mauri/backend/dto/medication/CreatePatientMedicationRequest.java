@@ -1,10 +1,11 @@
 package com.mauri.backend.dto.medication;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 public class CreatePatientMedicationRequest {
 
-    private Long medicationCatalogId;
+    private UUID medicationCatalogId;
     private String dosage;
     private String frequency;
     private LocalDate startDate;
@@ -12,11 +13,11 @@ public class CreatePatientMedicationRequest {
     private String reason;
     private String prescribedBy;
 
-    public Long getMedicationCatalogId() {
+    public UUID getMedicationCatalogId() {
         return medicationCatalogId;
     }
 
-    public void setMedicationCatalogId(Long medicationCatalogId) {
+    public void setMedicationCatalogId(UUID medicationCatalogId) {
         this.medicationCatalogId = medicationCatalogId;
     }
 

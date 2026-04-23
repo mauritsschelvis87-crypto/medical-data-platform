@@ -1,117 +1,134 @@
 package com.mauri.backend.dto.patient;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 public class PatientDto {
 
-    private Long id;
+    private UUID id;
     private String patientNumber;
+    private String sourcePatientId;
     private String firstName;
     private String lastName;
+    private String fullName;
     private LocalDate birthDate;
     private String gender;
+    private boolean deceased;
+    private LocalDate deathDate;
+    private String maritalStatus;
+    private String race;
+    private String ethnicity;
+    private PatientAddressDto address;
 
-    private String phone;
-    private String email;
-
-    private String addressLine;
-    private String postalCode;
-    private String city;
-    private String country;
-
-    public Long getId() {
+    public UUID getId() {
         return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public String getPatientNumber() {
         return patientNumber;
     }
 
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public LocalDate getBirthDate() {
-        return birthDate;
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getAddressLine() {
-        return addressLine;
-    }
-
-    public String getPostalCode() {
-        return postalCode;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public void setPatientNumber(String patientNumber) {
         this.patientNumber = patientNumber;
+    }
+
+    public String getSourcePatientId() {
+        return sourcePatientId;
+    }
+
+    public void setSourcePatientId(String sourcePatientId) {
+        this.sourcePatientId = sourcePatientId;
+    }
+
+    public String getFirstName() {
+        return firstName;
     }
 
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
 
+    public String getLastName() {
+        return lastName;
+    }
+
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public LocalDate getBirthDate() {
+        return birthDate;
     }
 
     public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
     }
 
+    public String getGender() {
+        return gender;
+    }
+
     public void setGender(String gender) {
         this.gender = gender;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public boolean isDeceased() {
+        return deceased;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setDeceased(boolean deceased) {
+        this.deceased = deceased;
     }
 
-    public void setAddressLine(String addressLine) {
-        this.addressLine = addressLine;
+    public LocalDate getDeathDate() {
+        return deathDate;
     }
 
-    public void setPostalCode(String postalCode) {
-        this.postalCode = postalCode;
+    public void setDeathDate(LocalDate deathDate) {
+        this.deathDate = deathDate;
     }
 
-    public void setCity(String city) {
-        this.city = city;
+    public String getMaritalStatus() {
+        return maritalStatus;
     }
 
-    public void setCountry(String country) {
-        this.country = country;
+    public void setMaritalStatus(String maritalStatus) {
+        this.maritalStatus = maritalStatus;
+    }
+
+    public String getRace() {
+        return race;
+    }
+
+    public void setRace(String race) {
+        this.race = race;
+    }
+
+    public String getEthnicity() {
+        return ethnicity;
+    }
+
+    public void setEthnicity(String ethnicity) {
+        this.ethnicity = ethnicity;
+    }
+
+    public PatientAddressDto getAddress() {
+        return address;
+    }
+
+    public void setAddress(PatientAddressDto address) {
+        this.address = address;
     }
 }

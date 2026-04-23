@@ -1,17 +1,18 @@
 package com.mauri.backend.dto.consult;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class ConsultNoteDto {
 
-    private Long id;
+    private UUID id;
     private String status;
     private String createdBy;
     private LocalDateTime createdAt;
 
     private ConsultNoteVersionDto currentVersion;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
@@ -31,7 +32,7 @@ public class ConsultNoteDto {
         return currentVersion;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

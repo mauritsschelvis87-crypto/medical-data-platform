@@ -6,9 +6,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface MedicationCatalogRepository extends JpaRepository<MedicationCatalog, Long> {
+public interface MedicationCatalogRepository extends JpaRepository<MedicationCatalog, UUID> {
 
     Optional<MedicationCatalog> findByCode(String code);
 
@@ -17,6 +18,8 @@ public interface MedicationCatalogRepository extends JpaRepository<MedicationCat
     List<MedicationCatalog> findByDutchNameContainingIgnoreCase(String dutchName);
 
     List<MedicationCatalog> findByLatinNameContainingIgnoreCase(String latinName);
+
+    long countByActiveTrue();
 
     List<MedicationCatalog> findByActiveTrueOrderByDutchNameAsc();
 

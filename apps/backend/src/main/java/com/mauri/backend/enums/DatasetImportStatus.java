@@ -1,9 +1,9 @@
 package com.mauri.backend.enums;
 
 public enum DatasetImportStatus {
-    PENDING,
+    CREATED,
     RUNNING,
-    COMPLETED,
+    SUCCEEDED,
     FAILED,
-    PARTIAL_SUCCESS
+    PARTIALLY_SUCCEEDED
 }

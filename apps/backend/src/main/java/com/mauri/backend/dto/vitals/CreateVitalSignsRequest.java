@@ -1,92 +1,49 @@
 package com.mauri.backend.dto.vitals;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class CreateVitalSignsRequest {
 
-    private Integer bloodPressureSystolic;
-    private Integer bloodPressureDiastolic;
-    private Integer heartRate;
-    private BigDecimal temperature;
-    private BigDecimal glucose;
-    private BigDecimal bmi;
-    private BigDecimal weight;
-    private BigDecimal oxygenSaturation;
-    private BigDecimal cholesterol;
+    @NotBlank
+    private String type;
+
+    @NotNull
+    private BigDecimal value;
+
+    @NotBlank
+    private String unit;
+
     private LocalDateTime measuredAt;
     private String source;
+    private String sourceObservationCode;
+    private String sourceDescription;
 
-    public Integer getBloodPressureSystolic() {
-        return bloodPressureSystolic;
+    public String getType() {
+        return type;
     }
 
-    public void setBloodPressureSystolic(Integer bloodPressureSystolic) {
-        this.bloodPressureSystolic = bloodPressureSystolic;
+    public void setType(String type) {
+        this.type = type;
     }
 
-    public Integer getBloodPressureDiastolic() {
-        return bloodPressureDiastolic;
+    public BigDecimal getValue() {
+        return value;
     }
 
-    public void setBloodPressureDiastolic(Integer bloodPressureDiastolic) {
-        this.bloodPressureDiastolic = bloodPressureDiastolic;
+    public void setValue(BigDecimal value) {
+        this.value = value;
     }
 
-    public Integer getHeartRate() {
-        return heartRate;
+    public String getUnit() {
+        return unit;
     }
 
-    public void setHeartRate(Integer heartRate) {
-        this.heartRate = heartRate;
-    }
-
-    public BigDecimal getTemperature() {
-        return temperature;
-    }
-
-    public void setTemperature(BigDecimal temperature) {
-        this.temperature = temperature;
-    }
-
-    public BigDecimal getGlucose() {
-        return glucose;
-    }
-
-    public void setGlucose(BigDecimal glucose) {
-        this.glucose = glucose;
-    }
-
-    public BigDecimal getBmi() {
-        return bmi;
-    }
-
-    public void setBmi(BigDecimal bmi) {
-        this.bmi = bmi;
-    }
-
-    public BigDecimal getWeight() {
-        return weight;
-    }
-
-    public void setWeight(BigDecimal weight) {
-        this.weight = weight;
-    }
-
-    public BigDecimal getOxygenSaturation() {
-        return oxygenSaturation;
-    }
-
-    public void setOxygenSaturation(BigDecimal oxygenSaturation) {
-        this.oxygenSaturation = oxygenSaturation;
-    }
-
-    public BigDecimal getCholesterol() {
-        return cholesterol;
-    }
-
-    public void setCholesterol(BigDecimal cholesterol) {
-        this.cholesterol = cholesterol;
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
 
     public LocalDateTime getMeasuredAt() {
@@ -103,5 +60,21 @@ public class CreateVitalSignsRequest {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public String getSourceObservationCode() {
+        return sourceObservationCode;
+    }
+
+    public void setSourceObservationCode(String sourceObservationCode) {
+        this.sourceObservationCode = sourceObservationCode;
+    }
+
+    public String getSourceDescription() {
+        return sourceDescription;
+    }
+
+    public void setSourceDescription(String sourceDescription) {
+        this.sourceDescription = sourceDescription;
     }
 }

@@ -2,128 +2,179 @@ package com.mauri.backend.dto.vitals;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class VitalSignsDto {
 
-    private Long id;
-
-    private Integer bloodPressureSystolic;
-    private Integer bloodPressureDiastolic;
-    private Integer heartRate;
-
-    private BigDecimal temperature;
-    private BigDecimal glucose;
-    private BigDecimal bmi;
-    private BigDecimal weight;
-    private BigDecimal oxygenSaturation;
-    private BigDecimal cholesterol;
-
+    private UUID id;
+    private UUID patientId;
+    private String type;
+    private String label;
+    private BigDecimal value;
+    private String unit;
     private LocalDateTime measuredAt;
-    private LocalDateTime recordedAt;
-
+    private String clinicalStatus;
+    private String freshnessStatus;
+    private String clinicalMessage;
+    private String freshnessMessage;
+    private String ageGroup;
+    private String interpretationStatus;
+    private String interpretationMessage;
+    private boolean contextComplete;
+    private boolean editable;
     private String source;
+    private String sourceObservationCode;
+    private String sourceDescription;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public Integer getBloodPressureSystolic() {
-        return bloodPressureSystolic;
+    public void setId(UUID id) {
+        this.id = id;
     }
 
-    public Integer getBloodPressureDiastolic() {
-        return bloodPressureDiastolic;
+    public UUID getPatientId() {
+        return patientId;
     }
 
-    public Integer getHeartRate() {
-        return heartRate;
+    public void setPatientId(UUID patientId) {
+        this.patientId = patientId;
     }
 
-    public BigDecimal getTemperature() {
-        return temperature;
+    public String getType() {
+        return type;
     }
 
-    public BigDecimal getGlucose() {
-        return glucose;
+    public void setType(String type) {
+        this.type = type;
     }
 
-    public BigDecimal getBmi() {
-        return bmi;
+    public String getLabel() {
+        return label;
     }
 
-    public BigDecimal getWeight() {
-        return weight;
+    public void setLabel(String label) {
+        this.label = label;
     }
 
-    public BigDecimal getOxygenSaturation() {
-        return oxygenSaturation;
+    public BigDecimal getValue() {
+        return value;
     }
 
-    public BigDecimal getCholesterol() {
-        return cholesterol;
+    public void setValue(BigDecimal value) {
+        this.value = value;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
 
     public LocalDateTime getMeasuredAt() {
         return measuredAt;
     }
 
-    public LocalDateTime getRecordedAt() {
-        return recordedAt;
+    public void setMeasuredAt(LocalDateTime measuredAt) {
+        this.measuredAt = measuredAt;
+    }
+
+    public String getClinicalStatus() {
+        return clinicalStatus;
+    }
+
+    public void setClinicalStatus(String clinicalStatus) {
+        this.clinicalStatus = clinicalStatus;
+    }
+
+    public String getFreshnessStatus() {
+        return freshnessStatus;
+    }
+
+    public void setFreshnessStatus(String freshnessStatus) {
+        this.freshnessStatus = freshnessStatus;
+    }
+
+    public String getClinicalMessage() {
+        return clinicalMessage;
+    }
+
+    public void setClinicalMessage(String clinicalMessage) {
+        this.clinicalMessage = clinicalMessage;
+    }
+
+    public String getFreshnessMessage() {
+        return freshnessMessage;
+    }
+
+    public void setFreshnessMessage(String freshnessMessage) {
+        this.freshnessMessage = freshnessMessage;
+    }
+
+    public String getAgeGroup() {
+        return ageGroup;
+    }
+
+    public void setAgeGroup(String ageGroup) {
+        this.ageGroup = ageGroup;
+    }
+
+    public String getInterpretationStatus() {
+        return interpretationStatus;
+    }
+
+    public void setInterpretationStatus(String interpretationStatus) {
+        this.interpretationStatus = interpretationStatus;
+    }
+
+    public String getInterpretationMessage() {
+        return interpretationMessage;
+    }
+
+    public void setInterpretationMessage(String interpretationMessage) {
+        this.interpretationMessage = interpretationMessage;
+    }
+
+    public boolean isContextComplete() {
+        return contextComplete;
+    }
+
+    public void setContextComplete(boolean contextComplete) {
+        this.contextComplete = contextComplete;
+    }
+
+    public boolean isEditable() {
+        return editable;
+    }
+
+    public void setEditable(boolean editable) {
+        this.editable = editable;
     }
 
     public String getSource() {
         return source;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setBloodPressureSystolic(Integer bloodPressureSystolic) {
-        this.bloodPressureSystolic = bloodPressureSystolic;
-    }
-
-    public void setBloodPressureDiastolic(Integer bloodPressureDiastolic) {
-        this.bloodPressureDiastolic = bloodPressureDiastolic;
-    }
-
-    public void setHeartRate(Integer heartRate) {
-        this.heartRate = heartRate;
-    }
-
-    public void setTemperature(BigDecimal temperature) {
-        this.temperature = temperature;
-    }
-
-    public void setGlucose(BigDecimal glucose) {
-        this.glucose = glucose;
-    }
-
-    public void setBmi(BigDecimal bmi) {
-        this.bmi = bmi;
-    }
-
-    public void setWeight(BigDecimal weight) {
-        this.weight = weight;
-    }
-
-    public void setOxygenSaturation(BigDecimal oxygenSaturation) {
-        this.oxygenSaturation = oxygenSaturation;
-    }
-
-    public void setCholesterol(BigDecimal cholesterol) {
-        this.cholesterol = cholesterol;
-    }
-
-    public void setMeasuredAt(LocalDateTime measuredAt) {
-        this.measuredAt = measuredAt;
-    }
-
-    public void setRecordedAt(LocalDateTime recordedAt) {
-        this.recordedAt = recordedAt;
-    }
-
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public String getSourceObservationCode() {
+        return sourceObservationCode;
+    }
+
+    public void setSourceObservationCode(String sourceObservationCode) {
+        this.sourceObservationCode = sourceObservationCode;
+    }
+
+    public String getSourceDescription() {
+        return sourceDescription;
+    }
+
+    public void setSourceDescription(String sourceDescription) {
+        this.sourceDescription = sourceDescription;
     }
 }

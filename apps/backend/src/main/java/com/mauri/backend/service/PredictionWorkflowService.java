@@ -9,26 +9,36 @@ import com.mauri.backend.entity.ConsultNoteVersion;
 import com.mauri.backend.entity.Patient;
 import com.mauri.backend.entity.PatientMedication;
 import com.mauri.backend.entity.VitalSigns;
+import com.mauri.backend.enums.AgeGroup;
 import com.mauri.backend.enums.MedicationStatus;
 import com.mauri.backend.enums.PredictionType;
 import com.mauri.backend.enums.RiskLevel;
+import com.mauri.backend.enums.VitalClinicalStatus;
+import com.mauri.backend.enums.VitalSignType;
 import com.mauri.backend.repository.ConsultNoteRepository;
 import com.mauri.backend.repository.PatientMedicationRepository;
 import com.mauri.backend.repository.VitalSignsRepository;
 import com.mauri.backend.service.ai.AiService;
+import com.mauri.backend.service.interpretation.AgeGroupResolver;
+import com.mauri.backend.service.interpretation.VitalInterpretationResult;
+import com.mauri.backend.service.interpretation.VitalInterpretationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class PredictionWorkflowService {
@@ -41,23 +51,29 @@ public class PredictionWorkflowService {
     private final ConsultNoteRepository consultNoteRepository;
     private final PredictionService predictionService;
     private final AiService aiService;
+    private final AgeGroupResolver ageGroupResolver;
+    private final VitalInterpretationService vitalInterpretationService;
 
     public PredictionWorkflowService(PatientService patientService,
                                      VitalSignsRepository vitalSignsRepository,
                                      PatientMedicationRepository patientMedicationRepository,
                                      ConsultNoteRepository consultNoteRepository,
                                      PredictionService predictionService,
-                                     AiService aiService) {
+                                     AiService aiService,
+                                     AgeGroupResolver ageGroupResolver,
+                                     VitalInterpretationService vitalInterpretationService) {
         this.patientService = patientService;
         this.vitalSignsRepository = vitalSignsRepository;
         this.patientMedicationRepository = patientMedicationRepository;
         this.consultNoteRepository = consultNoteRepository;
         this.predictionService = predictionService;
         this.aiService = aiService;
+        this.ageGroupResolver = ageGroupResolver;
+        this.vitalInterpretationService = vitalInterpretationService;
     }
 
     @Transactional
-    public List<PredictionDto> recalculatePredictions(Long patientId, String triggerSource, Long triggeredByReferenceId) {
+    public List<PredictionDto> recalculatePredictions(UUID patientId, String triggerSource, UUID triggeredByReferenceId) {
         Patient patient = patientService.getPatientEntityById(patientId);
         PredictionRequestDto request = buildRequest(patient, triggerSource);
 
@@ -98,25 +114,37 @@ public class PredictionWorkflowService {
 
     private Map<String, Object> buildFeatures(Patient patient) {
         Map<String, Object> features = new HashMap<>();
+        AgeGroup currentAgeGroup = ageGroupResolver.resolve(patient, LocalDate.now());
+
         features.put("patientNumber", patient.getPatientNumber());
         features.put("birthDate", patient.getBirthDate() != null ? patient.getBirthDate().format(DATE_FORMATTER) : null);
         features.put("age", patient.getBirthDate() != null ? Period.between(patient.getBirthDate(), LocalDate.now()).getYears() : null);
+        features.put("ageGroup", currentAgeGroup.name());
         features.put("gender", patient.getGender() != null ? patient.getGender().name() : null);
 
-        List<VitalSigns> recentVitals = vitalSignsRepository.findTop10ByPatientOrderByMeasuredAtDesc(patient);
-        if (!recentVitals.isEmpty()) {
-            VitalSigns latest = recentVitals.get(0);
-            features.put("bloodPressureSystolic", latest.getBloodPressureSystolic());
-            features.put("bloodPressureDiastolic", latest.getBloodPressureDiastolic());
-            features.put("heartRate", latest.getHeartRate());
-            features.put("temperature", latest.getTemperature());
-            features.put("glucose", latest.getGlucose());
-            features.put("bmi", latest.getBmi());
-            features.put("weight", latest.getWeight());
-            features.put("oxygenSaturation", latest.getOxygenSaturation());
-            features.put("cholesterol", latest.getCholesterol());
-            features.put("measuredAt", latest.getMeasuredAt() != null ? latest.getMeasuredAt().toString() : null);
+        List<VitalSigns> recentVitals = vitalSignsRepository.findLatestPerTypeByPatient(patient);
+        Map<VitalSignType, VitalSigns> latestByType = new HashMap<>();
+        Map<String, Object> vitalInterpretations = new LinkedHashMap<>();
+        for (VitalSigns vitalSigns : recentVitals) {
+            latestByType.putIfAbsent(vitalSigns.getType(), vitalSigns);
+            VitalInterpretationResult interpretation = vitalInterpretationService.interpret(vitalSigns, recentVitals);
+            vitalInterpretations.put(vitalSigns.getType().name(), interpretationPayload(vitalSigns, interpretation));
         }
+
+        features.put("bloodPressureSystolic", numericValueIfUsable(latestByType.get(VitalSignType.BLOOD_PRESSURE_SYSTOLIC), vitalInterpretations, VitalSignType.BLOOD_PRESSURE_SYSTOLIC));
+        features.put("bloodPressureDiastolic", numericValueIfUsable(latestByType.get(VitalSignType.BLOOD_PRESSURE_DIASTOLIC), vitalInterpretations, VitalSignType.BLOOD_PRESSURE_DIASTOLIC));
+        features.put("heartRate", numericValueIfUsable(latestByType.get(VitalSignType.HEART_RATE), vitalInterpretations, VitalSignType.HEART_RATE));
+        features.put("temperature", numericValueIfUsable(latestByType.get(VitalSignType.BODY_TEMPERATURE), vitalInterpretations, VitalSignType.BODY_TEMPERATURE));
+        features.put("glucose", numericValueIfUsable(latestByType.get(VitalSignType.GLUCOSE), vitalInterpretations, VitalSignType.GLUCOSE));
+        features.put("bmi", numericValueIfUsable(latestByType.get(VitalSignType.BMI), vitalInterpretations, VitalSignType.BMI));
+        features.put("weight", numericValueIfUsable(latestByType.get(VitalSignType.WEIGHT), vitalInterpretations, VitalSignType.WEIGHT));
+        features.put("height", numericValueIfUsable(latestByType.get(VitalSignType.HEIGHT), vitalInterpretations, VitalSignType.HEIGHT));
+        features.put("oxygenSaturation", numericValueIfUsable(latestByType.get(VitalSignType.OXYGEN_SATURATION), vitalInterpretations, VitalSignType.OXYGEN_SATURATION));
+        features.put("cholesterol", numericValueIfUsable(latestByType.get(VitalSignType.CHOLESTEROL), vitalInterpretations, VitalSignType.CHOLESTEROL));
+        features.put("measuredAt", latestMeasurementTimestamp(recentVitals));
+        features.put("vitalInterpretations", vitalInterpretations);
+        features.put("growthInterpretationStatus", firstAvailableStatus(vitalInterpretations, VitalSignType.BMI, VitalSignType.WEIGHT, VitalSignType.HEIGHT));
+        features.put("growthInterpretationMessage", firstAvailableMessage(vitalInterpretations, VitalSignType.BMI, VitalSignType.WEIGHT, VitalSignType.HEIGHT));
 
         List<PatientMedication> activeMedications = patientMedicationRepository.findByPatientAndStatusInOrderByStartDateDesc(
                 patient,
@@ -147,10 +175,49 @@ public class PredictionWorkflowService {
         return features;
     }
 
+    private Map<String, Object> interpretationPayload(VitalSigns vitalSigns, VitalInterpretationResult interpretation) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("status", interpretation.status().name());
+        payload.put("message", interpretation.message());
+        payload.put("ageGroup", interpretation.ageGroup().name());
+        payload.put("contextComplete", interpretation.contextComplete());
+        payload.put("measuredAt", vitalSigns.getMeasuredAt() != null ? vitalSigns.getMeasuredAt().toString() : null);
+        return payload;
+    }
+
+    private String latestMeasurementTimestamp(List<VitalSigns> recentVitals) {
+        return recentVitals.stream()
+                .map(VitalSigns::getMeasuredAt)
+                .filter(measuredAt -> measuredAt != null)
+                .max(Comparator.naturalOrder())
+                .map(LocalDateTime::toString)
+                .orElse(null);
+    }
+
+    private String firstAvailableStatus(Map<String, Object> interpretations, VitalSignType... vitalTypes) {
+        for (VitalSignType vitalType : vitalTypes) {
+            String status = interpretationStatusFromPayload(interpretations, vitalType);
+            if (status != null) {
+                return status;
+            }
+        }
+        return null;
+    }
+
+    private String firstAvailableMessage(Map<String, Object> interpretations, VitalSignType... vitalTypes) {
+        for (VitalSignType vitalType : vitalTypes) {
+            String message = interpretationMessageFromPayload(interpretations, vitalType);
+            if (message != null) {
+                return message;
+            }
+        }
+        return null;
+    }
+
     private PredictionResponseDto buildFallbackResponse(PredictionRequestDto request) {
         PredictionResponseDto response = new PredictionResponseDto();
         response.setPatientId(request.getPatientId());
-        response.setGeneratedAt(java.time.LocalDateTime.now().toString());
+        response.setGeneratedAt(LocalDateTime.now().toString());
         response.setPredictions(generateFallbackPredictions(request.getFeatures()));
         return response;
     }
@@ -174,40 +241,142 @@ public class PredictionWorkflowService {
             case RESPIRATORY_RISK -> 0.22;
         };
 
+        double confidence = adjustConfidence(features, score);
+
         PredictionItemDto item = new PredictionItemDto();
         item.setPredictionType(predictionType.name());
         item.setRiskScore(round(score));
-        item.setConfidence(round(Math.max(0.55, 0.92 - (score / 2))));
+        item.setConfidence(round(confidence));
         item.setRiskLevel(resolveRiskLevel(score).name());
-        item.setExplanation("Fallback backend prediction based on latest patient context");
+        item.setExplanation("Fallback backend prediction based on age-aware vital interpretation and latest patient context");
         item.setIsMainPrediction(mainPrediction);
         return item;
     }
 
     private double calculateCardiovascularScore(Map<String, Object> features) {
-        double score = 0.15;
-        score += numeric(features.get("age")) >= 65 ? 0.20 : 0.05;
-        score += numeric(features.get("bloodPressureSystolic")) >= 140 ? 0.20 : 0.0;
-        score += numeric(features.get("cholesterol")) >= 5.5 ? 0.15 : 0.0;
-        score += numeric(features.get("bmi")) >= 30 ? 0.10 : 0.0;
+        double score = 0.12;
+        score += numeric(features.get("age")) >= 65 ? 0.15 : 0.04;
+        score += interpretationContribution(features, VitalSignType.BLOOD_PRESSURE_SYSTOLIC, 0.10, 0.20);
+        score += interpretationContribution(features, VitalSignType.BLOOD_PRESSURE_DIASTOLIC, 0.08, 0.16);
+        score += interpretationContribution(features, VitalSignType.CHOLESTEROL, 0.08, 0.16);
+
+        if (adultBmiApplicable(features)) {
+            score += interpretationContribution(features, VitalSignType.BMI, 0.05, 0.12);
+        }
+
         return Math.min(score, 0.95);
     }
 
     private double calculateDiabetesScore(Map<String, Object> features) {
-        double score = 0.12;
-        score += numeric(features.get("glucose")) >= 7.0 ? 0.30 : 0.0;
-        score += numeric(features.get("bmi")) >= 30 ? 0.20 : 0.0;
-        score += numeric(features.get("age")) >= 55 ? 0.10 : 0.0;
+        double score = 0.10;
+        score += interpretationContribution(features, VitalSignType.GLUCOSE, 0.16, 0.30);
+        if (adultBmiApplicable(features)) {
+            score += interpretationContribution(features, VitalSignType.BMI, 0.08, 0.18);
+        }
+        score += numeric(features.get("age")) >= 55 ? 0.08 : 0.0;
         return Math.min(score, 0.92);
     }
 
     private double calculateGeneralScore(Map<String, Object> features) {
         double score = 0.10;
-        score += numeric(features.get("heartRate")) >= 110 ? 0.18 : 0.0;
-        score += numeric(features.get("temperature")) >= 38.5 ? 0.16 : 0.0;
-        score += numeric(features.get("oxygenSaturation")) <= 92 && numeric(features.get("oxygenSaturation")) > 0 ? 0.24 : 0.0;
+        score += interpretationContribution(features, VitalSignType.HEART_RATE, 0.10, 0.18);
+        score += interpretationContribution(features, VitalSignType.BODY_TEMPERATURE, 0.08, 0.16);
+        score += interpretationContribution(features, VitalSignType.OXYGEN_SATURATION, 0.12, 0.24);
         score += numeric(features.get("recentConsultCount")) >= 3 ? 0.10 : 0.0;
         return Math.min(score, 0.90);
+    }
+
+    private double adjustConfidence(Map<String, Object> features, double score) {
+        double confidence = Math.max(0.55, 0.92 - (score / 2));
+        confidence -= insufficientContextCount(features) * 0.04;
+        confidence -= outOfRangeCount(features) * 0.06;
+        return Math.max(0.35, confidence);
+    }
+
+    private int insufficientContextCount(Map<String, Object> features) {
+        int count = 0;
+        for (VitalSignType vitalType : VitalSignType.values()) {
+            String status = interpretationStatus(features, vitalType);
+            if (VitalClinicalStatus.INSUFFICIENT_CONTEXT.name().equals(status) || VitalClinicalStatus.NOT_APPLICABLE.name().equals(status)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private int outOfRangeCount(Map<String, Object> features) {
+        int count = 0;
+        for (VitalSignType vitalType : VitalSignType.values()) {
+            if (VitalClinicalStatus.OUT_OF_RANGE.name().equals(interpretationStatus(features, vitalType))) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private boolean adultBmiApplicable(Map<String, Object> features) {
+        return numeric(features.get("age")) >= 20
+                && !VitalClinicalStatus.NOT_APPLICABLE.name().equals(interpretationStatus(features, VitalSignType.BMI))
+                && !VitalClinicalStatus.INSUFFICIENT_CONTEXT.name().equals(interpretationStatus(features, VitalSignType.BMI));
+    }
+
+    private double interpretationContribution(Map<String, Object> features,
+                                              VitalSignType vitalType,
+                                              double mediumContribution,
+                                              double highContribution) {
+        String status = interpretationStatus(features, vitalType);
+        if (status == null) {
+            return 0.0;
+        }
+        return switch (status) {
+            case "MEDIUM" -> mediumContribution;
+            case "HIGH", "CRITICAL" -> highContribution;
+            default -> 0.0;
+        };
+    }
+
+    private String interpretationStatus(Map<String, Object> features, VitalSignType vitalType) {
+        Object interpretationsObject = features.get("vitalInterpretations");
+        if (interpretationsObject instanceof Map<?, ?> interpretations) {
+            return interpretationStatusFromWildcard(interpretations, vitalType);
+        }
+        return null;
+    }
+
+    private String interpretationStatusFromPayload(Map<String, Object> interpretations, VitalSignType vitalType) {
+        if (interpretations == null || vitalType == null) {
+            return null;
+        }
+        Object payload = interpretations.get(vitalType.name());
+        if (payload instanceof Map<?, ?> map) {
+            Object status = map.get("status");
+            return status instanceof String string ? string : null;
+        }
+        return null;
+    }
+
+    private String interpretationStatusFromWildcard(Map<?, ?> interpretations, VitalSignType vitalType) {
+        if (interpretations == null || vitalType == null) {
+            return null;
+        }
+        Object payload = interpretations.get(vitalType.name());
+        if (payload instanceof Map<?, ?> map) {
+            Object status = map.get("status");
+            return status instanceof String string ? string : null;
+        }
+        return null;
+    }
+
+    private String interpretationMessageFromPayload(Map<String, Object> interpretations, VitalSignType vitalType) {
+        if (interpretations == null || vitalType == null) {
+            return null;
+        }
+        Object payload = interpretations.get(vitalType.name());
+        if (payload instanceof Map<?, ?> map) {
+            Object message = map.get("message");
+            return message instanceof String string ? string : null;
+        }
+        return null;
     }
 
     private RiskLevel resolveRiskLevel(double score) {
@@ -239,5 +408,21 @@ public class PredictionWorkflowService {
             return number.doubleValue();
         }
         return 0.0;
+    }
+
+    private Double numericValue(VitalSigns vitalSigns) {
+        if (vitalSigns == null || vitalSigns.getValue() == null) {
+            return null;
+        }
+        return vitalSigns.getValue().doubleValue();
+    }
+
+    private Double numericValueIfUsable(VitalSigns vitalSigns,
+                                        Map<String, Object> interpretations,
+                                        VitalSignType vitalType) {
+        if (VitalClinicalStatus.OUT_OF_RANGE.name().equals(interpretationStatusFromPayload(interpretations, vitalType))) {
+            return null;
+        }
+        return numericValue(vitalSigns);
     }
 }

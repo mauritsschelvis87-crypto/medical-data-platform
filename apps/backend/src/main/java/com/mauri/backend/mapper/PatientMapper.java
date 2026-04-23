@@ -1,8 +1,10 @@
 package com.mauri.backend.mapper;
 
+import com.mauri.backend.dto.patient.PatientAddressDto;
 import com.mauri.backend.dto.patient.PatientDto;
 import com.mauri.backend.dto.patient.PatientSearchResultDto;
 import com.mauri.backend.entity.Patient;
+import com.mauri.backend.entity.PatientAddress;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,17 +18,18 @@ public class PatientMapper {
         PatientDto dto = new PatientDto();
         dto.setId(patient.getId());
         dto.setPatientNumber(patient.getPatientNumber());
+        dto.setSourcePatientId(patient.getSourcePatientId());
         dto.setFirstName(patient.getFirstName());
         dto.setLastName(patient.getLastName());
+        dto.setFullName(patient.getFullName());
         dto.setBirthDate(patient.getBirthDate());
         dto.setGender(patient.getGender() != null ? patient.getGender().name() : null);
-        dto.setPhone(patient.getPhone());
-        dto.setEmail(patient.getEmail());
-        dto.setAddressLine(patient.getAddressLine());
-        dto.setPostalCode(patient.getPostalCode());
-        dto.setCity(patient.getCity());
-        dto.setCountry(patient.getCountry());
-
+        dto.setDeceased(patient.isDeceased());
+        dto.setDeathDate(patient.getDeathDate());
+        dto.setMaritalStatus(patient.getMaritalStatus());
+        dto.setRace(patient.getRace());
+        dto.setEthnicity(patient.getEthnicity());
+        dto.setAddress(toAddressDto(patient.getAddress()));
         return dto;
     }
 
@@ -38,16 +41,24 @@ public class PatientMapper {
         PatientSearchResultDto dto = new PatientSearchResultDto();
         dto.setId(patient.getId());
         dto.setPatientNumber(patient.getPatientNumber());
+        dto.setFullName(patient.getFullName());
         dto.setBirthDate(patient.getBirthDate());
-        dto.setFullName(buildFullName(patient.getFirstName(), patient.getLastName()));
-
         return dto;
     }
 
-    private String buildFullName(String firstName, String lastName) {
-        String safeFirstName = firstName != null ? firstName.trim() : "";
-        String safeLastName = lastName != null ? lastName.trim() : "";
+    public PatientAddressDto toAddressDto(PatientAddress address) {
+        if (address == null) {
+            return null;
+        }
 
-        return (safeFirstName + " " + safeLastName).trim();
+        PatientAddressDto dto = new PatientAddressDto();
+        dto.setId(address.getId());
+        dto.setPatientId(address.getPatient() != null ? address.getPatient().getId() : null);
+        dto.setAddressLine(address.getAddressLine());
+        dto.setCity(address.getCity());
+        dto.setState(address.getState());
+        dto.setCounty(address.getCounty());
+        dto.setZipCode(address.getZipCode());
+        return dto;
     }
 }

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class PatientMedicationService {
@@ -41,7 +42,7 @@ public class PatientMedicationService {
         this.predictionWorkflowService = predictionWorkflowService;
     }
 
-    public List<PatientMedicationDto> getMedicationsForPatient(Long patientId) {
+    public List<PatientMedicationDto> getMedicationsForPatient(UUID patientId) {
         Patient patient = patientService.getPatientEntityById(patientId);
 
         return patientMedicationRepository.findByPatientOrderByStartDateDesc(patient)
@@ -50,7 +51,7 @@ public class PatientMedicationService {
                 .toList();
     }
 
-    public List<PatientMedicationDto> getMedicationsForPatientByStatus(Long patientId, MedicationStatus status) {
+    public List<PatientMedicationDto> getMedicationsForPatientByStatus(UUID patientId, MedicationStatus status) {
         Patient patient = patientService.getPatientEntityById(patientId);
 
         return patientMedicationRepository.findByPatientAndStatusOrderByStartDateDesc(patient, status)
@@ -60,7 +61,7 @@ public class PatientMedicationService {
     }
 
     @Transactional
-    public PatientMedicationDto createPatientMedication(Long patientId, CreatePatientMedicationRequest request) {
+    public PatientMedicationDto createPatientMedication(UUID patientId, CreatePatientMedicationRequest request) {
         Patient patient = patientService.getPatientEntityById(patientId);
 
         MedicationCatalog medicationCatalog = medicationCatalogRepository.findById(request.getMedicationCatalogId())
@@ -96,8 +97,8 @@ public class PatientMedicationService {
     }
 
     @Transactional
-    public PatientMedicationDto updatePatientMedication(Long patientId,
-                                                        Long patientMedicationId,
+    public PatientMedicationDto updatePatientMedication(UUID patientId,
+                                                        UUID patientMedicationId,
                                                         UpdatePatientMedicationRequest request) {
         Patient patient = patientService.getPatientEntityById(patientId);
         PatientMedication patientMedication = patientMedicationRepository.findById(patientMedicationId)

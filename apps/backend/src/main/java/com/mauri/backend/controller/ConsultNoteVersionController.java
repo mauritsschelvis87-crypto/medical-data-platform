@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/consult-notes")
@@ -24,17 +25,17 @@ public class ConsultNoteVersionController {
     }
 
     @GetMapping("/{consultNoteId}")
-    public ConsultNoteDto getConsultNote(@PathVariable Long consultNoteId) {
+    public ConsultNoteDto getConsultNote(@PathVariable UUID consultNoteId) {
         return consultNoteService.getConsultNoteById(consultNoteId);
     }
 
     @GetMapping("/{consultNoteId}/versions")
-    public List<ConsultNoteVersionDto> getVersions(@PathVariable Long consultNoteId) {
+    public List<ConsultNoteVersionDto> getVersions(@PathVariable UUID consultNoteId) {
         return consultNoteService.getVersionsForConsultNote(consultNoteId);
     }
 
     @PostMapping("/{consultNoteId}/versions")
-    public ConsultNoteDto addVersion(@PathVariable Long consultNoteId,
+    public ConsultNoteDto addVersion(@PathVariable UUID consultNoteId,
                                      @RequestBody CreateConsultNoteVersionRequest request) {
         return consultNoteService.addVersion(consultNoteId, request);
     }

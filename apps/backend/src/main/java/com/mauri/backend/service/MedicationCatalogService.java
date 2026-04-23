@@ -12,26 +12,25 @@ public class MedicationCatalogService {
 
     private final MedicationCatalogRepository medicationCatalogRepository;
     private final MedicationMapper medicationMapper;
+    private final MedicationCatalogImportService medicationCatalogImportService;
 
     public MedicationCatalogService(MedicationCatalogRepository medicationCatalogRepository,
-                                    MedicationMapper medicationMapper) {
+                                    MedicationMapper medicationMapper,
+                                    MedicationCatalogImportService medicationCatalogImportService) {
         this.medicationCatalogRepository = medicationCatalogRepository;
         this.medicationMapper = medicationMapper;
+        this.medicationCatalogImportService = medicationCatalogImportService;
     }
 
     public List<MedicationCatalogDto> search(String query) {
-        if (query == null || query.isBlank()) {
-            return medicationCatalogRepository.findByActiveTrueOrderByDutchNameAsc()
-                    .stream()
-                    .limit(20)
-                    .map(medicationMapper::toCatalogDto)
-                    .toList();
-        }
+        medicationCatalogImportService.ensureCatalogLoaded();
+
+        String normalizedQuery = query == null ? "" : query.trim();
 
         return medicationCatalogRepository
                 .findTop20ByActiveTrueAndDutchNameContainingIgnoreCaseOrActiveTrueAndLatinNameContainingIgnoreCaseOrderByDutchNameAsc(
-                        query.trim(),
-                        query.trim()
+                        normalizedQuery,
+                        normalizedQuery
                 )
                 .stream()
                 .map(medicationMapper::toCatalogDto)

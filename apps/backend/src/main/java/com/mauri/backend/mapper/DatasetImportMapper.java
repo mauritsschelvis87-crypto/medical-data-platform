@@ -8,20 +8,43 @@ import org.springframework.stereotype.Component;
 public class DatasetImportMapper {
 
     public DatasetImportDto toDto(DatasetImport datasetImport) {
+        return toDto(datasetImport, null);
+    }
+
+    public DatasetImportDto toDto(DatasetImport datasetImport, ImportSummary summary) {
         if (datasetImport == null) {
             return null;
         }
 
         DatasetImportDto dto = new DatasetImportDto();
         dto.setId(datasetImport.getId());
-        dto.setDatasetName(datasetImport.getDatasetName());
-        dto.setImportStatus(datasetImport.getImportStatus() != null ? datasetImport.getImportStatus().name() : null);
-        dto.setRecordsReceived(datasetImport.getRecordsReceived());
-        dto.setRecordsProcessed(datasetImport.getRecordsProcessed());
-        dto.setRecordsFailed(datasetImport.getRecordsFailed());
-        dto.setStartedAt(datasetImport.getStartedAt());
-        dto.setFinishedAt(datasetImport.getFinishedAt());
-
+        dto.setSourceName(datasetImport.getSourceName());
+        dto.setDatasetType(datasetImport.getDatasetType() != null ? datasetImport.getDatasetType().name() : null);
+        dto.setStatus(datasetImport.getStatus() != null ? datasetImport.getStatus().name() : null);
+        dto.setImportedAt(datasetImport.getImportedAt());
+        dto.setNotes(datasetImport.getNotes());
+        if (summary != null) {
+            dto.setRecordsReceived(summary.recordsReceived());
+            dto.setRecordsProcessed(summary.recordsProcessed());
+            dto.setRecordsFailed(summary.recordsFailed());
+            dto.setPatientCount(summary.patientCount());
+            dto.setPatientAddressCount(summary.patientAddressCount());
+            dto.setVitalSignsCount(summary.vitalSignsCount());
+            dto.setSkippedRecords(summary.skippedRecords());
+            dto.setValidationSummary(summary.validationSummary());
+        }
         return dto;
+    }
+
+    public record ImportSummary(
+            int recordsReceived,
+            int recordsProcessed,
+            int recordsFailed,
+            int patientCount,
+            int patientAddressCount,
+            int vitalSignsCount,
+            int skippedRecords,
+            String validationSummary
+    ) {
     }
 }

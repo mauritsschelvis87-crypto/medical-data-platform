@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { combineLatest, forkJoin, of, switchMap } from 'rxjs';
+import { catchError, combineLatest, forkJoin, of, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PatientApiService } from '../api/patient-api.service';
 import {
@@ -58,8 +58,10 @@ export class PatientDetailPageComponent {
 
   protected readonly loading = signal(true);
   protected readonly drawerOpen = signal(false);
+  protected readonly actionTab = signal<'soap' | 'medicine' | 'history'>('soap');
   protected readonly editingAddress = signal(false);
   protected readonly medicationLookup = signal<MedicationCatalogItem[]>([]);
+  protected readonly selectedMedicationId = signal<string | null>(null);
   protected readonly submittingAddress = signal(false);
   protected readonly submittingNote = signal(false);
   protected readonly submittingMedication = signal(false);
@@ -72,6 +74,14 @@ export class PatientDetailPageComponent {
   protected readonly predictions = signal<Prediction[]>([]);
   protected readonly consultNotes = signal<ConsultNote[]>([]);
   protected readonly medications = signal<PatientMedication[]>([]);
+
+  private readonly predictionTypesForSummary = [
+    'CARDIOVASCULAR_RISK',
+    'DIABETES_RISK',
+    'GENERAL_DETERIORATION',
+    'SEPSIS_RISK',
+    'RESPIRATORY_RISK',
+  ] as const;
 
   protected readonly vitalMetricConfigs: VitalMetricConfig[] = [
     {
@@ -88,7 +98,16 @@ export class PatientDetailPageComponent {
     { key: 'temperature', label: 'Temperature', primaryType: 'BODY_TEMPERATURE', primaryUnit: 'C' },
     { key: 'glucose', label: 'Glucose', primaryType: 'GLUCOSE', primaryUnit: 'mmol/L' },
     { key: 'bmi', label: 'BMI', primaryType: 'BMI', primaryUnit: 'kg/m2', editable: false },
-    { key: 'weight', label: 'Weight', primaryType: 'WEIGHT', primaryUnit: 'kg' },
+    {
+      key: 'weight',
+      label: 'Weight & height',
+      primaryType: 'WEIGHT',
+      secondaryType: 'HEIGHT',
+      primaryUnit: 'kg',
+      secondaryUnit: 'cm',
+      primaryLabel: 'Weight',
+      secondaryLabel: 'Height',
+    },
     { key: 'oxygenSaturation', label: 'O2 saturation', primaryType: 'OXYGEN_SATURATION', primaryUnit: '%' },
     { key: 'cholesterol', label: 'Cholesterol', primaryType: 'CHOLESTEROL', primaryUnit: 'mmol/L' },
   ];
@@ -98,8 +117,8 @@ export class PatientDetailPageComponent {
       .map((config, index) => ({ config, index }))
       .sort((left, right) => {
         const clinicalDifference =
-          this.getRiskPriority(this.getClinicalStatusForMetric(right.config)) -
-          this.getRiskPriority(this.getClinicalStatusForMetric(left.config));
+          this.getRiskPriority(this.getRawClinicalStatusForMetric(right.config)) -
+          this.getRiskPriority(this.getRawClinicalStatusForMetric(left.config));
         if (clinicalDifference !== 0) {
           return clinicalDifference;
         }
@@ -159,7 +178,17 @@ export class PatientDetailPageComponent {
   );
 
   protected readonly sortedPredictions = computed(() =>
-    [...this.predictions()].sort((left, right) => this.comparePredictionsByRisk(left, right)),
+    this.dedupePredictionsByType(this.predictions())
+      .filter((prediction) => this.shouldDisplayPrediction(prediction))
+      .sort((left, right) => this.comparePredictionsByRisk(left, right)),
+  );
+
+  protected readonly sortedConsultNotes = computed(() =>
+    [...this.consultNotes()].sort(
+      (left, right) =>
+        new Date(right.currentVersion?.createdAt ?? right.createdAt).getTime() -
+        new Date(left.currentVersion?.createdAt ?? left.createdAt).getTime(),
+    ),
   );
 
   constructor() {
@@ -175,11 +204,11 @@ export class PatientDetailPageComponent {
 
           return forkJoin({
             patient: this.api.getPatient(patientId),
-            timeline: this.api.getTimeline(patientId),
-            vitals: this.api.getLatestVitals(patientId),
-            predictions: this.api.getLatestPredictions(patientId),
-            consultNotes: this.api.getConsultNotes(patientId),
-            medications: this.api.getPatientMedications(patientId),
+            timeline: this.api.getTimeline(patientId).pipe(catchError(() => of([]))),
+            vitals: this.api.getLatestVitals(patientId).pipe(catchError(() => of([]))),
+            predictions: this.api.getLatestPredictions(patientId).pipe(catchError(() => of([]))),
+            consultNotes: this.api.getConsultNotes(patientId).pipe(catchError(() => of([]))),
+            medications: this.api.getPatientMedications(patientId).pipe(catchError(() => of([]))),
           });
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -199,19 +228,23 @@ export class PatientDetailPageComponent {
           this.medications.set(data.medications);
           this.patchAddressForm(data.patient.address);
           this.loading.set(false);
+          this.ensurePredictionsAvailable(data.patient.id, data.vitals, data.predictions);
         },
         error: () => {
           this.loading.set(false);
         },
       });
 
+    this.loadMedicationOptions();
+
     this.medicationForm.controls.medicationQuery.valueChanges
       .pipe(
         switchMap((query) => {
-          if (!query?.trim()) {
-            return of([]);
+          if (!this.matchesSelectedMedicationQuery(query ?? '')) {
+            this.selectedMedicationId.set(null);
+            this.medicationForm.patchValue({ medicationCatalogId: '' }, { emitEvent: false });
           }
-          return this.api.searchMedicationCatalog(query.trim());
+          return this.api.searchMedicationCatalog(query?.trim() ?? '');
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -220,6 +253,10 @@ export class PatientDetailPageComponent {
 
   protected toggleDrawer(): void {
     this.drawerOpen.update((open) => !open);
+  }
+
+  protected setActionTab(tab: 'soap' | 'medicine' | 'history'): void {
+    this.actionTab.set(tab);
   }
 
   protected toggleAddressEdit(): void {
@@ -263,12 +300,35 @@ export class PatientDetailPageComponent {
   }
 
   protected selectMedication(item: MedicationCatalogItem): void {
+    const displayName = this.getMedicationDisplayName(item);
     this.medicationForm.patchValue({
       medicationCatalogId: item.id,
-      medicationQuery: `${item.dutchName}${item.latinName ? ` (${item.latinName})` : ''}`,
-      dosage: item.defaultDosage ?? this.medicationForm.controls.dosage.value,
+      medicationQuery: displayName,
+      dosage: item.defaultDosage ?? this.getRecommendedDosage(item),
+      frequency: this.getRecommendedFrequency(item),
     });
-    this.medicationLookup.set([]);
+    this.selectedMedicationId.set(item.id);
+  }
+
+  protected getMedicationDisplayName(item: MedicationCatalogItem): string {
+    return `${item.dutchName}${item.latinName ? ` (${item.latinName})` : ''}`;
+  }
+
+  protected hasMedicationSuggestions(): boolean {
+    return this.medicationLookup().length > 0;
+  }
+
+  protected isSelectedMedication(item: MedicationCatalogItem): boolean {
+    return this.selectedMedicationId() === item.id;
+  }
+
+  protected getConsultNotePreview(value?: string | null): string {
+    if (!value?.trim()) {
+      return '—';
+    }
+
+    const normalized = value.replace(/\s+/g, ' ').trim();
+    return normalized.length > 180 ? `${normalized.slice(0, 177)}...` : normalized;
   }
 
   protected saveNote(): void {
@@ -351,7 +411,8 @@ export class PatientDetailPageComponent {
             endDate: '',
             reason: '',
           });
-          this.medicationLookup.set([]);
+          this.selectedMedicationId.set(null);
+          this.loadMedicationOptions();
           this.submittingMedication.set(false);
         },
         error: () => this.submittingMedication.set(false),
@@ -381,7 +442,7 @@ export class PatientDetailPageComponent {
       case 'bmi':
         return this.formatNumericValue(this.getVitalRow('BMI')?.value);
       case 'weight':
-        return this.formatNumericValue(this.getVitalRow('WEIGHT')?.value, ' kg');
+        return this.getWeightAndHeightValue();
       case 'oxygenSaturation':
         return this.formatNumericValue(this.getVitalRow('OXYGEN_SATURATION')?.value, '%');
       case 'cholesterol':
@@ -396,54 +457,42 @@ export class PatientDetailPageComponent {
   }
 
   protected getVitalMeasuredAtForMetric(config: VitalMetricConfig): string | null {
-    return this.getVitalMeasuredAt(config.primaryType) || (config.secondaryType ? this.getVitalMeasuredAt(config.secondaryType) : null);
+    return this.getLatestVitalRowForMetric(config)?.measuredAt ?? null;
   }
 
   protected getClinicalStatusForMetric(config: VitalMetricConfig): string {
-    if (config.key === 'bmi') {
-      return this.getBmiClinicalStatus();
-    }
-
-    return this.maxStatus([
-      this.getVitalRow(config.primaryType)?.clinicalStatus,
-      config.secondaryType ? this.getVitalRow(config.secondaryType)?.clinicalStatus : null,
-    ]);
+    return this.getClinicalDisplayStatus(this.getRawClinicalStatusForMetric(config));
   }
 
   protected getFreshnessStatusForMetric(config: VitalMetricConfig): string {
-    return this.maxStatus([
-      this.getVitalRow(config.primaryType)?.freshnessStatus,
-      config.secondaryType ? this.getVitalRow(config.secondaryType)?.freshnessStatus : null,
-    ]);
+    const rows = this.getVitalRowsForMetric(config);
+    if (rows.length === 0) {
+      return 'UNKNOWN';
+    }
+
+    return rows.every((row) => this.normalizeFreshnessStatus(row.freshnessStatus) === 'CURRENT')
+      ? 'CURRENT'
+      : 'OUTDATED';
+  }
+
+  protected getFreshnessLabelForMetric(config: VitalMetricConfig): string {
+    return this.getFreshnessStatusForMetric(config) === 'CURRENT' ? 'CURRENT' : 'OUTDATED';
   }
 
   protected getClinicalMessageForMetric(config: VitalMetricConfig): string {
-    const message = [this.getVitalRow(config.primaryType), config.secondaryType ? this.getVitalRow(config.secondaryType) : null]
+    return [this.getVitalRow(config.primaryType), config.secondaryType ? this.getVitalRow(config.secondaryType) : null]
       .filter((row): row is VitalSigns => !!row)
-      .map((row) => row.clinicalMessage)
+      .map((row) => row.interpretationMessage ?? row.clinicalMessage)
       .filter((message): message is string => !!message)
       .join(' ');
-
-    if (message || config.key !== 'bmi') {
-      return message;
-    }
-
-    return this.getBmiClinicalMessage();
   }
 
   protected shouldShowClinicalStatus(config: VitalMetricConfig): boolean {
-    const status = this.getClinicalStatusForMetric(config);
-    return status !== 'LOW' && status !== 'UNKNOWN';
+    return this.getClinicalStatusForMetric(config).length > 0;
   }
 
   protected getClinicalSummaryForMetric(config: VitalMetricConfig): string {
-    if (!this.shouldShowClinicalStatus(config)) {
-      return '';
-    }
-
-    const direction = this.getClinicalDirectionForMetric(config);
-
-    return `${config.label}: ${direction}`;
+    return this.getClinicalMessageForMetric(config);
   }
 
   protected getFreshnessMessageForMetric(config: VitalMetricConfig): string {
@@ -589,8 +638,74 @@ export class PatientDetailPageComponent {
     return (level || 'UNKNOWN').replaceAll('_', ' ');
   }
 
+  protected normalizeRiskLevel(level?: string | null): string {
+    const normalizedLevel = (level || 'UNKNOWN').toUpperCase();
+    return normalizedLevel === 'MED' ? 'MEDIUM' : normalizedLevel;
+  }
+
+  protected getMetricCardTone(config: VitalMetricConfig): string | null {
+    return this.getClinicalToneFromStatus(this.getRawClinicalStatusForMetric(config));
+  }
+
+  protected getMetricValueLine(config: VitalMetricConfig): string {
+    const value = this.getVitalValue(config.key);
+    const status = this.getClinicalStatusForMetric(config);
+    return status ? `${status} | ${value}` : value;
+  }
+
+  protected getPredictionCardTone(prediction: Prediction): string | null {
+    return this.getPredictionTone(this.normalizeRiskLevel(prediction.riskLevel));
+  }
+
+  protected getPredictionRiskLine(prediction: Prediction): string {
+    const level = this.getPredictionDisplayLevel(prediction);
+    const score = this.formatRiskScore(prediction.riskScore);
+    return level ? `${level} | ${score}` : score;
+  }
+
   protected cleanPredictionExplanation(explanation?: string | null): string {
     return this.removeFallbackText(explanation || '');
+  }
+
+  protected predictionDataFreshnessStatus(prediction: Prediction): 'CURRENT' | 'OUTDATED' {
+    const sourceTypes = this.getPredictionSourceTypes(prediction);
+    const sourceRows = this.getPredictionSourceVitals(prediction);
+    const statuses = sourceRows.map((row) => row.freshnessStatus ?? 'UNKNOWN');
+    if (sourceRows.length !== sourceTypes.length || statuses.some((status) => status !== 'CURRENT')) {
+      return 'OUTDATED';
+    }
+
+    const latestMeasurementTimestamp = this.getLatestMeasurementTimestamp(sourceRows);
+    const predictionTimestamp = new Date(prediction.predictionTimestamp).getTime();
+
+    return predictionTimestamp >= latestMeasurementTimestamp ? 'CURRENT' : 'OUTDATED';
+  }
+
+  protected predictionDataFreshnessLabel(prediction: Prediction): string {
+    return this.predictionDataFreshnessStatus(prediction);
+  }
+
+  protected predictionDataFreshnessTitle(prediction: Prediction): string {
+    return this.predictionDataFreshnessStatus(prediction) === 'OUTDATED'
+      ? 'Prediction is based on older measurements or was calculated before the latest vital signs.'
+      : 'Prediction is based on current vital sign measurements.';
+  }
+
+  protected getPredictionSourceSummary(prediction: Prediction): string {
+    return this.getPredictionSourceLines(prediction).join(', ');
+  }
+
+  protected getPredictionSourceLines(prediction: Prediction): string[] {
+    const sourceTypes = this.getPredictionSourceTypes(prediction);
+    const sourceRows = this.getPredictionSourceVitals(prediction);
+    if (sourceRows.length === 0) {
+      return ['No matching vital signs available.'];
+    }
+
+    const missingSources = sourceTypes
+      .filter((type) => !sourceRows.some((row) => row.type === type))
+      .map((type) => `${this.formatVitalType(type)} missing`);
+    return [...sourceRows.map((row) => this.formatVitalSource(row)), ...missingSources];
   }
 
   protected formatDate(value?: string | null): string {
@@ -644,6 +759,17 @@ export class PatientDetailPageComponent {
     return `${value}${suffix}`;
   }
 
+  private getWeightAndHeightValue(): string {
+    const weight = this.formatNumericValue(this.getVitalRow('WEIGHT')?.value, ' kg');
+    const height = this.formatNumericValue(this.getVitalRow('HEIGHT')?.value, ' cm');
+
+    if (weight === '—' && height === '—') {
+      return '—';
+    }
+
+    return `${weight} | ${height}`;
+  }
+
   private removeFallbackText(value: string): string {
     return value
       .replace(/\bfallback backend prediction based on latest patient context\b[.:\-\s]*/gi, '')
@@ -662,9 +788,38 @@ export class PatientDetailPageComponent {
     return (right.riskScore ?? 0) - (left.riskScore ?? 0);
   }
 
+  private dedupePredictionsByType(predictions: Prediction[]): Prediction[] {
+    const latestByType = new Map<string, Prediction>();
+
+    for (const prediction of predictions) {
+      const existing = latestByType.get(prediction.predictionType);
+      if (!existing || this.comparePredictionFreshness(prediction, existing) < 0) {
+        latestByType.set(prediction.predictionType, prediction);
+      }
+    }
+
+    return Array.from(latestByType.values());
+  }
+
+  private comparePredictionFreshness(left: Prediction, right: Prediction): number {
+    const leftTimestamp = new Date(left.predictionTimestamp).getTime();
+    const rightTimestamp = new Date(right.predictionTimestamp).getTime();
+
+    if (leftTimestamp !== rightTimestamp) {
+      return rightTimestamp - leftTimestamp;
+    }
+
+    if (left.mainPrediction !== right.mainPrediction) {
+      return left.mainPrediction ? -1 : 1;
+    }
+
+    return this.comparePredictionsByRisk(left, right);
+  }
+
   private getRiskPriority(level?: string | null): number {
-    switch ((level || '').toUpperCase()) {
+    switch (this.normalizeRiskLevel(level)) {
       case 'CRITICAL':
+      case 'OUT_OF_RANGE':
       case 'VERY_HIGH':
         return 4;
       case 'HIGH':
@@ -673,6 +828,8 @@ export class PatientDetailPageComponent {
       case 'MEDIUM':
         return 2;
       case 'LOW':
+      case 'NOT_APPLICABLE':
+      case 'INSUFFICIENT_CONTEXT':
         return 1;
       default:
         return 0;
@@ -692,143 +849,213 @@ export class PatientDetailPageComponent {
     }
   }
 
-  private getBmiClinicalStatus(): string {
-    const bmi = this.getVitalRow('BMI')?.value;
-    if (bmi == null) {
-      return this.getVitalRow('BMI')?.clinicalStatus ?? 'UNKNOWN';
-    }
-
-    if (bmi < 16 || bmi >= 40) {
-      return 'CRITICAL';
-    }
-
-    if (bmi < 18.5 || bmi >= 30) {
-      return 'HIGH';
-    }
-
-    if (bmi >= 25) {
-      return 'MEDIUM';
-    }
-
-    return 'LOW';
+  private getVitalRowsForMetric(config: VitalMetricConfig): VitalSigns[] {
+    return [this.getVitalRow(config.primaryType), config.secondaryType ? this.getVitalRow(config.secondaryType) : null]
+      .filter((row): row is VitalSigns => !!row);
   }
 
-  private getBmiClinicalMessage(): string {
-    const bmi = this.getVitalRow('BMI')?.value;
-    if (bmi == null) {
-      return '';
-    }
-
-    if (bmi < 16) {
-      return 'Critical underweight risk';
-    }
-
-    if (bmi < 18.5) {
-      return 'Underweight risk';
-    }
-
-    if (bmi >= 40) {
-      return 'Critical obesity risk';
-    }
-
-    if (bmi >= 30) {
-      return 'Obesity risk';
-    }
-
-    if (bmi >= 25) {
-      return 'Overweight risk';
-    }
-
-    return '';
+  private getLatestVitalRowForMetric(config: VitalMetricConfig): VitalSigns | null {
+    return this.getVitalRowsForMetric(config)
+      .sort((left, right) => new Date(right.measuredAt).getTime() - new Date(left.measuredAt).getTime())[0] ?? null;
   }
 
-  private getClinicalDirectionForMetric(config: VitalMetricConfig): string {
-    switch (config.key) {
-      case 'bloodPressure':
-        return this.getBloodPressureDirection();
-      case 'heartRate':
-        return this.getRangeDirection('HEART_RATE', 50, 100);
-      case 'temperature':
-        return this.getRangeDirection('BODY_TEMPERATURE', 35.5, 37.8);
-      case 'oxygenSaturation':
-        return 'low';
-      case 'bmi':
-        return this.getBmiDirection();
-      case 'glucose':
-      case 'cholesterol':
-        return 'high';
+  private getPredictionSourceVitals(prediction: Prediction): VitalSigns[] {
+    return this.getPredictionSourceTypes(prediction)
+      .map((type) => this.getVitalRow(type))
+      .filter((row): row is VitalSigns => !!row);
+  }
+
+  private getPredictionSourceTypes(prediction: Prediction): string[] {
+    return this.getPredictionSourceTypesForType(prediction.predictionType);
+  }
+
+  private getPredictionSourceTypesForType(predictionType?: string | null): string[] {
+    switch ((predictionType || '').toUpperCase()) {
+      case 'CARDIOVASCULAR_RISK':
+        return ['BLOOD_PRESSURE_SYSTOLIC', 'CHOLESTEROL'];
+      case 'DIABETES_RISK':
+        return ['GLUCOSE', 'BMI'];
+      case 'SEPSIS_RISK':
+        return ['BODY_TEMPERATURE', 'HEART_RATE'];
+      case 'RESPIRATORY_RISK':
+        return ['OXYGEN_SATURATION', 'HEART_RATE'];
+      case 'GENERAL_DETERIORATION':
+        return ['HEART_RATE', 'BODY_TEMPERATURE', 'OXYGEN_SATURATION'];
       default:
-        return this.getClinicalStatusForMetric(config).toLowerCase();
+        return this.vitalMetricConfigs.map((config) => config.primaryType);
     }
   }
 
-  private getBloodPressureDirection(): string {
-    const systolic = this.getVitalRow('BLOOD_PRESSURE_SYSTOLIC')?.value;
-    const diastolic = this.getVitalRow('BLOOD_PRESSURE_DIASTOLIC')?.value;
-
-    if ((systolic != null && systolic >= 140) || (diastolic != null && diastolic >= 90)) {
-      return 'high';
-    }
-
-    return 'abnormal';
+  private getLatestMeasurementTimestamp(rows: VitalSigns[]): number {
+    return Math.max(...rows.map((row) => new Date(row.measuredAt).getTime()));
   }
 
-  private getRangeDirection(type: string, lowInclusive: number, highInclusive: number): string {
-    const value = this.getVitalRow(type)?.value;
-    if (value == null) {
-      return 'abnormal';
+  private shouldDisplayPrediction(prediction: Prediction): boolean {
+    const sourceTypes = this.getPredictionSourceTypes(prediction);
+    const sourceRows = this.getPredictionSourceVitals(prediction);
+
+    if (this.vitals().length === 0) {
+      return true;
     }
 
-    if (value < lowInclusive) {
-      return 'low';
-    }
-
-    if (value > highInclusive) {
-      return 'high';
-    }
-
-    return 'abnormal';
+    return this.hasUsablePredictionSources(sourceRows, sourceTypes);
   }
 
-  private getBmiDirection(): string {
-    const bmi = this.getVitalRow('BMI')?.value;
-    if (bmi == null) {
-      return 'abnormal';
+  private isUsablePredictionSourceRow(row: VitalSigns): boolean {
+    const status = this.getVitalInterpretationStatus(row);
+    return (
+      row.value != null &&
+      !!row.measuredAt &&
+      row.contextComplete !== false &&
+      !['UNKNOWN', 'INSUFFICIENT_CONTEXT', 'NOT_APPLICABLE', 'OUT_OF_RANGE'].includes(status)
+    );
+  }
+
+  private ensurePredictionsAvailable(patientId: string, vitals: VitalSigns[], predictions: Prediction[]): void {
+    if (predictions.length > 0 || !this.canGenerateRiskSummary(vitals)) {
+      return;
     }
 
-    if (bmi < 18.5) {
-      return 'underweight';
-    }
+    this.api
+      .recalculatePredictions(patientId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (recalculatedPredictions) => this.predictions.set(recalculatedPredictions),
+        error: () => undefined,
+      });
+  }
 
-    if (bmi >= 30) {
-      return 'obesity';
-    }
+  private canGenerateRiskSummary(vitals: VitalSigns[]): boolean {
+    return this.predictionTypesForSummary.some((predictionType) =>
+      this.hasUsablePredictionSources(
+        this.getPredictionSourceVitalsFromList(vitals, this.getPredictionSourceTypesForType(predictionType)),
+        this.getPredictionSourceTypesForType(predictionType),
+      ),
+    );
+  }
 
-    if (bmi >= 25) {
-      return 'overweight';
-    }
+  private getPredictionSourceVitalsFromList(vitals: VitalSigns[], sourceTypes: string[]): VitalSigns[] {
+    return sourceTypes
+      .map((type) => vitals.find((row) => row.type === type) ?? null)
+      .filter((row): row is VitalSigns => !!row);
+  }
 
-    return 'abnormal';
+  private hasUsablePredictionSources(sourceRows: VitalSigns[], sourceTypes: string[]): boolean {
+    return sourceRows.length === sourceTypes.length && sourceRows.every((row) => this.isUsablePredictionSourceRow(row));
+  }
+
+  private formatVitalSource(row: VitalSigns): string {
+    const label = this.formatVitalType(row.type);
+    const value = row.value == null ? 'not available' : `${row.value}${row.unit ? ` ${row.unit}` : ''}`;
+    return `${label} ${value} (${row.freshnessStatus ?? 'UNKNOWN'})`;
+  }
+
+  private formatVitalType(type?: string | null): string {
+    return (type || 'Vital sign')
+      .replaceAll('_', ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
   }
 
   private maxStatus(statuses: Array<string | null | undefined>): string {
     const priority = new Map<string, number>([
       ['LOW', 0],
+      ['NOT_APPLICABLE', 0],
+      ['INSUFFICIENT_CONTEXT', 0],
       ['CURRENT', 0],
       ['MEDIUM', 1],
       ['AGING', 1],
       ['HIGH', 2],
+      ['OUT_OF_RANGE', 2],
       ['CRITICAL', 3],
       ['OUTDATED', 2],
       ['UNKNOWN', -1],
     ]);
 
     return statuses.reduce<string>((max, status) => {
-      const normalizedStatus = status ?? 'UNKNOWN';
+      const normalizedStatus = this.normalizeStatus(status);
       return (priority.get(normalizedStatus) ?? -1) > (priority.get(max) ?? -1)
         ? normalizedStatus
         : max;
     }, 'UNKNOWN');
+  }
+
+  private getRawClinicalStatusForMetric(config: VitalMetricConfig): string {
+    return this.maxStatus(
+      this.getVitalRowsForMetric(config).map((row) => this.getVitalInterpretationStatus(row)),
+    );
+  }
+
+  private getClinicalToneFromStatus(status?: string | null): string | null {
+    switch (this.normalizeStatus(status)) {
+      case 'HIGH':
+      case 'OUT_OF_RANGE':
+      case 'VERY_HIGH':
+        return 'HIGH';
+      case 'MEDIUM':
+        return 'MEDIUM';
+      case 'LOW':
+        return 'LOW';
+      default:
+        return null;
+    }
+  }
+
+  private getClinicalDisplayStatus(status?: string | null): string {
+    switch (this.normalizeStatus(status)) {
+      case 'HIGH':
+      case 'CRITICAL':
+      case 'OUT_OF_RANGE':
+      case 'VERY_HIGH':
+        return 'HIGH';
+      case 'MEDIUM':
+      case 'LOW':
+        return this.normalizeStatus(status);
+      default:
+        return '';
+    }
+  }
+
+  private getPredictionTone(level: string): string | null {
+    switch (level) {
+      case 'HIGH':
+      case 'CRITICAL':
+      case 'VERY_HIGH':
+        return 'HIGH';
+      case 'MEDIUM':
+        return 'MEDIUM';
+      case 'LOW':
+        return 'LOW';
+      default:
+        return null;
+    }
+  }
+
+  private getPredictionDisplayLevel(prediction: Prediction): string {
+    const normalizedLevel = this.normalizeRiskLevel(prediction.riskLevel);
+    if (normalizedLevel === 'UNKNOWN') {
+      return '';
+    }
+
+    return normalizedLevel === 'VERY_HIGH' || normalizedLevel === 'CRITICAL' ? 'HIGH' : normalizedLevel;
+  }
+
+  private getVitalInterpretationStatus(row?: VitalSigns | null): string {
+    return this.normalizeStatus(row?.interpretationStatus ?? row?.clinicalStatus);
+  }
+
+  private normalizeStatus(status?: string | null): string {
+    const normalizedStatus = (status || 'UNKNOWN').toUpperCase();
+    return normalizedStatus === 'MED' ? 'MEDIUM' : normalizedStatus;
+  }
+
+  private normalizeFreshnessStatus(status?: string | null): string {
+    const normalizedStatus = (status || 'UNKNOWN').toUpperCase();
+    return normalizedStatus === 'CURRENT' ? 'CURRENT' : normalizedStatus;
+  }
+
+  private formatRiskScore(value?: number | null): string {
+    return value == null ? '—' : `${value}%`;
   }
 
   private patchAddressForm(address?: PatientAddress | null): void {
@@ -854,5 +1081,80 @@ export class PatientDetailPageComponent {
   private normalizeAddressValue(value: string): string | null {
     const trimmed = value.trim();
     return trimmed.length > 0 ? trimmed : null;
+  }
+
+  private getRecommendedDosage(item: MedicationCatalogItem): string {
+    return item.defaultDosage?.trim() || 'Use standard dose';
+  }
+
+  private getRecommendedFrequency(item: MedicationCatalogItem): string {
+    const advice = item.advice?.toLowerCase() ?? '';
+    const medicationName = this.getMedicationDisplayName(item).toLowerCase();
+    const matchedAdviceFrequency = this.extractAdviceFrequency(advice);
+    if (matchedAdviceFrequency) {
+      return matchedAdviceFrequency;
+    }
+
+    if (medicationName.includes('inhaler') || medicationName.includes('metered dose')) {
+      return '2x daily';
+    }
+
+    if (
+      medicationName.includes('gel') ||
+      medicationName.includes('cream') ||
+      medicationName.includes('ointment') ||
+      medicationName.includes('topical')
+    ) {
+      return 'Apply 2x daily';
+    }
+
+    if (
+      medicationName.includes('injection') ||
+      medicationName.includes('prefilled syringe') ||
+      medicationName.includes('transdermal') ||
+      medicationName.includes('vaginal system') ||
+      medicationName.includes('pack')
+    ) {
+      return 'As prescribed';
+    }
+
+    return '1x daily';
+  }
+
+  private extractAdviceFrequency(advice: string): string | null {
+    if (!advice) {
+      return null;
+    }
+
+    if (advice.includes('4x') || advice.includes('four times')) {
+      return '4x daily';
+    }
+    if (advice.includes('3x') || advice.includes('three times')) {
+      return '3x daily';
+    }
+    if (advice.includes('2x') || advice.includes('twice')) {
+      return '2x daily';
+    }
+    if (advice.includes('once') || advice.includes('1x')) {
+      return '1x daily';
+    }
+
+    return null;
+  }
+
+  private matchesSelectedMedicationQuery(query: string): boolean {
+    const selectedItem = this.medicationLookup().find((item) => item.id === this.selectedMedicationId());
+    if (!selectedItem) {
+      return false;
+    }
+
+    return this.getMedicationDisplayName(selectedItem) === query.trim();
+  }
+
+  private loadMedicationOptions(): void {
+    this.api
+      .searchMedicationCatalog('')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((items) => this.medicationLookup.set(items));
   }
 }

@@ -2,16 +2,20 @@ package com.mauri.backend.controller;
 
 import com.mauri.backend.dto.patient.PatientDto;
 import com.mauri.backend.dto.patient.PatientSearchResultDto;
+import com.mauri.backend.dto.patient.UpdatePatientAddressRequest;
 import com.mauri.backend.service.PatientService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/patients")
@@ -23,9 +27,22 @@ public class PatientController {
         this.patientService = patientService;
     }
 
+    @GetMapping
+    public List<PatientSearchResultDto> getInitialPatients() {
+        return patientService.getInitialPatients();
+    }
+
     @GetMapping("/{patientId}")
-    public PatientDto getPatientById(@PathVariable Long patientId) {
+    public PatientDto getPatientById(@PathVariable UUID patientId) {
         return patientService.getPatientById(patientId);
+    }
+
+    @PutMapping("/{patientId}/address")
+    public PatientDto updatePatientAddress(
+            @PathVariable UUID patientId,
+            @RequestBody UpdatePatientAddressRequest request
+    ) {
+        return patientService.updatePatientAddress(patientId, request);
     }
 
     @GetMapping("/search")

@@ -4,6 +4,4 @@ __pycache__/
 .pytest_cache/
 
 datasets/*
-!datasets/sample/
-!datasets/sample/*.csv
 !datasets/.gitkeep

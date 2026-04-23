@@ -15,6 +15,7 @@ import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(
@@ -51,7 +52,7 @@ public class Prediction extends BaseEntity {
     private boolean mainPrediction;
 
     @Column(name = "triggered_by_reference_id")
-    private Long triggeredByReferenceId;
+    private UUID triggeredByReferenceId;
 
     @Column(name = "prediction_timestamp", nullable = false)
     private LocalDateTime predictionTimestamp;
@@ -139,11 +140,11 @@ public class Prediction extends BaseEntity {
         this.mainPrediction = mainPrediction;
     }
 
-    public Long getTriggeredByReferenceId() {
+    public UUID getTriggeredByReferenceId() {
         return triggeredByReferenceId;
     }
 
-    public void setTriggeredByReferenceId(Long triggeredByReferenceId) {
+    public void setTriggeredByReferenceId(UUID triggeredByReferenceId) {
         this.triggeredByReferenceId = triggeredByReferenceId;
     }
 

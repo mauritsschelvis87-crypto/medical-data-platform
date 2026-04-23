@@ -1,15 +1,17 @@
 package com.mauri.backend.dto.medication;
 
+import java.util.UUID;
+
 public class MedicationCatalogDto {
 
-    private Long id;
+    private UUID id;
     private String code;
     private String dutchName;
     private String latinName;
     private String defaultDosage;
     private String advice;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
@@ -33,7 +35,7 @@ public class MedicationCatalogDto {
         return advice;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

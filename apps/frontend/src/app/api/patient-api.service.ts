@@ -55,6 +55,15 @@ export class PatientApiService {
     return this.http.get<Prediction[]>(`${this.baseUrl}/patients/${patientId}/predictions/latest`);
   }
 
+  recalculatePredictions(patientId: string, triggerSource = 'DETAIL_VIEW') {
+    const params = new HttpParams().set('triggerSource', triggerSource);
+    return this.http.post<Prediction[]>(
+      `${this.baseUrl}/patients/${patientId}/predictions/recalculate`,
+      null,
+      { params },
+    );
+  }
+
   getConsultNotes(patientId: string) {
     return this.http.get<ConsultNote[]>(`${this.baseUrl}/patients/${patientId}/consult-notes`);
   }

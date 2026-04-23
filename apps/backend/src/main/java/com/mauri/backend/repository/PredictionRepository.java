@@ -9,9 +9,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface PredictionRepository extends JpaRepository<Prediction, Long> {
+public interface PredictionRepository extends JpaRepository<Prediction, UUID> {
 
     List<Prediction> findByPatientOrderByPredictionTimestampDesc(Patient patient);
 

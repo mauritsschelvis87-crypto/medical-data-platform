@@ -1,24 +1,20 @@
 package com.mauri.backend.dto.dataset;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class CreateDatasetImportRequest {
 
-    private String datasetName;
+    @NotBlank
     private String sourceName;
-    private String importType;
-    private String normalizationVersion;
-    private Integer recordCount;
-    private String checksum;
-    private String versionTag;
-    private String sourcePath;
-    private Boolean replaceExisting;
 
-    public String getDatasetName() {
-        return datasetName;
-    }
+    @NotBlank
+    private String datasetType;
 
-    public void setDatasetName(String datasetName) {
-        this.datasetName = datasetName;
-    }
+    @NotBlank
+    private String sourceDirectoryPath;
+
+    private String notes;
+    private boolean replaceExistingData;
 
     public String getSourceName() {
         return sourceName;
@@ -28,59 +24,35 @@ public class CreateDatasetImportRequest {
         this.sourceName = sourceName;
     }
 
-    public String getImportType() {
-        return importType;
+    public String getDatasetType() {
+        return datasetType;
     }
 
-    public void setImportType(String importType) {
-        this.importType = importType;
+    public void setDatasetType(String datasetType) {
+        this.datasetType = datasetType;
     }
 
-    public String getNormalizationVersion() {
-        return normalizationVersion;
+    public String getSourceDirectoryPath() {
+        return sourceDirectoryPath;
     }
 
-    public void setNormalizationVersion(String normalizationVersion) {
-        this.normalizationVersion = normalizationVersion;
+    public void setSourceDirectoryPath(String sourceDirectoryPath) {
+        this.sourceDirectoryPath = sourceDirectoryPath;
     }
 
-    public Integer getRecordCount() {
-        return recordCount;
+    public String getNotes() {
+        return notes;
     }
 
-    public void setRecordCount(Integer recordCount) {
-        this.recordCount = recordCount;
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
-    public String getChecksum() {
-        return checksum;
+    public boolean isReplaceExistingData() {
+        return replaceExistingData;
     }
 
-    public void setChecksum(String checksum) {
-        this.checksum = checksum;
-    }
-
-    public String getVersionTag() {
-        return versionTag;
-    }
-
-    public void setVersionTag(String versionTag) {
-        this.versionTag = versionTag;
-    }
-
-    public String getSourcePath() {
-        return sourcePath;
-    }
-
-    public void setSourcePath(String sourcePath) {
-        this.sourcePath = sourcePath;
-    }
-
-    public Boolean getReplaceExisting() {
-        return replaceExisting;
-    }
-
-    public void setReplaceExisting(Boolean replaceExisting) {
-        this.replaceExisting = replaceExisting;
+    public void setReplaceExistingData(boolean replaceExistingData) {
+        this.replaceExistingData = replaceExistingData;
     }
 }
