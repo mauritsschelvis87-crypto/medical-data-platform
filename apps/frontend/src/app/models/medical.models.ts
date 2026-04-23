@@ -36,6 +36,7 @@ export interface VitalSigns {
   id: string;
   patientId?: string;
   type?: string | null;
+  label?: string | null;
   value?: number | null;
   unit?: string | null;
   bloodPressureSystolic?: number | null;
@@ -48,6 +49,21 @@ export interface VitalSigns {
   oxygenSaturation?: number | null;
   cholesterol?: number | null;
   measuredAt: string;
+  clinicalStatus?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | 'UNKNOWN' | string | null;
+  freshnessStatus?: 'CURRENT' | 'AGING' | 'OUTDATED' | 'UNKNOWN' | string | null;
+  clinicalMessage?: string | null;
+  freshnessMessage?: string | null;
+  editable?: boolean;
+  source?: string | null;
+  sourceObservationCode?: string | null;
+  sourceDescription?: string | null;
+}
+
+export interface CreateVitalSignsPayload {
+  type: string;
+  value: number;
+  unit: string;
+  measuredAt?: string | null;
   source?: string | null;
   sourceObservationCode?: string | null;
   sourceDescription?: string | null;

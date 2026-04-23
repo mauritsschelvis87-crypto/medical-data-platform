@@ -89,59 +89,71 @@
               <h2>{{ preferences.t('vitals') }}</h2>
             </div>
 
-            @if (vitals().length > 0) {
-              <div class="metric-grid">
-                <article [class.metric-alert]="isVitalStale('BLOOD_PRESSURE_SYSTOLIC') || isVitalStale('BLOOD_PRESSURE_DIASTOLIC')">
-                  <span>Blood pressure</span>
-                  <strong>{{ getVitalValue('bloodPressure') }}</strong>
-                  <small>{{ formatDateOnly(getVitalMeasuredAt('BLOOD_PRESSURE_SYSTOLIC') || getVitalMeasuredAt('BLOOD_PRESSURE_DIASTOLIC')) }}</small>
-                </article>
+            <div class="metric-grid">
+              @for (metric of sortedVitalMetricConfigs(); track metric.key) {
+                <article
+                  class="metric-card"
+                  [attr.data-clinical-status]="getClinicalStatusForMetric(metric)"
+                  [class.metric-card--editing]="editingVitalKey() === metric.key"
+                  [class.metric-card--readonly]="!isVitalEditable(metric)"
+                  [title]="getClinicalSummaryForMetric(metric)"
+                >
+                  <div class="metric-card__content">
+                    <div class="metric-card__main">
+                      <span>{{ metric.label }}</span>
+                      <small class="metric-card__clinical-status">
+                        {{ getClinicalStatusForMetric(metric) }} | {{ getVitalValue(metric.key) }}
+                      </small>
+                    </div>
 
-                <article [class.metric-alert]="isVitalStale('HEART_RATE')">
-                  <span>Heart rate</span>
-                  <strong>{{ getVitalValue('heartRate') }}</strong>
-                  <small>{{ formatDateOnly(getVitalMeasuredAt('HEART_RATE')) }}</small>
-                </article>
+                    <div class="metric-card__value-group">
+                      <small
+                        class="metric-card__date"
+                        [attr.data-freshness-status]="getFreshnessStatusForMetric(metric)"
+                        [title]="getFreshnessMessageForMetric(metric)"
+                      >
+                        {{ formatDateOnly(getVitalMeasuredAtForMetric(metric)) }}
+                      </small>
+                    </div>
+                  </div>
 
-                <article [class.metric-alert]="isVitalStale('BODY_TEMPERATURE')">
-                  <span>Temperature</span>
-                  <strong>{{ getVitalValue('temperature') }}</strong>
-                  <small>{{ formatDateOnly(getVitalMeasuredAt('BODY_TEMPERATURE')) }}</small>
-                </article>
+                  @if (isVitalEditable(metric)) {
+                    @if (editingVitalKey() === metric.key) {
+                      <form class="metric-edit" [formGroup]="vitalEditForm" (ngSubmit)="saveVitalMetric(metric)">
+                        <div class="metric-edit__fields">
+                          <label>
+                            <span>{{ metric.primaryLabel || metric.label }}</span>
+                            <input type="number" step="0.1" formControlName="primaryValue" />
+                          </label>
 
-                <article [class.metric-alert]="isVitalStale('GLUCOSE')">
-                  <span>Glucose</span>
-                  <strong>{{ getVitalValue('glucose') }}</strong>
-                  <small>{{ formatDateOnly(getVitalMeasuredAt('GLUCOSE')) }}</small>
-                </article>
+                          @if (metric.secondaryType) {
+                            <label>
+                              <span>{{ metric.secondaryLabel }}</span>
+                              <input type="number" step="0.1" formControlName="secondaryValue" />
+                            </label>
+                          }
+                        </div>
 
-                <article [class.metric-alert]="isVitalStale('BMI')">
-                  <span>BMI</span>
-                  <strong>{{ getVitalValue('bmi') }}</strong>
-                  <small>{{ formatDateOnly(getVitalMeasuredAt('BMI')) }}</small>
+                        <div class="metric-edit__actions">
+                          <button type="submit" [disabled]="savingVitalKey() === metric.key">
+                            {{ savingVitalKey() === metric.key ? 'Saving...' : 'Save' }}
+                          </button>
+                          <button type="button" (click)="cancelVitalEdit()" [disabled]="savingVitalKey() === metric.key">
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    } @else {
+                      <button type="button" class="metric-card__edit" (click)="startVitalEdit(metric)">
+                        Update value
+                      </button>
+                    }
+                  } @else {
+                    <div class="metric-card__derived">Calculated from source measurements</div>
+                  }
                 </article>
-
-                <article [class.metric-alert]="isVitalStale('WEIGHT')">
-                  <span>Weight</span>
-                  <strong>{{ getVitalValue('weight') }}</strong>
-                  <small>{{ formatDateOnly(getVitalMeasuredAt('WEIGHT')) }}</small>
-                </article>
-
-                <article [class.metric-alert]="isVitalStale('OXYGEN_SATURATION')">
-                  <span>O₂ saturation</span>
-                  <strong>{{ getVitalValue('oxygenSaturation') }}</strong>
-                  <small>{{ formatDateOnly(getVitalMeasuredAt('OXYGEN_SATURATION')) }}</small>
-                </article>
-
-                <article [class.metric-alert]="isVitalStale('CHOLESTEROL')">
-                  <span>Cholesterol</span>
-                  <strong>{{ getVitalValue('cholesterol') }}</strong>
-                  <small>{{ formatDateOnly(getVitalMeasuredAt('CHOLESTEROL')) }}</small>
-                </article>
-              </div>
-            } @else {
-              <p class="empty-copy">No vital signs registered yet.</p>
-            }
+              }
+            </div>
           </section>
 
           <section class="panel medications-panel medications-panel--status">
@@ -183,77 +195,27 @@
           <section class="panel risk-panel risk-panel--inline">
             <div class="panel__header">
               <h2>{{ preferences.t('riskSummary') }}</h2>
-              @if (mainPrediction(); as activePrediction) {
-                @if (activePrediction.requiresConfirmation) {
-                  <span class="risk-pill risk-pill--alert">Needs confirmation</span>
-                }
-              }
             </div>
 
-            @if (mainPrediction(); as prediction) {
-              <div class="risk-score">
-                <span>{{ prediction.riskScore }}%</span>
-                <small>{{ prediction.predictionType.replaceAll('_', ' ') }}</small>
-              </div>
-
-              <div class="risk-level" [attr.data-level]="prediction.riskLevel">
-                {{ prediction.riskLevel.replaceAll('_', ' ') }}
-              </div>
-
-              <p class="risk-explanation">{{ prediction.explanation || 'No explanation available.' }}</p>
-            } @else {
-              <p class="empty-copy">No prediction available yet.</p>
-            }
-
-            @if (otherPredictions().length > 0) {
+            @if (sortedPredictions().length > 0) {
               <div class="risk-secondary">
-                @for (prediction of otherPredictions(); track prediction.id) {
-                  <article>
-                    <strong>{{ prediction.predictionType.replaceAll('_', ' ') }}</strong>
-                    <span>{{ prediction.riskLevel.replaceAll('_', ' ') }} | {{ prediction.riskScore }}%</span>
+                @for (prediction of sortedPredictions(); track prediction.id) {
+                  <article [attr.data-level]="prediction.riskLevel">
+                    <strong>{{ formatPredictionType(prediction) }}</strong>
+                    <span>{{ formatRiskLevel(prediction.riskLevel) }} | {{ prediction.riskScore }}%</span>
+                    @if (cleanPredictionExplanation(prediction.explanation)) {
+                      <small>{{ cleanPredictionExplanation(prediction.explanation) }}</small>
+                    }
                   </article>
                 }
               </div>
+            } @else {
+              <p class="empty-copy">No prediction available yet.</p>
             }
           </section>
         </div>
       </div>
 
-      <section class="panel timeline-panel timeline-panel--edge">
-        <div class="panel__header">
-          <h2>{{ preferences.t('timeline') }}</h2>
-          <span>{{ timeline().length }} events</span>
-        </div>
-
-        <div class="timeline-list timeline-list--stacked">
-          @for (event of timeline(); track event.id) {
-            <article
-              class="timeline-item"
-              [class.timeline-item--medication-active]="isMedicationTimelineEventActive(event)"
-              [class.timeline-item--medication-inactive]="isMedicationTimelineEventInactive(event)"
-              [class.timeline-item--note]="isNoteTimelineEvent(event)"
-            >
-              <div class="timeline-item__line"></div>
-              <div class="timeline-item__dot"></div>
-
-              <div class="timeline-item__content">
-                <div class="timeline-item__top">
-                  <strong>{{ event.title }}</strong>
-                  <span>{{ formatDate(event.eventTimestamp) }}</span>
-                </div>
-
-                <p>{{ event.description || event.eventType }}</p>
-
-                <small class="timeline-badge">
-                  {{ event.eventType.replaceAll('_', ' ') }}
-                </small>
-              </div>
-            </article>
-          } @empty {
-            <p class="empty-copy">No timeline events available.</p>
-          }
-        </div>
-      </section>
     </div>
 
     <button class="drawer-toggle" type="button" (click)="toggleDrawer()" [class.open]="drawerOpen()">

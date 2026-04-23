@@ -4,6 +4,7 @@ import {
   ConsultNote,
   CreateConsultNotePayload,
   CreateMedicationPayload,
+  CreateVitalSignsPayload,
   MedicationCatalogItem,
   Patient,
   PatientMedication,
@@ -44,6 +45,10 @@ export class PatientApiService {
 
   getLatestVitals(patientId: string) {
     return this.http.get<VitalSigns[]>(`${this.baseUrl}/patients/${patientId}/vitals/latest`);
+  }
+
+  createVitalSign(patientId: string, payload: CreateVitalSignsPayload) {
+    return this.http.post<VitalSigns>(`${this.baseUrl}/patients/${patientId}/vitals`, payload);
   }
 
   getLatestPredictions(patientId: string) {
