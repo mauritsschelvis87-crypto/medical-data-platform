@@ -1,6 +1,7 @@
 package com.mauri.backend.dto.medication;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class PatientMedicationDto {
@@ -13,6 +14,7 @@ public class PatientMedicationDto {
 
     private LocalDate startDate;
     private LocalDate endDate;
+    private LocalDateTime createdAt;
 
     private String status;
 
@@ -38,6 +40,10 @@ public class PatientMedicationDto {
 
     public LocalDate getEndDate() {
         return endDate;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
     public String getStatus() {
@@ -66,6 +72,10 @@ public class PatientMedicationDto {
 
     public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     public void setStatus(String status) {

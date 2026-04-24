@@ -1,6 +1,8 @@
 package com.mauri.backend.mapper;
 
 import com.mauri.backend.dto.medication.MedicationCatalogDto;
+import com.mauri.backend.dto.medication.MedicationCatalogSearchResultDto;
+import com.mauri.backend.dto.medication.MedicationCatalogSelectionDto;
 import com.mauri.backend.dto.medication.PatientMedicationDto;
 import com.mauri.backend.entity.MedicationCatalog;
 import com.mauri.backend.entity.PatientMedication;
@@ -25,6 +27,32 @@ public class MedicationMapper {
         return dto;
     }
 
+    public MedicationCatalogSearchResultDto toSearchResultDto(MedicationCatalog medicationCatalog) {
+        if (medicationCatalog == null) {
+            return null;
+        }
+
+        MedicationCatalogSearchResultDto dto = new MedicationCatalogSearchResultDto();
+        dto.setId(medicationCatalog.getId());
+        dto.setName(extractCatalogName(medicationCatalog));
+        return dto;
+    }
+
+    public MedicationCatalogSelectionDto toSelectionDto(MedicationCatalog medicationCatalog,
+                                                        String defaultDosage,
+                                                        String defaultFrequency) {
+        if (medicationCatalog == null) {
+            return null;
+        }
+
+        MedicationCatalogSelectionDto dto = new MedicationCatalogSelectionDto();
+        dto.setId(medicationCatalog.getId());
+        dto.setName(extractCatalogName(medicationCatalog));
+        dto.setDefaultDosage(defaultDosage);
+        dto.setDefaultFrequency(defaultFrequency);
+        return dto;
+    }
+
     public PatientMedicationDto toPatientMedicationDto(PatientMedication patientMedication) {
         if (patientMedication == null) {
             return null;
@@ -37,6 +65,7 @@ public class MedicationMapper {
         dto.setFrequency(patientMedication.getFrequency());
         dto.setStartDate(patientMedication.getStartDate());
         dto.setEndDate(patientMedication.getEndDate());
+        dto.setCreatedAt(patientMedication.getCreatedAt());
         dto.setStatus(patientMedication.getStatus() != null ? patientMedication.getStatus().name() : null);
 
         return dto;
@@ -47,11 +76,26 @@ public class MedicationMapper {
             return null;
         }
 
-        if (patientMedication.getMedicationCatalog().getDutchName() != null
-                && !patientMedication.getMedicationCatalog().getDutchName().isBlank()) {
-            return patientMedication.getMedicationCatalog().getDutchName();
+        return extractCatalogName(patientMedication.getMedicationCatalog());
+    }
+
+    public String extractCatalogName(MedicationCatalog medicationCatalog) {
+        if (medicationCatalog == null) {
+            return null;
         }
 
-        return patientMedication.getMedicationCatalog().getLatinName();
+        if (medicationCatalog.getDutchName() != null && !medicationCatalog.getDutchName().isBlank()) {
+            return medicationCatalog.getDutchName().trim();
+        }
+
+        if (medicationCatalog.getLatinName() != null && !medicationCatalog.getLatinName().isBlank()) {
+            return medicationCatalog.getLatinName().trim();
+        }
+
+        if (medicationCatalog.getCode() != null && !medicationCatalog.getCode().isBlank()) {
+            return medicationCatalog.getCode().trim();
+        }
+
+        return "Unknown medication";
     }
 }

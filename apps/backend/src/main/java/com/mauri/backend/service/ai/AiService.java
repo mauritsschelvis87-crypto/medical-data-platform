@@ -2,6 +2,8 @@ package com.mauri.backend.service.ai;
 
 import com.mauri.backend.dto.prediction.PredictionRequestDto;
 import com.mauri.backend.dto.prediction.PredictionResponseDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -9,6 +11,8 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 @Service
 public class AiService {
+
+    private static final Logger log = LoggerFactory.getLogger(AiService.class);
 
     private final WebClient.Builder webClientBuilder;
     private final String aiBaseUrl;
@@ -31,8 +35,15 @@ public class AiService {
                     .bodyToMono(PredictionResponseDto.class)
                     .block();
         } catch (WebClientResponseException ex) {
+            log.warn("AI service returned {} for patient {} and trigger {}.",
+                    ex.getStatusCode(),
+                    requestDto.getPatientId(),
+                    requestDto.getTriggerSource());
             throw new IllegalStateException("AI service returned an error: " + ex.getStatusCode(), ex);
         } catch (Exception ex) {
+            log.warn("AI service is unavailable for patient {} and trigger {}.",
+                    requestDto.getPatientId(),
+                    requestDto.getTriggerSource());
             throw new IllegalStateException("AI service is unavailable", ex);
         }
     }

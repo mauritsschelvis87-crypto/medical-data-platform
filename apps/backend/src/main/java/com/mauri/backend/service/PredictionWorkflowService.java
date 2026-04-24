@@ -22,6 +22,8 @@ import com.mauri.backend.service.ai.AiService;
 import com.mauri.backend.service.interpretation.AgeGroupResolver;
 import com.mauri.backend.service.interpretation.VitalInterpretationResult;
 import com.mauri.backend.service.interpretation.VitalInterpretationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,12 +39,14 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
 @Service
 public class PredictionWorkflowService {
 
+    private static final Logger log = LoggerFactory.getLogger(PredictionWorkflowService.class);
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
 
     private final PatientService patientService;
@@ -76,27 +80,30 @@ public class PredictionWorkflowService {
     public List<PredictionDto> recalculatePredictions(UUID patientId, String triggerSource, UUID triggeredByReferenceId) {
         Patient patient = patientService.getPatientEntityById(patientId);
         PredictionRequestDto request = buildRequest(patient, triggerSource);
-
-        PredictionResponseDto response;
-        try {
-            response = aiService.calculatePredictions(request);
-        } catch (Exception ex) {
-            response = buildFallbackResponse(request);
-        }
+        List<PredictionType> requestedTypes = requestedPredictionTypes(request);
+        Map<PredictionType, PredictionResolution> resolvedPredictions = resolvePredictions(request, requestedTypes);
 
         List<PredictionDto> savedPredictions = new ArrayList<>();
-        if (response == null || response.getPredictions() == null || response.getPredictions().isEmpty()) {
+        if (resolvedPredictions.isEmpty()) {
             return savedPredictions;
         }
 
-        for (PredictionItemDto item : response.getPredictions()) {
+        for (int index = 0; index < requestedTypes.size(); index++) {
+            PredictionType predictionType = requestedTypes.get(index);
+            PredictionResolution resolution = resolvedPredictions.get(predictionType);
+            if (resolution == null || resolution.item() == null) {
+                continue;
+            }
+
+            PredictionItemDto item = resolution.item();
             PredictionDto predictionDto = new PredictionDto();
-            predictionDto.setPredictionType(item.getPredictionType());
-            predictionDto.setRiskLevel(item.getRiskLevel());
+            predictionDto.setPredictionType(predictionType.name());
+            predictionDto.setRiskLevel(normalizeRiskLevel(item.getRiskLevel()));
             predictionDto.setRiskScore(toBigDecimal(item.getRiskScore()));
             predictionDto.setConfidence(toBigDecimal(item.getConfidence()));
-            predictionDto.setExplanation(item.getExplanation());
-            predictionDto.setMainPrediction(Boolean.TRUE.equals(item.getIsMainPrediction()));
+            predictionDto.setExplanation(resolveExplanation(item.getExplanation(), resolution.modelVersion()));
+            predictionDto.setMainPrediction(index == 0);
+            predictionDto.setModelVersion(resolution.modelVersion());
             savedPredictions.add(predictionService.savePrediction(patientId, predictionDto, triggeredByReferenceId));
         }
 
@@ -175,6 +182,90 @@ public class PredictionWorkflowService {
         return features;
     }
 
+    private Map<PredictionType, PredictionResolution> resolvePredictions(PredictionRequestDto request,
+                                                                         List<PredictionType> requestedTypes) {
+        Map<PredictionType, PredictionResolution> resolvedPredictions = new LinkedHashMap<>();
+        Map<PredictionType, PredictionItemDto> fallbackPredictions = buildFallbackPredictions(request.getFeatures(), requestedTypes);
+        Map<PredictionType, PredictionItemDto> aiPredictions = loadAiPredictions(request);
+
+        for (PredictionType predictionType : requestedTypes) {
+            PredictionItemDto aiItem = aiPredictions.get(predictionType);
+            if (aiItem != null) {
+                resolvedPredictions.put(predictionType, new PredictionResolution(aiItem, "ai-service"));
+                continue;
+            }
+
+            PredictionItemDto fallbackItem = fallbackPredictions.get(predictionType);
+            if (fallbackItem != null) {
+                resolvedPredictions.put(predictionType, new PredictionResolution(fallbackItem, "backend-fallback"));
+            }
+        }
+
+        return resolvedPredictions;
+    }
+
+    private Map<PredictionType, PredictionItemDto> loadAiPredictions(PredictionRequestDto request) {
+        PredictionResponseDto response;
+        try {
+            response = aiService.calculatePredictions(request);
+        } catch (IllegalStateException exception) {
+            log.warn("Using backend fallback predictions for patient {} because the AI service is unavailable.",
+                    request.getPatientId());
+            return Map.of();
+        } catch (Exception exception) {
+            log.warn("Falling back to backend prediction heuristics for patient {} after an unexpected AI request failure.",
+                    request.getPatientId(),
+                    exception);
+            return Map.of();
+        }
+
+        if (response == null || response.getPredictions() == null || response.getPredictions().isEmpty()) {
+            log.warn("AI service returned an empty prediction payload for patient {}. Using backend fallback.", request.getPatientId());
+            return Map.of();
+        }
+
+        Map<PredictionType, PredictionItemDto> aiPredictions = new LinkedHashMap<>();
+        for (PredictionItemDto item : response.getPredictions()) {
+            if (!isUsableAiItem(item)) {
+                log.warn("Ignoring invalid AI prediction item for patient {} because required fields are missing.", request.getPatientId());
+                continue;
+            }
+
+            PredictionType predictionType;
+            try {
+                predictionType = PredictionType.valueOf(item.getPredictionType().trim().toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException exception) {
+                log.warn("Ignoring AI prediction item with unsupported type '{}' for patient {}.",
+                        item.getPredictionType(),
+                        request.getPatientId());
+                continue;
+            }
+
+            try {
+                RiskLevel.valueOf(normalizeRiskLevel(item.getRiskLevel()));
+            } catch (IllegalArgumentException exception) {
+                log.warn("Ignoring AI prediction item with unsupported risk level '{}' for patient {}.",
+                        item.getRiskLevel(),
+                        request.getPatientId());
+                continue;
+            }
+
+            aiPredictions.put(predictionType, item);
+        }
+
+        return aiPredictions;
+    }
+
+    private boolean isUsableAiItem(PredictionItemDto item) {
+        return item != null
+                && item.getPredictionType() != null
+                && !item.getPredictionType().isBlank()
+                && item.getRiskLevel() != null
+                && !item.getRiskLevel().isBlank()
+                && item.getRiskScore() != null
+                && item.getConfidence() != null;
+    }
+
     private Map<String, Object> interpretationPayload(VitalSigns vitalSigns, VitalInterpretationResult interpretation) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("status", interpretation.status().name());
@@ -214,31 +305,31 @@ public class PredictionWorkflowService {
         return null;
     }
 
-    private PredictionResponseDto buildFallbackResponse(PredictionRequestDto request) {
-        PredictionResponseDto response = new PredictionResponseDto();
-        response.setPatientId(request.getPatientId());
-        response.setGeneratedAt(LocalDateTime.now().toString());
-        response.setPredictions(generateFallbackPredictions(request.getFeatures()));
-        return response;
+    private List<PredictionType> requestedPredictionTypes(PredictionRequestDto request) {
+        if (request.getPredictionTypes() == null || request.getPredictionTypes().isEmpty()) {
+            return List.of();
+        }
+        return request.getPredictionTypes().stream()
+                .map(type -> PredictionType.valueOf(type.trim().toUpperCase(Locale.ROOT)))
+                .toList();
     }
 
-    private List<PredictionItemDto> generateFallbackPredictions(Map<String, Object> features) {
-        List<PredictionItemDto> predictions = new ArrayList<>();
-        predictions.add(buildFallbackPrediction(PredictionType.CARDIOVASCULAR_RISK, true, features));
-        predictions.add(buildFallbackPrediction(PredictionType.DIABETES_RISK, false, features));
-        predictions.add(buildFallbackPrediction(PredictionType.GENERAL_DETERIORATION, false, features));
+    private Map<PredictionType, PredictionItemDto> buildFallbackPredictions(Map<String, Object> features,
+                                                                            List<PredictionType> predictionTypes) {
+        Map<PredictionType, PredictionItemDto> predictions = new LinkedHashMap<>();
+        for (PredictionType predictionType : predictionTypes) {
+            predictions.put(predictionType, buildFallbackPrediction(predictionType, features));
+        }
         return predictions;
     }
 
-    private PredictionItemDto buildFallbackPrediction(PredictionType predictionType,
-                                                      boolean mainPrediction,
-                                                      Map<String, Object> features) {
+    private PredictionItemDto buildFallbackPrediction(PredictionType predictionType, Map<String, Object> features) {
         double score = switch (predictionType) {
             case CARDIOVASCULAR_RISK -> calculateCardiovascularScore(features);
             case DIABETES_RISK -> calculateDiabetesScore(features);
             case GENERAL_DETERIORATION -> calculateGeneralScore(features);
-            case SEPSIS_RISK -> 0.18;
-            case RESPIRATORY_RISK -> 0.22;
+            case SEPSIS_RISK -> calculateSepsisScore(features);
+            case RESPIRATORY_RISK -> calculateRespiratoryScore(features);
         };
 
         double confidence = adjustConfidence(features, score);
@@ -248,8 +339,8 @@ public class PredictionWorkflowService {
         item.setRiskScore(round(score));
         item.setConfidence(round(confidence));
         item.setRiskLevel(resolveRiskLevel(score).name());
-        item.setExplanation("Fallback backend prediction based on age-aware vital interpretation and latest patient context");
-        item.setIsMainPrediction(mainPrediction);
+        item.setExplanation(fallbackExplanation(predictionType));
+        item.setIsMainPrediction(Boolean.FALSE);
         return item;
     }
 
@@ -284,6 +375,21 @@ public class PredictionWorkflowService {
         score += interpretationContribution(features, VitalSignType.OXYGEN_SATURATION, 0.12, 0.24);
         score += numeric(features.get("recentConsultCount")) >= 3 ? 0.10 : 0.0;
         return Math.min(score, 0.90);
+    }
+
+    private double calculateSepsisScore(Map<String, Object> features) {
+        double score = 0.08;
+        score += interpretationContribution(features, VitalSignType.BODY_TEMPERATURE, 0.14, 0.28);
+        score += interpretationContribution(features, VitalSignType.HEART_RATE, 0.12, 0.24);
+        score += numeric(features.get("recentConsultCount")) >= 2 ? 0.08 : 0.0;
+        return Math.min(score, 0.94);
+    }
+
+    private double calculateRespiratoryScore(Map<String, Object> features) {
+        double score = 0.10;
+        score += interpretationContribution(features, VitalSignType.OXYGEN_SATURATION, 0.16, 0.32);
+        score += interpretationContribution(features, VitalSignType.HEART_RATE, 0.06, 0.12);
+        return Math.min(score, 0.92);
     }
 
     private double adjustConfidence(Map<String, Object> features, double score) {
@@ -420,9 +526,47 @@ public class PredictionWorkflowService {
     private Double numericValueIfUsable(VitalSigns vitalSigns,
                                         Map<String, Object> interpretations,
                                         VitalSignType vitalType) {
-        if (VitalClinicalStatus.OUT_OF_RANGE.name().equals(interpretationStatusFromPayload(interpretations, vitalType))) {
+        String interpretationStatus = interpretationStatusFromPayload(interpretations, vitalType);
+        if (VitalClinicalStatus.OUT_OF_RANGE.name().equals(interpretationStatus)
+                || VitalClinicalStatus.INSUFFICIENT_CONTEXT.name().equals(interpretationStatus)
+                || VitalClinicalStatus.NOT_APPLICABLE.name().equals(interpretationStatus)) {
             return null;
         }
         return numericValue(vitalSigns);
+    }
+
+    private String normalizeRiskLevel(String riskLevel) {
+        if (riskLevel == null || riskLevel.isBlank()) {
+            return RiskLevel.LOW.name();
+        }
+        return riskLevel.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private String resolveExplanation(String explanation, String modelVersion) {
+        if (explanation != null && !explanation.isBlank()) {
+            return explanation.trim();
+        }
+        if ("backend-fallback".equals(modelVersion)) {
+            return "Fallback backend prediction based on age-aware vital interpretation and latest patient context";
+        }
+        return "AI prediction based on the latest patient context";
+    }
+
+    private String fallbackExplanation(PredictionType predictionType) {
+        return switch (predictionType) {
+            case CARDIOVASCULAR_RISK ->
+                    "Fallback backend prediction based on blood pressure, cholesterol and age-aware interpretation";
+            case DIABETES_RISK ->
+                    "Fallback backend prediction based on glucose, BMI and age-aware interpretation";
+            case GENERAL_DETERIORATION ->
+                    "Fallback backend prediction based on heart rate, temperature, oxygen saturation and recent consult activity";
+            case SEPSIS_RISK ->
+                    "Fallback backend prediction based on temperature, heart rate and recent clinical activity";
+            case RESPIRATORY_RISK ->
+                    "Fallback backend prediction based on oxygen saturation and heart rate";
+        };
+    }
+
+    private record PredictionResolution(PredictionItemDto item, String modelVersion) {
     }
 }

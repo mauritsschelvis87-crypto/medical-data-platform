@@ -6,6 +6,8 @@ import com.mauri.backend.enums.PredictionType;
 import com.mauri.backend.enums.RiskLevel;
 import org.springframework.stereotype.Component;
 
+import java.util.Locale;
+
 @Component
 public class PredictionMapper {
 
@@ -44,14 +46,8 @@ public class PredictionMapper {
 
         Prediction entity = new Prediction();
         entity.setId(dto.getId());
-        
-        if (dto.getPredictionType() != null) {
-            entity.setPredictionType(PredictionType.valueOf(dto.getPredictionType()));
-        }
-        
-        if (dto.getRiskLevel() != null) {
-            entity.setRiskLevel(RiskLevel.valueOf(dto.getRiskLevel()));
-        }
+        entity.setPredictionType(toPredictionType(dto.getPredictionType()));
+        entity.setRiskLevel(toRiskLevel(dto.getRiskLevel()));
 
         entity.setRiskScore(dto.getRiskScore());
         entity.setConfidence(dto.getConfidence());
@@ -59,10 +55,7 @@ public class PredictionMapper {
         entity.setMainPrediction(dto.isMainPrediction());
         entity.setPredictionTimestamp(dto.getPredictionTimestamp());
 
-        // Risk comparison + warning system
-        if (dto.getPreviousRiskLevel() != null) {
-            entity.setPreviousRiskLevel(RiskLevel.valueOf(dto.getPreviousRiskLevel()));
-        }
+        entity.setPreviousRiskLevel(toRiskLevel(dto.getPreviousRiskLevel()));
         entity.setRiskIncreased(dto.isRiskIncreased());
         entity.setRequiresConfirmation(dto.isRequiresConfirmation());
         entity.setConfirmed(dto.isConfirmed());
@@ -72,5 +65,27 @@ public class PredictionMapper {
         entity.setThresholdTriggered(dto.isThresholdTriggered());
 
         return entity;
+    }
+
+    private PredictionType toPredictionType(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return PredictionType.valueOf(value.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException("Unsupported prediction type: " + value, exception);
+        }
+    }
+
+    private RiskLevel toRiskLevel(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return RiskLevel.valueOf(value.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException("Unsupported risk level: " + value, exception);
+        }
     }
 }

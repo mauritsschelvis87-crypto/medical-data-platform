@@ -1,7 +1,10 @@
 package com.mauri.backend.repository;
 
 import com.mauri.backend.entity.MedicationCatalog;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -23,8 +26,16 @@ public interface MedicationCatalogRepository extends JpaRepository<MedicationCat
 
     List<MedicationCatalog> findByActiveTrueOrderByDutchNameAsc();
 
-    List<MedicationCatalog> findTop20ByActiveTrueAndDutchNameContainingIgnoreCaseOrActiveTrueAndLatinNameContainingIgnoreCaseOrderByDutchNameAsc(
-            String dutchName,
-            String latinName
-    );
+    @Query("""
+            select medicationCatalog
+            from MedicationCatalog medicationCatalog
+            where medicationCatalog.active = true
+              and (
+                  lower(medicationCatalog.dutchName) like lower(concat('%', :query, '%'))
+                  or lower(coalesce(medicationCatalog.latinName, '')) like lower(concat('%', :query, '%'))
+                  or lower(coalesce(medicationCatalog.code, '')) like lower(concat('%', :query, '%'))
+              )
+            order by medicationCatalog.dutchName asc
+            """)
+    List<MedicationCatalog> searchActiveCatalog(@Param("query") String query, Pageable pageable);
 }

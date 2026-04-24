@@ -72,6 +72,6 @@ public class PredictionController {
             @PathVariable UUID predictionId,
             @RequestParam String doctorName
     ) {
-        return predictionService.confirmPrediction(predictionId, doctorName);
+        return predictionService.confirmPrediction(patientId, predictionId, doctorName);
     }
 }

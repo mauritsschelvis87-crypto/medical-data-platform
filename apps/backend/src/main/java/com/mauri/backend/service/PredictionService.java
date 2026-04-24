@@ -5,6 +5,7 @@ import com.mauri.backend.entity.Patient;
 import com.mauri.backend.entity.Prediction;
 import com.mauri.backend.enums.PredictionType;
 import com.mauri.backend.enums.RiskLevel;
+import com.mauri.backend.exception.ResourceNotFoundException;
 import com.mauri.backend.mapper.PredictionMapper;
 import com.mauri.backend.repository.PredictionRepository;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -78,6 +80,7 @@ public class PredictionService {
     public PredictionDto savePrediction(UUID patientId, PredictionDto predictionDto, UUID triggeredByReferenceId) {
         Patient patient = patientService.getPatientEntityById(patientId);
         Prediction prediction = predictionMapper.toEntity(predictionDto);
+        validatePrediction(predictionDto, prediction);
         prediction.setPatient(patient);
         prediction.setPredictionTimestamp(LocalDateTime.now());
         prediction.setTriggeredByReferenceId(triggeredByReferenceId);
@@ -100,8 +103,8 @@ public class PredictionService {
 
         // 2. Bepaal of bevestiging van de arts nodig is (Warning System)
         // Bevestiging is nodig als het risico is gestegen OF als het risico HIGH/CRITICAL is
-        if (prediction.isRiskIncreased() || 
-            prediction.getRiskLevel() == RiskLevel.HIGH || 
+        if (prediction.isRiskIncreased() ||
+            prediction.getRiskLevel() == RiskLevel.HIGH ||
             prediction.getRiskLevel() == RiskLevel.CRITICAL) {
             prediction.setRequiresConfirmation(true);
             prediction.setThresholdTriggered(true);
@@ -129,13 +132,27 @@ public class PredictionService {
     }
 
     @Transactional
-    public PredictionDto confirmPrediction(UUID predictionId, String doctorName) {
+    public PredictionDto confirmPrediction(UUID patientId, UUID predictionId, String doctorName) {
+        Patient patient = patientService.getPatientEntityById(patientId);
         Prediction prediction = predictionRepository.findById(predictionId)
-                .orElseThrow(() -> new RuntimeException("Voorspelling niet gevonden met id: " + predictionId));
+                .orElseThrow(() -> new ResourceNotFoundException("Prediction not found with id: " + predictionId));
+
+        if (!prediction.getPatient().getId().equals(patient.getId())) {
+            throw new ResourceNotFoundException("Prediction does not belong to patient: " + patientId);
+        }
+
+        String normalizedDoctorName = doctorName == null ? "" : doctorName.trim();
+        if (normalizedDoctorName.isBlank()) {
+            throw new IllegalArgumentException("Doctor name is required to confirm a prediction.");
+        }
+
+        if (prediction.isConfirmed()) {
+            return predictionMapper.toDto(prediction);
+        }
 
         prediction.setConfirmed(true);
         prediction.setConfirmedAt(LocalDateTime.now());
-        prediction.setConfirmedBy(doctorName);
+        prediction.setConfirmedBy(normalizedDoctorName);
         prediction.setRequiresConfirmation(false);
 
         Prediction updatedPrediction = predictionRepository.save(prediction);
@@ -147,10 +164,39 @@ public class PredictionService {
                 updatedPrediction.getId(),
                 "Prediction",
                 "Prediction confirmed",
-                "Risico bevestigd door arts: " + doctorName,
+                "Risk confirmed by physician: " + normalizedDoctorName,
                 updatedPrediction.getConfirmedAt()
         );
 
         return predictionMapper.toDto(updatedPrediction);
+    }
+
+    private void validatePrediction(PredictionDto predictionDto, Prediction prediction) {
+        if (prediction == null) {
+            throw new IllegalArgumentException("Prediction payload is required.");
+        }
+        if (prediction.getPredictionType() == null) {
+            throw new IllegalArgumentException("Prediction type is required.");
+        }
+        if (prediction.getRiskLevel() == null) {
+            throw new IllegalArgumentException("Risk level is required.");
+        }
+        if (prediction.getRiskScore() == null) {
+            throw new IllegalArgumentException("Risk score is required.");
+        }
+        if (prediction.getConfidence() == null) {
+            throw new IllegalArgumentException("Prediction confidence is required.");
+        }
+        if (prediction.getRiskScore().signum() < 0 || prediction.getConfidence().signum() < 0) {
+            throw new IllegalArgumentException("Risk score and confidence must be zero or greater.");
+        }
+        if (prediction.getRiskScore().compareTo(java.math.BigDecimal.valueOf(100)) > 0
+                || prediction.getConfidence().compareTo(java.math.BigDecimal.valueOf(100)) > 0) {
+            throw new IllegalArgumentException("Risk score and confidence must not exceed 100.");
+        }
+        if (predictionDto != null) {
+            predictionDto.setPredictionType(prediction.getPredictionType().name().toUpperCase(Locale.ROOT));
+            predictionDto.setRiskLevel(prediction.getRiskLevel().name().toUpperCase(Locale.ROOT));
+        }
     }
 }
