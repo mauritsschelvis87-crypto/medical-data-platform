@@ -1,2 +1,0 @@
-recordsReceived,recordsProcessed,recordsFailed,patientCount,patientAddressCount,vitalSignsCount,skippedRecords,validationSummary
-31056,31056,0,333,333,30390,0,Generated from ai-service notebook pipeline (full)

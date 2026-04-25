@@ -7,7 +7,7 @@ Monorepo for a medical workflow platform with:
 - Python AI service
 - PostgreSQL via Docker
 
-The active local setup uses the full normalized dataset, imported into PostgreSQL and served to the frontend through the Spring backend.
+The active local setup uses the 25-patient demo dataset, imported into PostgreSQL and served to the frontend through the Spring backend.
 
 ## Monorepo structure
 
@@ -20,7 +20,7 @@ The active local setup uses the full normalized dataset, imported into PostgreSQ
 
 ## Current scope
 
-The imported full dataset currently fills:
+The imported demo dataset currently fills:
 
 - patients
 - patient addresses
@@ -57,12 +57,12 @@ The backend is configured to use:
 
 - database: `medical_backend_full`
 
-### 2. Generate normalized import files from the full dataset
+### 2. Generate normalized import files for the 25-patient demo
 
 From `apps/ai-service`:
 
 ```powershell
-venv\Scripts\python.exe scripts\run_notebook_pipeline.py --source full --export-name full
+venv\Scripts\python.exe scripts\run_notebook_pipeline.py
 ```
 
 This command:
@@ -70,15 +70,15 @@ This command:
 - stages raw CSV files from `apps/ai-service/datasets`
 - executes notebooks `01` through `05`
 - writes processed notebook outputs under `data/`
-- writes backend-ready import files to `data/exports/backend-import-full`
+- writes the backend-ready demo import files to `data/exports/backend-import`
 
 Generated backend import files:
 
-- `apps/ai-service/data/exports/backend-import-full/patient.csv`
-- `apps/ai-service/data/exports/backend-import-full/patient_address.csv`
-- `apps/ai-service/data/exports/backend-import-full/vital_signs.csv`
-- `apps/ai-service/data/exports/backend-import-full/patient_features.csv`
-- `apps/ai-service/data/exports/backend-import-full/import_summary.csv`
+- `apps/ai-service/data/exports/backend-import/patient.csv`
+- `apps/ai-service/data/exports/backend-import/patient_address.csv`
+- `apps/ai-service/data/exports/backend-import/vital_signs.csv`
+- `apps/ai-service/data/exports/backend-import/patient_features.csv`
+- `apps/ai-service/data/exports/backend-import/import_summary.csv`
 
 ### 3. Start the stack
 
@@ -100,8 +100,8 @@ From the repository root:
 ```powershell
 powershell -ExecutionPolicy Bypass -File apps\backend\scripts\import-dataset.ps1 `
   -BackendUrl 'http://localhost:8081' `
-  -SourceName 'full-local-dutch' `
-  -SourceDirectoryPath 'C:\Users\mauri\Projects\medical-data-platform\apps\ai-service\data\exports\backend-import-full' `
+  -SourceName 'demo-local-dutch' `
+  -SourceDirectoryPath 'C:\Users\mauri\Projects\medical-data-platform\apps\ai-service\data\exports\backend-import' `
   -Notes 'Generated via ai-service notebook pipeline' `
   -ReplaceExistingData
 ```
@@ -111,7 +111,7 @@ powershell -ExecutionPolicy Bypass -File apps\backend\scripts\import-dataset.ps1
 The current repository state has been validated with:
 
 - notebook pipeline execution succeeded
-- backend import succeeded on the full dataset
+- backend import succeeded on the 25-patient demo dataset
 - frontend production build succeeded
 - backend test suite succeeded
 - patient search, patient detail, and latest vitals endpoints returned real records

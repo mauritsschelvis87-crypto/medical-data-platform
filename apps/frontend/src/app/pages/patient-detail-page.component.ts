@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -41,6 +42,16 @@ interface VitalMetricConfig {
   editable?: boolean;
 }
 
+type PatientAgeGroup = 'BABY' | 'TODDLER' | 'CHILD' | 'ADOLESCENT' | 'ADULT' | 'OLDER_ADULT' | 'UNKNOWN';
+type VitalEditField = 'primary' | 'secondary' | 'form' | 'both';
+
+interface VitalEditFeedback {
+  field: VitalEditField;
+  tone: 'error' | 'warning';
+  message: string;
+  blocksSave: boolean;
+}
+
 @Component({
   selector: 'app-patient-detail-page',
   imports: [CommonModule, ReactiveFormsModule],
@@ -69,6 +80,7 @@ export class PatientDetailPageComponent {
   protected readonly submittingMedication = signal(false);
   protected readonly editingVitalKey = signal<VitalMetricKey | null>(null);
   protected readonly savingVitalKey = signal<VitalMetricKey | null>(null);
+  protected readonly vitalEditApiError = signal<string | null>(null);
 
   protected readonly patient = signal<Patient | null>(null);
   protected readonly timeline = signal<TimelineEvent[]>([]);
@@ -150,7 +162,7 @@ export class PatientDetailPageComponent {
     dosage: ['', Validators.required],
     frequency: ['', Validators.required],
     startDate: [new Date().toISOString().slice(0, 10), Validators.required],
-    endDate: [''],
+    endDate: ['', Validators.required],
     reason: ['', Validators.required],
   });
 
@@ -274,6 +286,11 @@ export class PatientDetailPageComponent {
     this.actionTab.set(tab);
   }
 
+  protected openMedicationDrawer(): void {
+    this.actionTab.set('medicine');
+    this.drawerOpen.set(true);
+  }
+
   protected toggleAddressEdit(): void {
     const patient = this.patient();
     if (!patient) {
@@ -337,7 +354,12 @@ export class PatientDetailPageComponent {
   }
 
   protected getMedicationDisplayName(item: { name: string }): string {
-    return item.name;
+    return this.sanitizeMedicationName(item.name);
+  }
+
+  protected sanitizeMedicationName(value?: string | null): string {
+    const normalized = (value || '').trim().replace(/^\{+\s*/, '');
+    return normalized || this.preferences.t('notAvailable');
   }
 
   protected hasMedicationSuggestions(): boolean {
@@ -354,6 +376,111 @@ export class PatientDetailPageComponent {
         ? 'Medicatie wordt opgeslagen...'
         : 'Saving medication...'
       : this.preferences.t('saveMedication');
+  }
+
+  protected formatGender(value?: string | null): string {
+    switch ((value || '').trim().toLowerCase()) {
+      case 'male':
+      case 'man':
+        return this.preferences.t('male');
+      case 'female':
+      case 'vrouw':
+        return this.preferences.t('female');
+      case 'other':
+      case 'anders':
+        return this.preferences.t('other');
+      default:
+        return value?.trim() || this.preferences.t('notAvailable');
+    }
+  }
+
+  protected getVitalMetricLabel(metric: VitalMetricConfig): string {
+    switch (metric.key) {
+      case 'bloodPressure':
+        return this.preferences.t('bloodPressure');
+      case 'heartRate':
+        return this.preferences.t('heartRate');
+      case 'temperature':
+        return this.preferences.t('temperatureLabel');
+      case 'glucose':
+        return this.preferences.t('glucoseLabel');
+      case 'bmi':
+        return this.preferences.t('bmiLabel');
+      case 'weight':
+        return this.preferences.t('weightHeight');
+      case 'oxygenSaturation':
+        return this.preferences.t('oxygenSaturation');
+      case 'cholesterol':
+        return this.preferences.t('cholesterolLabel');
+    }
+  }
+
+  protected getVitalMetricPrimaryLabel(metric: VitalMetricConfig): string {
+    if (metric.key === 'bloodPressure') {
+      return this.preferences.t('systolic');
+    }
+    if (metric.key === 'weight') {
+      return this.preferences.t('weightLabel');
+    }
+    return this.getVitalMetricLabel(metric);
+  }
+
+  protected getVitalMetricSecondaryLabel(metric: VitalMetricConfig): string {
+    if (metric.key === 'bloodPressure') {
+      return this.preferences.t('diastolic');
+    }
+    if (metric.key === 'weight') {
+      return this.preferences.t('heightLabel');
+    }
+    return metric.secondaryLabel || '';
+  }
+
+  protected medicationFieldHasError(
+    fieldName: 'dosage' | 'frequency' | 'startDate' | 'endDate' | 'reason',
+  ): boolean {
+    const control = this.medicationForm.controls[fieldName];
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  protected medicationFieldErrorMessage(
+    fieldName: 'dosage' | 'frequency' | 'startDate' | 'endDate' | 'reason',
+  ): string {
+    const isDutch = this.preferences.language() === 'nl';
+    switch (fieldName) {
+      case 'dosage':
+        return isDutch ? 'Voer een dosering in.' : 'Enter a dosage.';
+      case 'frequency':
+        return isDutch ? 'Voer een frequentie in.' : 'Enter a frequency.';
+      case 'startDate':
+        return isDutch ? 'Voer een startdatum in.' : 'Enter a start date.';
+      case 'endDate':
+        return isDutch ? 'Voer een einddatum in.' : 'Enter an end date.';
+      case 'reason':
+        return isDutch ? 'Voer een voorschrijfreden in.' : 'Enter a prescription reason.';
+    }
+  }
+
+  protected noteFieldHasError(
+    fieldName: 'subjective' | 'objective' | 'assessment' | 'plan',
+  ): boolean {
+    const control = this.noteForm.controls[fieldName];
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  protected noteFieldErrorMessage(
+    fieldName: 'subjective' | 'objective' | 'assessment' | 'plan',
+  ): string {
+    const isDutch = this.preferences.language() === 'nl';
+    switch (fieldName) {
+      case 'subjective':
+        return isDutch ? 'Voer de subjectieve bevindingen in.' : 'Enter the subjective findings.';
+      case 'objective':
+        return isDutch ? 'Voer de objectieve bevindingen in.' : 'Enter the objective findings.';
+      case 'assessment':
+        return isDutch ? 'Voer een beoordeling in.' : 'Enter an assessment.';
+      case 'plan':
+        return isDutch ? 'Voer een plan in.' : 'Enter a plan.';
+    }
   }
 
   protected getConsultNotePreview(value?: string | null): string {
@@ -375,7 +502,7 @@ export class PatientDetailPageComponent {
     this.submittingNote.set(true);
     this.api
       .createConsultNote(patient.id, {
-        createdBy: 'Dr. Jonathan Hyde',
+      createdBy: 'Dr. Jeckyll Hyde',
         subjective: this.noteForm.controls.subjective.value,
         objective: this.noteForm.controls.objective.value,
         assessment: this.noteForm.controls.assessment.value,
@@ -434,7 +561,7 @@ export class PatientDetailPageComponent {
         startDate: this.medicationForm.controls.startDate.value,
         endDate: this.medicationForm.controls.endDate.value || null,
         reason: this.medicationForm.controls.reason.value,
-        prescribedBy: 'Dr. Jonathan Hyde',
+      prescribedBy: 'Dr. Jeckyll Hyde',
       })
       .pipe(
         switchMap((savedMedication) => {
@@ -541,7 +668,7 @@ export class PatientDetailPageComponent {
   }
 
   protected getFreshnessLabelForMetric(config: VitalMetricConfig): string {
-    return this.getFreshnessStatusForMetric(config) === 'CURRENT' ? 'CURRENT' : 'OUTDATED';
+    return this.translateStatusToken(this.getFreshnessStatusForMetric(config));
   }
 
   protected getClinicalMessageForMetric(config: VitalMetricConfig): string {
@@ -582,6 +709,7 @@ export class PatientDetailPageComponent {
     }
 
     this.editingVitalKey.set(config.key);
+    this.vitalEditApiError.set(null);
     this.vitalEditForm.reset({
       primaryValue: this.getVitalRow(config.primaryType)?.value?.toString() ?? '',
       secondaryValue: config.secondaryType ? this.getVitalRow(config.secondaryType)?.value?.toString() ?? '' : '',
@@ -589,6 +717,7 @@ export class PatientDetailPageComponent {
   }
 
   protected cancelVitalEdit(): void {
+    this.vitalEditApiError.set(null);
     this.editingVitalKey.set(null);
     this.vitalEditForm.reset({ primaryValue: '', secondaryValue: '' });
   }
@@ -601,8 +730,23 @@ export class PatientDetailPageComponent {
 
     const primaryValue = Number(this.vitalEditForm.controls.primaryValue.value);
     const secondaryValue = Number(this.vitalEditForm.controls.secondaryValue.value);
+    this.vitalEditApiError.set(null);
     if (!Number.isFinite(primaryValue) || (config.secondaryType && !Number.isFinite(secondaryValue))) {
       this.vitalEditForm.markAllAsTouched();
+      const errorMessage = this.preferences.language() === 'nl'
+        ? 'Voer geldige getallen in voor deze meting.'
+        : 'Enter valid numeric values for this measurement.';
+      this.vitalEditApiError.set(errorMessage);
+      this.noticeService.show(errorMessage);
+      return;
+    }
+
+    const feedback = this.getVitalEditFeedback(config);
+    if (feedback.some((item) => item.blocksSave)) {
+      this.vitalEditForm.markAllAsTouched();
+      const blockingMessage = feedback.find((item) => item.blocksSave)?.message ?? '';
+      this.vitalEditApiError.set(blockingMessage);
+      this.noticeService.show(blockingMessage);
       return;
     }
 
@@ -646,23 +790,108 @@ export class PatientDetailPageComponent {
           this.savingVitalKey.set(null);
           this.cancelVitalEdit();
         },
-        error: () => this.savingVitalKey.set(null),
+        error: (error) => {
+          this.savingVitalKey.set(null);
+          const errorMessage = this.extractVitalSaveErrorMessage(error);
+          this.vitalEditApiError.set(errorMessage);
+          this.noticeService.show(errorMessage);
+        },
       });
+  }
+
+  protected getVitalEditFeedback(config: VitalMetricConfig): VitalEditFeedback[] {
+    if (this.editingVitalKey() !== config.key) {
+      return [];
+    }
+
+    const primaryRaw = this.vitalEditForm.controls.primaryValue.value.trim();
+    const secondaryRaw = this.vitalEditForm.controls.secondaryValue.value.trim();
+    if (!primaryRaw && !secondaryRaw) {
+      return [];
+    }
+
+    const primaryValue = Number(primaryRaw);
+    const secondaryValue = Number(secondaryRaw);
+    const feedback: VitalEditFeedback[] = [];
+
+    if (!Number.isFinite(primaryValue)) {
+      feedback.push({
+        field: 'primary',
+        tone: 'error',
+        message: this.preferences.language() === 'nl'
+          ? `${this.getVitalMetricPrimaryLabel(config)} moet een geldig getal zijn.`
+          : `${this.getVitalMetricPrimaryLabel(config)} must be a valid number.`,
+        blocksSave: true,
+      });
+      return feedback;
+    }
+
+    if (config.secondaryType && !Number.isFinite(secondaryValue)) {
+      feedback.push({
+        field: 'secondary',
+        tone: 'error',
+        message: this.preferences.language() === 'nl'
+          ? `${this.getVitalMetricSecondaryLabel(config)} moet een geldig getal zijn.`
+          : `${this.getVitalMetricSecondaryLabel(config)} must be a valid number.`,
+        blocksSave: true,
+      });
+      return feedback;
+    }
+
+    switch (config.key) {
+      case 'bloodPressure':
+        feedback.push(...this.validateBloodPressure(primaryValue, secondaryValue));
+        break;
+      case 'heartRate':
+        feedback.push(...this.validateSingleVital(config, primaryValue, 'HEART_RATE'));
+        break;
+      case 'temperature':
+        feedback.push(...this.validateSingleVital(config, primaryValue, 'BODY_TEMPERATURE'));
+        break;
+      case 'glucose':
+        feedback.push(...this.validateSingleVital(config, primaryValue, 'GLUCOSE'));
+        break;
+      case 'weight':
+        feedback.push(...this.validateWeightAndHeight(primaryValue, secondaryValue));
+        break;
+      case 'oxygenSaturation':
+        feedback.push(...this.validateSingleVital(config, primaryValue, 'OXYGEN_SATURATION'));
+        break;
+      case 'cholesterol':
+        feedback.push(...this.validateSingleVital(config, primaryValue, 'CHOLESTEROL'));
+        break;
+      default:
+        break;
+    }
+
+    return feedback;
+  }
+
+  protected getVitalFieldFeedback(config: VitalMetricConfig, field: 'primary' | 'secondary'): VitalEditFeedback[] {
+    return this.getVitalEditFeedback(config).filter((feedback) => feedback.field === field || feedback.field === 'both');
+  }
+
+  protected getVitalFormFeedback(config: VitalMetricConfig): VitalEditFeedback[] {
+    return this.getVitalEditFeedback(config).filter((feedback) => feedback.field === 'form');
+  }
+
+  protected hasVitalFieldError(config: VitalMetricConfig, field: 'primary' | 'secondary'): boolean {
+    return this.getVitalFieldFeedback(config, field).some((feedback) => feedback.tone === 'error');
   }
 
   protected patientStreetLine(): string {
     const address = this.patient()?.address;
-    return address?.addressLine?.trim() || 'Not available';
+    return address?.addressLine?.trim() || this.preferences.t('notAvailable');
   }
 
   protected patientCityLine(): string {
     const address = this.patient()?.address;
     if (!address) {
-      return 'Not available';
+      return this.preferences.t('notAvailable');
     }
 
     const parts = [address.city, address.state, address.zipCode].filter((part) => !!part?.trim());
-    return parts.length > 0 ? parts.join(', ') : 'Not available';
+    return parts.length > 0 ? parts.join(', ') : this.preferences.t('notAvailable');
   }
 
   protected isMedicationActive(medication: PatientMedication): boolean {
@@ -671,8 +900,8 @@ export class PatientDetailPageComponent {
 
   protected medicationStatusLabel(medication: PatientMedication): string {
     return this.isMedicationActive(medication)
-      ? 'CURRENT'
-      : (medication.status || 'INACTIVE').replaceAll('_', ' ');
+      ? this.preferences.t('current')
+      : this.translateStatusToken(medication.status || 'INACTIVE');
   }
 
   protected medicationStatusDate(medication: PatientMedication): string {
@@ -680,7 +909,11 @@ export class PatientDetailPageComponent {
   }
 
   protected medicationPanelTitle(): string {
-    return 'Medication';
+    return this.preferences.t('medication');
+  }
+
+  protected formatMedicationStatus(status?: string | null): string {
+    return this.translateStatusToken(status || 'UNKNOWN');
   }
 
   protected isMedicationTimelineEventActive(event: TimelineEvent): boolean {
@@ -709,12 +942,27 @@ export class PatientDetailPageComponent {
   }
 
   protected formatPredictionType(prediction: Prediction): string {
-    const formattedType = this.removeFallbackText(prediction.predictionType.replaceAll('_', ' '));
-    return formattedType || 'Prediction';
+    const normalizedType = (prediction.predictionType || '').toUpperCase();
+    switch (normalizedType) {
+      case 'CARDIOVASCULAR_RISK':
+        return this.preferences.language() === 'nl' ? 'Cardiovasculair risico' : 'Cardiovascular risk';
+      case 'DIABETES_RISK':
+        return this.preferences.language() === 'nl' ? 'Diabetesrisico' : 'Diabetes risk';
+      case 'GENERAL_DETERIORATION':
+        return this.preferences.language() === 'nl' ? 'Algemene achteruitgang' : 'General deterioration';
+      case 'SEPSIS_RISK':
+        return this.preferences.language() === 'nl' ? 'Sepsisrisico' : 'Sepsis risk';
+      case 'RESPIRATORY_RISK':
+        return this.preferences.language() === 'nl' ? 'Ademhalingsrisico' : 'Respiratory risk';
+      default: {
+        const formattedType = this.removeFallbackText(prediction.predictionType.replaceAll('_', ' '));
+        return formattedType || this.preferences.t('prediction');
+      }
+    }
   }
 
   protected formatRiskLevel(level?: string | null): string {
-    return (level || 'UNKNOWN').replaceAll('_', ' ');
+    return this.translateStatusToken(level || 'UNKNOWN');
   }
 
   protected normalizeRiskLevel(level?: string | null): string {
@@ -761,13 +1009,13 @@ export class PatientDetailPageComponent {
   }
 
   protected predictionDataFreshnessLabel(prediction: Prediction): string {
-    return this.predictionDataFreshnessStatus(prediction);
+    return this.translateStatusToken(this.predictionDataFreshnessStatus(prediction));
   }
 
   protected predictionDataFreshnessTitle(prediction: Prediction): string {
     return this.predictionDataFreshnessStatus(prediction) === 'OUTDATED'
-      ? 'Prediction is based on older measurements or was calculated before the latest vital signs.'
-      : 'Prediction is based on current vital sign measurements.';
+      ? this.preferences.t('predictionOutdatedTitle')
+      : this.preferences.t('predictionCurrentTitle');
   }
 
   protected getPredictionSourceSummary(prediction: Prediction): string {
@@ -778,18 +1026,18 @@ export class PatientDetailPageComponent {
     const sourceTypes = this.getPredictionSourceTypes(prediction);
     const sourceRows = this.getPredictionSourceVitals(prediction);
     if (sourceRows.length === 0) {
-      return ['No matching vital signs available.'];
+      return [this.preferences.t('noMatchingVitalSignsAvailable')];
     }
 
     const missingSources = sourceTypes
       .filter((type) => !sourceRows.some((row) => row.type === type))
-      .map((type) => `${this.formatVitalType(type)} missing`);
+      .map((type) => `${this.formatVitalType(type)} ${this.preferences.t('missing')}`);
     return [...sourceRows.map((row) => this.formatVitalSource(row)), ...missingSources];
   }
 
   protected formatDate(value?: string | null): string {
     if (!value) {
-      return 'Not available';
+      return this.preferences.t('notAvailable');
     }
 
     return new Intl.DateTimeFormat(this.preferences.language() === 'en' ? 'en-GB' : 'nl-NL', {
@@ -803,7 +1051,7 @@ export class PatientDetailPageComponent {
 
   protected formatDateOnly(value?: string | null): string {
     if (!value) {
-      return 'Not available';
+      return this.preferences.t('notAvailable');
     }
 
     return new Intl.DateTimeFormat(this.preferences.language() === 'en' ? 'en-GB' : 'nl-NL', {
@@ -829,6 +1077,282 @@ export class PatientDetailPageComponent {
     }
 
     return age;
+  }
+
+  private validateBloodPressure(systolic: number, diastolic: number): VitalEditFeedback[] {
+    const ageGroup = this.getPatientAgeGroup();
+    const ranges = this.getAgeAwareRanges('BLOOD_PRESSURE_SYSTOLIC', ageGroup);
+    const diastolicRanges = this.getAgeAwareRanges('BLOOD_PRESSURE_DIASTOLIC', ageGroup);
+    const feedback = [
+      ...this.validateAgainstRanges(this.preferences.t('systolic'), systolic, ranges, 'mmHg', 'primary'),
+      ...this.validateAgainstRanges(this.preferences.t('diastolic'), diastolic, diastolicRanges, 'mmHg', 'secondary'),
+    ];
+
+    if (diastolic >= systolic) {
+      feedback.push({
+        field: 'secondary',
+        tone: 'error',
+        message: this.preferences.language() === 'nl'
+          ? 'Diastolische bloeddruk moet lager zijn dan de systolische waarde.'
+          : 'Diastolic blood pressure must be lower than the systolic value.',
+        blocksSave: true,
+      });
+    }
+
+    return feedback;
+  }
+
+  private validateWeightAndHeight(weight: number, height: number): VitalEditFeedback[] {
+    const ageGroup = this.getPatientAgeGroup();
+    const feedback = [
+      ...this.validateAgainstRanges(this.preferences.t('weightLabel'), weight, this.getAgeAwareRanges('WEIGHT', ageGroup), 'kg', 'primary'),
+      ...this.validateAgainstRanges(this.preferences.t('heightLabel'), height, this.getAgeAwareRanges('HEIGHT', ageGroup), 'cm', 'secondary'),
+    ];
+
+    if (height > 0) {
+      const bmi = weight / ((height / 100) * (height / 100));
+      if (bmi < 8 || bmi > 65) {
+        feedback.push({
+          field: 'both',
+          tone: 'error',
+          message: this.preferences.language() === 'nl'
+            ? `Deze combinatie van gewicht en lengte is medisch onmogelijk. De berekende BMI is ${bmi.toFixed(1)}. Controleer de invoer en de gebruikte eenheden.`
+            : `This weight and height combination is medically impossible. The calculated BMI is ${bmi.toFixed(1)}. Check the entered values and units.`,
+          blocksSave: true,
+        });
+      } else if (bmi < 12 || bmi > 45) {
+        feedback.push({
+          field: 'both',
+          tone: 'warning',
+          message: this.preferences.language() === 'nl'
+            ? `Deze combinatie van gewicht en lengte is erg onwaarschijnlijk. De berekende BMI is ${bmi.toFixed(1)}. Controleer de invoer.`
+            : `This weight and height combination is very unlikely. The calculated BMI is ${bmi.toFixed(1)}. Check the entered values.`,
+          blocksSave: false,
+        });
+      }
+    }
+
+    return feedback;
+  }
+
+  private validateSingleVital(
+    config: VitalMetricConfig,
+    value: number,
+    vitalType: 'HEART_RATE' | 'BODY_TEMPERATURE' | 'GLUCOSE' | 'OXYGEN_SATURATION' | 'CHOLESTEROL',
+  ): VitalEditFeedback[] {
+    return this.validateAgainstRanges(
+      this.getVitalMetricPrimaryLabel(config),
+      value,
+      this.getAgeAwareRanges(vitalType, this.getPatientAgeGroup()),
+      this.getUnitForVitalType(vitalType),
+      'primary',
+    );
+  }
+
+  private validateAgainstRanges(
+    label: string,
+    value: number,
+    ranges: { hardMin: number; warningMin: number; warningMax: number; hardMax: number },
+    unit: string,
+    field: 'primary' | 'secondary',
+  ): VitalEditFeedback[] {
+    const feedback: VitalEditFeedback[] = [];
+    const formattedValue = this.formatEnteredVitalValue(value, unit);
+
+    if (value < ranges.hardMin || value > ranges.hardMax) {
+      feedback.push({
+        field,
+        tone: 'error',
+        message: this.preferences.language() === 'nl'
+          ? `${label} van ${formattedValue} is medisch onmogelijk of extreem onrealistisch. Het systeem accepteert hier alleen plausibele waarden tussen ${this.formatEnteredVitalValue(ranges.hardMin, unit)} en ${this.formatEnteredVitalValue(ranges.hardMax, unit)}.`
+          : `${label} of ${formattedValue} is medically impossible or extremely unrealistic. The system only accepts plausible values between ${this.formatEnteredVitalValue(ranges.hardMin, unit)} and ${this.formatEnteredVitalValue(ranges.hardMax, unit)}.`,
+        blocksSave: true,
+      });
+      return feedback;
+    }
+
+    if (value < ranges.warningMin || value > ranges.warningMax) {
+      feedback.push({
+        field,
+        tone: 'warning',
+        message: this.preferences.language() === 'nl'
+          ? `${label} van ${formattedValue} is erg onwaarschijnlijk voor deze leeftijdsgroep. Controleer of de invoer en de eenheid kloppen.`
+          : `${label} of ${formattedValue} is very unlikely for this age group. Check whether the value and unit are correct.`,
+        blocksSave: false,
+      });
+    }
+
+    return feedback;
+  }
+
+  private getPatientAgeGroup(): PatientAgeGroup {
+    const age = this.patientAge();
+    if (age == null || age < 0) {
+      return 'UNKNOWN';
+    }
+    if (age < 1) {
+      return 'BABY';
+    }
+    if (age < 3) {
+      return 'TODDLER';
+    }
+    if (age < 12) {
+      return 'CHILD';
+    }
+    if (age < 18) {
+      return 'ADOLESCENT';
+    }
+    if (age < 65) {
+      return 'ADULT';
+    }
+    return 'OLDER_ADULT';
+  }
+
+  private getAgeAwareRanges(
+    vitalType: 'BLOOD_PRESSURE_SYSTOLIC' | 'BLOOD_PRESSURE_DIASTOLIC' | 'HEART_RATE' | 'BODY_TEMPERATURE' | 'GLUCOSE' | 'WEIGHT' | 'HEIGHT' | 'OXYGEN_SATURATION' | 'CHOLESTEROL',
+    ageGroup: PatientAgeGroup,
+  ): { hardMin: number; warningMin: number; warningMax: number; hardMax: number } {
+    const table: Record<string, Record<PatientAgeGroup, { hardMin: number; warningMin: number; warningMax: number; hardMax: number }>> = {
+      BLOOD_PRESSURE_SYSTOLIC: {
+        BABY: { hardMin: 40, warningMin: 70, warningMax: 120, hardMax: 160 },
+        TODDLER: { hardMin: 50, warningMin: 80, warningMax: 125, hardMax: 180 },
+        CHILD: { hardMin: 50, warningMin: 85, warningMax: 135, hardMax: 220 },
+        ADOLESCENT: { hardMin: 60, warningMin: 90, warningMax: 150, hardMax: 240 },
+        ADULT: { hardMin: 60, warningMin: 90, warningMax: 140, hardMax: 260 },
+        OLDER_ADULT: { hardMin: 60, warningMin: 90, warningMax: 150, hardMax: 260 },
+        UNKNOWN: { hardMin: 60, warningMin: 90, warningMax: 150, hardMax: 260 },
+      },
+      BLOOD_PRESSURE_DIASTOLIC: {
+        BABY: { hardMin: 20, warningMin: 35, warningMax: 80, hardMax: 120 },
+        TODDLER: { hardMin: 20, warningMin: 40, warningMax: 85, hardMax: 130 },
+        CHILD: { hardMin: 20, warningMin: 45, warningMax: 95, hardMax: 140 },
+        ADOLESCENT: { hardMin: 20, warningMin: 50, warningMax: 100, hardMax: 150 },
+        ADULT: { hardMin: 20, warningMin: 60, warningMax: 90, hardMax: 160 },
+        OLDER_ADULT: { hardMin: 20, warningMin: 60, warningMax: 95, hardMax: 160 },
+        UNKNOWN: { hardMin: 20, warningMin: 50, warningMax: 95, hardMax: 160 },
+      },
+      HEART_RATE: {
+        BABY: { hardMin: 40, warningMin: 100, warningMax: 205, hardMax: 240 },
+        TODDLER: { hardMin: 40, warningMin: 90, warningMax: 190, hardMax: 230 },
+        CHILD: { hardMin: 35, warningMin: 70, warningMax: 160, hardMax: 220 },
+        ADOLESCENT: { hardMin: 30, warningMin: 60, warningMax: 140, hardMax: 220 },
+        ADULT: { hardMin: 25, warningMin: 50, warningMax: 130, hardMax: 220 },
+        OLDER_ADULT: { hardMin: 25, warningMin: 50, warningMax: 130, hardMax: 220 },
+        UNKNOWN: { hardMin: 25, warningMin: 50, warningMax: 140, hardMax: 220 },
+      },
+      BODY_TEMPERATURE: {
+        BABY: { hardMin: 30, warningMin: 36, warningMax: 39.5, hardMax: 45 },
+        TODDLER: { hardMin: 30, warningMin: 36, warningMax: 39.5, hardMax: 45 },
+        CHILD: { hardMin: 30, warningMin: 36, warningMax: 39.5, hardMax: 45 },
+        ADOLESCENT: { hardMin: 30, warningMin: 36, warningMax: 39.5, hardMax: 45 },
+        ADULT: { hardMin: 30, warningMin: 36, warningMax: 39.5, hardMax: 45 },
+        OLDER_ADULT: { hardMin: 30, warningMin: 35.5, warningMax: 39.5, hardMax: 45 },
+        UNKNOWN: { hardMin: 30, warningMin: 36, warningMax: 39.5, hardMax: 45 },
+      },
+      GLUCOSE: {
+        BABY: { hardMin: 0.5, warningMin: 3.0, warningMax: 11.1, hardMax: 40 },
+        TODDLER: { hardMin: 0.5, warningMin: 3.0, warningMax: 11.1, hardMax: 40 },
+        CHILD: { hardMin: 0.5, warningMin: 3.0, warningMax: 11.1, hardMax: 40 },
+        ADOLESCENT: { hardMin: 0.5, warningMin: 3.0, warningMax: 11.1, hardMax: 40 },
+        ADULT: { hardMin: 0.5, warningMin: 3.0, warningMax: 11.1, hardMax: 40 },
+        OLDER_ADULT: { hardMin: 0.5, warningMin: 3.0, warningMax: 11.1, hardMax: 40 },
+        UNKNOWN: { hardMin: 0.5, warningMin: 3.0, warningMax: 11.1, hardMax: 40 },
+      },
+      WEIGHT: {
+        BABY: { hardMin: 1.5, warningMin: 2.5, warningMax: 14, hardMax: 25 },
+        TODDLER: { hardMin: 4, warningMin: 8, warningMax: 25, hardMax: 60 },
+        CHILD: { hardMin: 8, warningMin: 14, warningMax: 70, hardMax: 120 },
+        ADOLESCENT: { hardMin: 20, warningMin: 30, warningMax: 110, hardMax: 180 },
+        ADULT: { hardMin: 20, warningMin: 35, warningMax: 160, hardMax: 300 },
+        OLDER_ADULT: { hardMin: 20, warningMin: 35, warningMax: 160, hardMax: 300 },
+        UNKNOWN: { hardMin: 4, warningMin: 20, warningMax: 160, hardMax: 300 },
+      },
+      HEIGHT: {
+        BABY: { hardMin: 30, warningMin: 45, warningMax: 85, hardMax: 120 },
+        TODDLER: { hardMin: 45, warningMin: 70, warningMax: 110, hardMax: 140 },
+        CHILD: { hardMin: 60, warningMin: 95, warningMax: 170, hardMax: 220 },
+        ADOLESCENT: { hardMin: 90, warningMin: 130, warningMax: 210, hardMax: 240 },
+        ADULT: { hardMin: 100, warningMin: 140, warningMax: 220, hardMax: 260 },
+        OLDER_ADULT: { hardMin: 100, warningMin: 135, warningMax: 220, hardMax: 260 },
+        UNKNOWN: { hardMin: 60, warningMin: 120, warningMax: 220, hardMax: 260 },
+      },
+      OXYGEN_SATURATION: {
+        BABY: { hardMin: 50, warningMin: 90, warningMax: 100, hardMax: 100 },
+        TODDLER: { hardMin: 50, warningMin: 90, warningMax: 100, hardMax: 100 },
+        CHILD: { hardMin: 50, warningMin: 90, warningMax: 100, hardMax: 100 },
+        ADOLESCENT: { hardMin: 50, warningMin: 90, warningMax: 100, hardMax: 100 },
+        ADULT: { hardMin: 50, warningMin: 90, warningMax: 100, hardMax: 100 },
+        OLDER_ADULT: { hardMin: 50, warningMin: 88, warningMax: 100, hardMax: 100 },
+        UNKNOWN: { hardMin: 50, warningMin: 90, warningMax: 100, hardMax: 100 },
+      },
+      CHOLESTEROL: {
+        BABY: { hardMin: 1, warningMin: 2.5, warningMax: 5.2, hardMax: 15 },
+        TODDLER: { hardMin: 1, warningMin: 2.5, warningMax: 5.2, hardMax: 15 },
+        CHILD: { hardMin: 1, warningMin: 2.5, warningMax: 5.2, hardMax: 15 },
+        ADOLESCENT: { hardMin: 1, warningMin: 2.5, warningMax: 5.2, hardMax: 15 },
+        ADULT: { hardMin: 1, warningMin: 2.5, warningMax: 6.5, hardMax: 20 },
+        OLDER_ADULT: { hardMin: 1, warningMin: 2.5, warningMax: 6.5, hardMax: 20 },
+        UNKNOWN: { hardMin: 1, warningMin: 2.5, warningMax: 6.5, hardMax: 20 },
+      },
+    };
+
+    return table[vitalType][ageGroup];
+  }
+
+  private extractVitalSaveErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      const apiMessage = (error.error as { message?: string } | null)?.message?.trim();
+      if (apiMessage) {
+        return this.translateVitalApiErrorMessage(apiMessage);
+      }
+    }
+
+    return this.preferences.language() === 'nl'
+      ? 'Vitale meting kon niet worden opgeslagen. Controleer de ingevoerde waarden.'
+      : 'The vital measurement could not be saved. Check the entered values.';
+  }
+
+  private translateVitalApiErrorMessage(message: string): string {
+    const normalizedMessage = message.trim();
+
+    if (this.preferences.language() !== 'nl') {
+      return normalizedMessage;
+    }
+
+    if (normalizedMessage.includes('Calculated BMI is outside a broad plausible range')) {
+      return 'Deze combinatie van gewicht en lengte is medisch onmogelijk. Controleer de invoer en de gebruikte eenheden.';
+    }
+
+    if (normalizedMessage.includes('outside a broad plausible range')) {
+      return 'Deze waarde is medisch onmogelijk of extreem onrealistisch. Controleer de invoer en de gebruikte eenheid.';
+    }
+
+    if (normalizedMessage.includes('No enum constant')) {
+      return 'Het type vitale waarde wordt niet herkend. Vernieuw de pagina en probeer het opnieuw.';
+    }
+
+    return normalizedMessage;
+  }
+
+  private getUnitForVitalType(
+    vitalType: 'HEART_RATE' | 'BODY_TEMPERATURE' | 'GLUCOSE' | 'OXYGEN_SATURATION' | 'CHOLESTEROL',
+  ): string {
+    switch (vitalType) {
+      case 'HEART_RATE':
+        return 'bpm';
+      case 'BODY_TEMPERATURE':
+        return 'C';
+      case 'GLUCOSE':
+        return 'mmol/L';
+      case 'OXYGEN_SATURATION':
+        return '%';
+      case 'CHOLESTEROL':
+        return 'mmol/L';
+    }
+  }
+
+  private formatEnteredVitalValue(value: number, unit: string): string {
+    return `${value}${unit ? ` ${unit}` : ''}`;
   }
 
   private formatNumericValue(value?: number | null, suffix = ''): string {
@@ -1034,15 +1558,34 @@ export class PatientDetailPageComponent {
 
   private formatVitalSource(row: VitalSigns): string {
     const label = this.formatVitalType(row.type);
-    const value = row.value == null ? 'not available' : `${row.value}${row.unit ? ` ${row.unit}` : ''}`;
-    return `${label} ${value} (${row.freshnessStatus ?? 'UNKNOWN'})`;
+    const value = row.value == null ? this.preferences.t('notAvailable').toLowerCase() : `${row.value}${row.unit ? ` ${row.unit}` : ''}`;
+    return `${label} ${value} (${this.translateStatusToken(row.freshnessStatus ?? 'UNKNOWN')})`;
   }
 
   private formatVitalType(type?: string | null): string {
-    return (type || 'Vital sign')
-      .replaceAll('_', ' ')
-      .toLowerCase()
-      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+    switch ((type || '').toUpperCase()) {
+      case 'BLOOD_PRESSURE_SYSTOLIC':
+      case 'BLOOD_PRESSURE_DIASTOLIC':
+        return this.preferences.t('bloodPressure');
+      case 'HEART_RATE':
+        return this.preferences.t('heartRate');
+      case 'BODY_TEMPERATURE':
+        return this.preferences.t('temperatureLabel');
+      case 'GLUCOSE':
+        return this.preferences.t('glucoseLabel');
+      case 'BMI':
+        return this.preferences.t('bmiLabel');
+      case 'WEIGHT':
+        return this.preferences.t('weightLabel');
+      case 'HEIGHT':
+        return this.preferences.t('heightLabel');
+      case 'OXYGEN_SATURATION':
+        return this.preferences.t('oxygenSaturation');
+      case 'CHOLESTEROL':
+        return this.preferences.t('cholesterolLabel');
+      default:
+        return this.preferences.t('vitalSign');
+    }
   }
 
   private maxStatus(statuses: Array<string | null | undefined>): string {
@@ -1095,10 +1638,11 @@ export class PatientDetailPageComponent {
       case 'CRITICAL':
       case 'OUT_OF_RANGE':
       case 'VERY_HIGH':
-        return 'HIGH';
+        return this.preferences.t('high');
       case 'MEDIUM':
+        return this.preferences.t('medium');
       case 'LOW':
-        return this.normalizeStatus(status);
+        return this.preferences.t('low');
       default:
         return '';
     }
@@ -1125,7 +1669,50 @@ export class PatientDetailPageComponent {
       return '';
     }
 
-    return normalizedLevel === 'VERY_HIGH' || normalizedLevel === 'CRITICAL' ? 'HIGH' : normalizedLevel;
+    return normalizedLevel === 'VERY_HIGH' || normalizedLevel === 'CRITICAL'
+      ? this.preferences.t('high')
+      : this.translateStatusToken(normalizedLevel);
+  }
+
+  private translateStatusToken(status?: string | null): string {
+    switch ((status || 'UNKNOWN').toUpperCase()) {
+      case 'CURRENT':
+        return this.preferences.t('current');
+      case 'OUTDATED':
+        return this.preferences.t('outdated');
+      case 'STOPPED':
+        return this.preferences.t('stopped');
+      case 'AGING':
+        return this.preferences.t('aging');
+      case 'ACTIVE':
+        return this.preferences.t('active');
+      case 'INACTIVE':
+        return this.preferences.t('inactive');
+      case 'HIGH':
+        return this.preferences.t('high');
+      case 'MED':
+      case 'MEDIUM':
+        return this.preferences.t('medium');
+      case 'LOW':
+        return this.preferences.t('low');
+      case 'CRITICAL':
+        return this.preferences.t('critical');
+      case 'VERY_HIGH':
+        return this.preferences.t('veryHigh');
+      case 'OUT_OF_RANGE':
+        return this.preferences.t('outOfRange');
+      case 'NOT_APPLICABLE':
+        return this.preferences.t('notApplicable');
+      case 'INSUFFICIENT_CONTEXT':
+        return this.preferences.t('insufficientContext');
+      case 'UNKNOWN':
+        return this.preferences.t('unknown');
+      default:
+        return (status || '')
+          .replaceAll('_', ' ')
+          .toLowerCase()
+          .replace(/\b\w/g, (char) => char.toUpperCase());
+    }
   }
 
   private getVitalInterpretationStatus(row?: VitalSigns | null): string {

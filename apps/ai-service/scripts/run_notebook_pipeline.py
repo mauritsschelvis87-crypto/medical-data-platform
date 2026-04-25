@@ -30,6 +30,8 @@ NOTEBOOK_RAW_DIR = NOTEBOOK_DATA_DIR / "raw"
 NOTEBOOK_PROCESSED_DIR = NOTEBOOK_DATA_DIR / "processed"
 NOTEBOOK_FEATURES_DIR = NOTEBOOK_DATA_DIR / "features"
 NOTEBOOK_EXPORT_DIR = NOTEBOOK_DATA_DIR / "exports"
+DEMO_EXPORT_DIR = EXPORT_DIR / "backend-import"
+DEMO_PATIENT_COUNT = 25
 
 NOTEBOOKS = [
     "01_load_raw.ipynb",
@@ -117,33 +119,32 @@ DUTCH_ADDRESS_CATALOG = [
     {"city": "Leiden", "state": "Zuid-Holland", "county": "Leiden", "street": "Langegracht"},
     {"city": "Leiden", "state": "Zuid-Holland", "county": "Leiden", "street": "Korevaarstraat"},
     {"city": "Leiden", "state": "Zuid-Holland", "county": "Leiden", "street": "Doezastraat"},
-    {"city": "Leiden", "state": "Zuid-Holland", "county": "Leiden", "street": "Herengracht"},
     {"city": "Leiden", "state": "Zuid-Holland", "county": "Leiden", "street": "Morsstraat"},
     {"city": "Leiden", "state": "Zuid-Holland", "county": "Leiden", "street": "Witte Singel"},
-    {"city": "Leiden", "state": "Zuid-Holland", "county": "Leiden", "street": "Levendaal"},
-    {"city": "Leiden", "state": "Zuid-Holland", "county": "Leiden", "street": "Pieterskerk-Choorsteeg"},
-    {"city": "Leiden", "state": "Zuid-Holland", "county": "Leiden", "street": "Boerhaavelaan"},
     {"city": "Leiden", "state": "Zuid-Holland", "county": "Leiden", "street": "Rapenburg"},
-    {"city": "Leiden", "state": "Zuid-Holland", "county": "Leiden", "street": "Kaiserstraat"},
-    {"city": "Leiden", "state": "Zuid-Holland", "county": "Leiden", "street": "Janvossensteeg"},
     {"city": "Leiden", "state": "Zuid-Holland", "county": "Leiden", "street": "Maresingel"},
-    {"city": "Leiden", "state": "Zuid-Holland", "county": "Leiden", "street": "Rijndijkstraat"},
-    {"city": "Leiden", "state": "Zuid-Holland", "county": "Leiden", "street": "Papengracht"},
-    {"city": "Leiden", "state": "Zuid-Holland", "county": "Leiden", "street": "Gerecht"},
     {"city": "Voorschoten", "state": "Zuid-Holland", "county": "Voorschoten", "street": "Schoolstraat"},
     {"city": "Voorschoten", "state": "Zuid-Holland", "county": "Voorschoten", "street": "Voorstraat"},
     {"city": "Zoeterwoude", "state": "Zuid-Holland", "county": "Zoeterwoude", "street": "Dorpstraat"},
     {"city": "Zoeterwoude", "state": "Zuid-Holland", "county": "Zoeterwoude", "street": "Hoge Rijndijk"},
     {"city": "Leiderdorp", "state": "Zuid-Holland", "county": "Leiderdorp", "street": "Hoofdstraat"},
-    {"city": "Leiderdorp", "state": "Zuid-Holland", "county": "Leiderdorp", "street": "Oranjegalerij"},
+    {"city": "Leiderdorp", "state": "Zuid-Holland", "county": "Leiderdorp", "street": "Splinterlaan"},
     {"city": "Oegstgeest", "state": "Zuid-Holland", "county": "Oegstgeest", "street": "Rhijngeesterstraatweg"},
-    {"city": "Zoetermeer", "state": "Zuid-Holland", "county": "Zoetermeer", "street": "Dorpsstraat"},
-    {"city": "Leidschendam", "state": "Zuid-Holland", "county": "Leidschendam-Voorburg", "street": "Damlaan"},
-    {"city": "Den Haag", "state": "Zuid-Holland", "county": "Den Haag", "street": "Spui"},
+    {"city": "Oegstgeest", "state": "Zuid-Holland", "county": "Oegstgeest", "street": "De Kempenaerstraat"},
+    {"city": "Katwijk", "state": "Zuid-Holland", "county": "Katwijk", "street": "Voorstraat"},
+    {"city": "Katwijk", "state": "Zuid-Holland", "county": "Katwijk", "street": "Princestraat"},
+    {"city": "Rijnsburg", "state": "Zuid-Holland", "county": "Katwijk", "street": "Hoofdstraat"},
+    {"city": "Rijnsburg", "state": "Zuid-Holland", "county": "Katwijk", "street": "Oegstgeesterweg"},
     {"city": "Valkenburg (ZH)", "state": "Zuid-Holland", "county": "Katwijk", "street": "Hoofdstraat"},
-    {"city": "Breda", "state": "Noord-Brabant", "county": "Breda", "street": "Ginnekenweg"},
-    {"city": "Utrecht", "state": "Utrecht", "county": "Utrecht", "street": "Oudegracht"},
-    {"city": "Den Helder", "state": "Noord-Holland", "county": "Den Helder", "street": "Beatrixstraat"},
+    {"city": "Valkenburg (ZH)", "state": "Zuid-Holland", "county": "Katwijk", "street": "Voorschoterweg"},
+    {"city": "Noordwijk", "state": "Zuid-Holland", "county": "Noordwijk", "street": "Hoofdstraat"},
+    {"city": "Noordwijk", "state": "Zuid-Holland", "county": "Noordwijk", "street": "Kerkstraat"},
+    {"city": "Warmond", "state": "Zuid-Holland", "county": "Teylingen", "street": "Dorpsstraat"},
+    {"city": "Warmond", "state": "Zuid-Holland", "county": "Teylingen", "street": "Herenweg"},
+    {"city": "Sassenheim", "state": "Zuid-Holland", "county": "Teylingen", "street": "Hoofdstraat"},
+    {"city": "Sassenheim", "state": "Zuid-Holland", "county": "Teylingen", "street": "Wasbeekerlaan"},
+    {"city": "Wassenaar", "state": "Zuid-Holland", "county": "Wassenaar", "street": "Langstraat"},
+    {"city": "Wassenaar", "state": "Zuid-Holland", "county": "Wassenaar", "street": "Kerkstraat"},
 ]
 
 DUTCH_POSTAL_CODES = {
@@ -152,24 +153,18 @@ DUTCH_POSTAL_CODES = {
     "Zoeterwoude": ["2381AB", "2382CD"],
     "Leiderdorp": ["2351AA", "2352BC", "2353DE"],
     "Oegstgeest": ["2341AB", "2342CD"],
-    "Zoetermeer": ["2711AA", "2722BC"],
-    "Leidschendam": ["2261AA", "2262BC"],
-    "Den Haag": ["2511AA", "2562BC"],
+    "Katwijk": ["2223AB", "2224BC", "2225CD"],
+    "Rijnsburg": ["2231AA", "2231BC", "2231DE"],
     "Valkenburg (ZH)": ["2235AB", "2235CD"],
-    "Breda": ["4811AA", "4812BC"],
-    "Utrecht": ["3511AA", "3521BC"],
-    "Den Helder": ["1781AA", "1782BC"],
+    "Noordwijk": ["2201AA", "2202BC", "2203CD"],
+    "Warmond": ["2361AA", "2361BC"],
+    "Sassenheim": ["2171AA", "2171BC", "2172CD"],
+    "Wassenaar": ["2241AA", "2242BC"],
 }
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the notebook pipeline and prepare backend import files.")
-    parser.add_argument(
-        "--export-name",
-        choices=["full"],
-        default="full",
-        help="Name of the backend export folder under data/exports.",
-    )
     parser.add_argument(
         "--import-backend",
         action="store_true",
@@ -187,22 +182,17 @@ def parse_args() -> argparse.Namespace:
     )
     return parser.parse_args()
 
-
-def resolve_export_directory(export_name: str) -> Path:
-    return EXPORT_DIR / f"backend-import-{export_name}"
-
-
-def ensure_directories(backend_export_dir: Path) -> None:
+def ensure_directories(*backend_export_dirs: Path) -> None:
     for directory in [
         RAW_DIR,
         PROCESSED_DIR,
         FEATURES_DIR,
         EXPORT_DIR,
-        backend_export_dir,
         NOTEBOOK_RAW_DIR,
         NOTEBOOK_PROCESSED_DIR,
         NOTEBOOK_FEATURES_DIR,
         NOTEBOOK_EXPORT_DIR,
+        *backend_export_dirs,
     ]:
         directory.mkdir(parents=True, exist_ok=True)
 
@@ -374,7 +364,7 @@ def localize_patient_addresses(patient_address_export_df: pd.DataFrame) -> pd.Da
     return localized_df
 
 
-def export_backend_import_files(source: str, backend_export_dir: Path) -> None:
+def build_backend_import_frames() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     patient_df = pd.read_csv(PROCESSED_DIR / "patient.csv")
     patient_address_df = pd.read_csv(PROCESSED_DIR / "patient_address.csv")
     vital_signs_df = pd.read_csv(PROCESSED_DIR / "vital_signs.csv")
@@ -460,12 +450,21 @@ def export_backend_import_files(source: str, backend_export_dir: Path) -> None:
     vital_signs_export_df["measuredAt"] = pd.to_datetime(
         vital_signs_export_df["measuredAt"], errors="coerce", utc=True
     ).dt.strftime("%Y-%m-%dT%H:%M:%S")
+    return patient_export_df, patient_address_export_df, vital_signs_export_df, patient_features_df
 
-    import_summary_df = pd.DataFrame(
+
+def build_import_summary_df(
+    source: str,
+    patient_export_df: pd.DataFrame,
+    patient_address_export_df: pd.DataFrame,
+    vital_signs_export_df: pd.DataFrame,
+) -> pd.DataFrame:
+    total_records = len(patient_export_df) + len(patient_address_export_df) + len(vital_signs_export_df)
+    return pd.DataFrame(
         [
             {
-                "recordsReceived": len(patient_export_df) + len(patient_address_export_df) + len(vital_signs_export_df),
-                "recordsProcessed": len(patient_export_df) + len(patient_address_export_df) + len(vital_signs_export_df),
+                "recordsReceived": total_records,
+                "recordsProcessed": total_records,
                 "recordsFailed": 0,
                 "patientCount": len(patient_export_df),
                 "patientAddressCount": len(patient_address_export_df),
@@ -476,6 +475,22 @@ def export_backend_import_files(source: str, backend_export_dir: Path) -> None:
         ]
     )
 
+
+def write_backend_import_files(
+    source: str,
+    backend_export_dir: Path,
+    patient_export_df: pd.DataFrame,
+    patient_address_export_df: pd.DataFrame,
+    vital_signs_export_df: pd.DataFrame,
+    patient_features_df: pd.DataFrame,
+) -> None:
+    import_summary_df = build_import_summary_df(
+        source,
+        patient_export_df,
+        patient_address_export_df,
+        vital_signs_export_df,
+    )
+
     patient_export_df.to_csv(backend_export_dir / "patient.csv", index=False)
     patient_address_export_df.to_csv(backend_export_dir / "patient_address.csv", index=False)
     vital_signs_export_df.to_csv(backend_export_dir / "vital_signs.csv", index=False)
@@ -483,6 +498,51 @@ def export_backend_import_files(source: str, backend_export_dir: Path) -> None:
     import_summary_df.to_csv(backend_export_dir / "import_summary.csv", index=False)
 
     print(f"Wrote backend import files to {backend_export_dir.relative_to(ROOT_DIR)}")
+
+
+def select_demo_import_frames(
+    patient_export_df: pd.DataFrame,
+    patient_address_export_df: pd.DataFrame,
+    vital_signs_export_df: pd.DataFrame,
+    patient_features_df: pd.DataFrame,
+    patient_limit: int = DEMO_PATIENT_COUNT,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    demo_patient_export_df = patient_export_df.head(patient_limit).copy()
+    demo_patient_ids = demo_patient_export_df["sourcePatientId"].astype(str)
+    demo_patient_numbers = demo_patient_export_df["patientNumber"].astype(str)
+
+    demo_patient_address_export_df = patient_address_export_df[
+        patient_address_export_df["patientId"].astype(str).isin(demo_patient_ids)
+    ].copy()
+    demo_vital_signs_export_df = vital_signs_export_df[
+        vital_signs_export_df["patientId"].astype(str).isin(demo_patient_ids)
+    ].copy()
+    demo_patient_features_df = patient_features_df[
+        patient_features_df["patient_number"].astype(str).isin(demo_patient_numbers)
+    ].copy()
+
+    return (
+        demo_patient_export_df,
+        demo_patient_address_export_df,
+        demo_vital_signs_export_df,
+        demo_patient_features_df,
+    )
+
+
+def export_backend_import_files(source: str, backend_export_dir: Path, demo_export_dir: Path = DEMO_EXPORT_DIR) -> None:
+    patient_export_df, patient_address_export_df, vital_signs_export_df, patient_features_df = build_backend_import_frames()
+
+    demo_frames = select_demo_import_frames(
+        patient_export_df,
+        patient_address_export_df,
+        vital_signs_export_df,
+        patient_features_df,
+    )
+    write_backend_import_files(
+        source,
+        backend_export_dir,
+        *demo_frames,
+    )
 
 
 def import_backend_dataset(
@@ -518,9 +578,9 @@ def import_backend_dataset(
 
 def main() -> int:
     args = parse_args()
-    source = "full"
+    source = "demo"
     source_dir = RAW_SOURCE_DIR
-    backend_export_dir = resolve_export_directory(args.export_name)
+    backend_export_dir = DEMO_EXPORT_DIR
 
     ensure_directories(backend_export_dir)
     stage_raw_files(source_dir)

@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { UserProfile } from '../models/medical.models';
 
 const DEMO_DOCTOR: UserProfile = {
-  name: 'Dr. Jonathan Hyde',
+  name: 'Dr. Jeckyll Hyde',
   shortName: 'Dr. J. Hyde',
   specialty: 'Internal Medicine',
   department: 'Internal Medicine Department',

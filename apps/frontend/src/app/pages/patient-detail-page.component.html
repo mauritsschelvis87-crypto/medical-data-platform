@@ -6,25 +6,25 @@
       <div class="detail-content">
         <div class="record-header panel">
           <div class="record-header__block">
-            <span class="record-header__label">Patient | {{ patient.patientNumber }}</span>
+            <span class="record-header__label">{{ preferences.t('patient') }} | {{ patient.patientNumber }}</span>
             <strong class="record-header__primary">{{ patient.firstName }} {{ patient.lastName }}</strong>
-            <span class="record-header__secondary">{{ patient.gender }}</span>
+            <span class="record-header__secondary">{{ formatGender(patient.gender) }}</span>
           </div>
 
           <div class="record-header__block">
-            <span class="record-header__label">Birth date</span>
+            <span class="record-header__label">{{ preferences.t('birthDate') }}</span>
             <strong class="record-header__primary">{{ formatDateOnly(patient.birthDate) }}</strong>
-            <span class="record-header__secondary">Age: {{ patientAge() ?? '—' }}</span>
+            <span class="record-header__secondary">{{ preferences.t('age') }}: {{ patientAge() ?? '—' }}</span>
           </div>
 
           <div class="record-header__block record-header__block--address">
             <div class="record-header__label-row">
-              <span class="record-header__label">Address</span>
+              <span class="record-header__label">{{ preferences.t('address') }}</span>
               <button
                 type="button"
                 class="record-header__icon-button"
                 (click)="toggleAddressEdit()"
-                [attr.aria-label]="editingAddress() ? 'Close address editor' : 'Edit address'"
+                [attr.aria-label]="editingAddress() ? preferences.t('closeAddressEditor') : preferences.t('editAddress')"
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path
@@ -37,33 +37,33 @@
             @if (editingAddress()) {
               <form class="address-editor" [formGroup]="addressForm" (ngSubmit)="saveAddress()">
                 <label class="address-editor__field address-editor__field--full">
-                  <span>Street</span>
+                  <span>{{ preferences.t('street') }}</span>
                   <input type="text" formControlName="addressLine" />
                 </label>
 
                 <label class="address-editor__field">
-                  <span>City</span>
+                  <span>{{ preferences.t('city') }}</span>
                   <input type="text" formControlName="city" />
                 </label>
 
                 <label class="address-editor__field">
-                  <span>State</span>
+                  <span>{{ preferences.t('state') }}</span>
                   <input type="text" formControlName="state" />
                 </label>
 
                 <label class="address-editor__field">
-                  <span>County</span>
+                  <span>{{ preferences.t('county') }}</span>
                   <input type="text" formControlName="county" />
                 </label>
 
                 <label class="address-editor__field">
-                  <span>ZIP</span>
+                  <span>{{ preferences.t('zip') }}</span>
                   <input type="text" formControlName="zipCode" />
                 </label>
 
                 <div class="address-editor__actions">
                   <button type="submit" [disabled]="submittingAddress()">
-                    {{ submittingAddress() ? 'Saving...' : 'Save' }}
+                    {{ submittingAddress() ? preferences.t('saving') : preferences.t('save') }}
                   </button>
                   <button
                     type="button"
@@ -71,7 +71,7 @@
                     (click)="cancelAddressEdit()"
                     [disabled]="submittingAddress()"
                   >
-                    Cancel
+                    {{ preferences.t('cancel') }}
                   </button>
                 </div>
               </form>
@@ -97,103 +97,114 @@
                   [class.metric-card--readonly]="!isVitalEditable(metric)"
                   [title]="getClinicalSummaryForMetric(metric)"
                 >
-                  <div class="metric-card__content">
-                    <div class="metric-card__main">
-                      <span>{{ metric.label }}</span>
-                      <small class="metric-card__clinical-status">
-                        {{ getMetricValueLine(metric) }}
-                      </small>
-                    </div>
+                  @if (editingVitalKey() !== metric.key) {
+                    <div class="metric-card__content">
+                      <div class="metric-card__main">
+                        <span>{{ getVitalMetricLabel(metric) }}</span>
+                        <small class="metric-card__clinical-status">
+                          {{ getMetricValueLine(metric) }}
+                        </small>
+                      </div>
 
-                    <div class="metric-card__value-group">
-                      <small
-                        class="metric-card__freshness-label"
-                        [attr.data-freshness-label]="getFreshnessLabelForMetric(metric)"
-                        [title]="getFreshnessMessageForMetric(metric)"
-                      >
-                        {{ getFreshnessLabelForMetric(metric) }}
-                      </small>
-                      <small
-                        class="metric-card__date"
-                        [attr.data-freshness-status]="getFreshnessLabelForMetric(metric)"
-                        [title]="getFreshnessMessageForMetric(metric)"
-                      >
-                        {{ formatDateOnly(getVitalMeasuredAtForMetric(metric)) }}
-                      </small>
+                      <div class="metric-card__value-group">
+                        <small
+                          class="metric-card__freshness-label"
+                          [attr.data-freshness-label]="getFreshnessStatusForMetric(metric)"
+                          [title]="getFreshnessMessageForMetric(metric)"
+                        >
+                          {{ getFreshnessLabelForMetric(metric) }}
+                        </small>
+                        <small
+                          class="metric-card__date"
+                          [attr.data-freshness-status]="getFreshnessStatusForMetric(metric)"
+                          [title]="getFreshnessMessageForMetric(metric)"
+                        >
+                          {{ formatDateOnly(getVitalMeasuredAtForMetric(metric)) }}
+                        </small>
+                      </div>
                     </div>
-                  </div>
+                  }
 
                   @if (isVitalEditable(metric)) {
                     @if (editingVitalKey() === metric.key) {
                       <form class="metric-edit" [formGroup]="vitalEditForm" (ngSubmit)="saveVitalMetric(metric)">
                         <div class="metric-edit__fields">
-                          <label>
-                            <span>{{ metric.primaryLabel || metric.label }}</span>
-                            <input type="number" step="0.1" formControlName="primaryValue" />
+                          <label class="metric-edit__field">
+                            <span>{{ getVitalMetricPrimaryLabel(metric) }}</span>
+                            <input
+                              type="number"
+                              step="0.1"
+                              formControlName="primaryValue"
+                              [class.metric-edit__input--error]="hasVitalFieldError(metric, 'primary')"
+                            />
+                            @for (feedback of getVitalFieldFeedback(metric, 'primary'); track feedback.message) {
+                              <small
+                                class="metric-edit__field-feedback"
+                                [class.metric-edit__field-feedback--warning]="feedback.tone === 'warning'"
+                              >
+                                {{ feedback.message }}
+                              </small>
+                            }
                           </label>
 
                           @if (metric.secondaryType) {
-                            <label>
-                              <span>{{ metric.secondaryLabel }}</span>
-                              <input type="number" step="0.1" formControlName="secondaryValue" />
+                            <label class="metric-edit__field">
+                              <span>{{ getVitalMetricSecondaryLabel(metric) }}</span>
+                              <input
+                                type="number"
+                                step="0.1"
+                                formControlName="secondaryValue"
+                                [class.metric-edit__input--error]="hasVitalFieldError(metric, 'secondary')"
+                              />
+                              @for (feedback of getVitalFieldFeedback(metric, 'secondary'); track feedback.message) {
+                                <small
+                                  class="metric-edit__field-feedback"
+                                  [class.metric-edit__field-feedback--warning]="feedback.tone === 'warning'"
+                                >
+                                  {{ feedback.message }}
+                                </small>
+                              }
                             </label>
                           }
                         </div>
 
                         <div class="metric-edit__actions">
                           <button type="submit" [disabled]="savingVitalKey() === metric.key">
-                            {{ savingVitalKey() === metric.key ? 'Saving...' : 'Save' }}
+                            {{ savingVitalKey() === metric.key ? preferences.t('saving') : preferences.t('save') }}
                           </button>
                           <button type="button" (click)="cancelVitalEdit()" [disabled]="savingVitalKey() === metric.key">
-                            Cancel
+                            {{ preferences.t('cancel') }}
                           </button>
                         </div>
+
+                        @if (getVitalFormFeedback(metric).length > 0 || vitalEditApiError()) {
+                          <div class="metric-edit__feedback">
+                            @for (feedback of getVitalFormFeedback(metric); track feedback.message) {
+                              <small
+                                class="metric-edit__feedback-message"
+                                [class.metric-edit__feedback-message--warning]="feedback.tone === 'warning'"
+                              >
+                                {{ feedback.message }}
+                              </small>
+                            }
+
+                            @if (vitalEditApiError()) {
+                              <small class="metric-edit__feedback-message">
+                                {{ vitalEditApiError() }}
+                              </small>
+                            }
+                          </div>
+                        }
                       </form>
                     } @else {
                       <button type="button" class="metric-card__edit" (click)="startVitalEdit(metric)">
-                        Update value
+                        {{ preferences.t('updateValue') }}
                       </button>
                     }
                   } @else {
-                    <div class="metric-card__derived">Calculated from source measurements</div>
+                    <div class="metric-card__derived">{{ preferences.t('calculatedFromSourceMeasurements') }}</div>
                   }
                 </article>
-              }
-            </div>
-          </section>
-
-          <section class="panel medications-panel medications-panel--status">
-            <div class="panel__header">
-              <h2>{{ medicationPanelTitle() }}</h2>
-              <span>{{ sortedMedications().length }} entries</span>
-            </div>
-
-            <div class="medication-status-list">
-              @for (medication of sortedMedications(); track medication.id) {
-                <article
-                  class="medication-status-item medication-status-item--summary"
-                  [class.medication-status-item--active]="isMedicationActive(medication)"
-                  [class.medication-status-item--inactive]="!isMedicationActive(medication)"
-                  [attr.data-medication-state]="isMedicationActive(medication) ? 'CURRENT' : 'INACTIVE'"
-                >
-                  <div class="medication-status-item__summary-content">
-                    <div class="medication-status-item__main">
-                      <strong>{{ medication.medicationName }}</strong>
-                    </div>
-
-                    <div class="medication-status-item__status">
-                      <small class="medication-status-item__badge">{{ medicationStatusLabel(medication) }}</small>
-                      <small class="medication-status-item__date">{{ medicationStatusDate(medication) }}</small>
-                    </div>
-                  </div>
-
-                  <div class="medication-status-item__hover-details">
-                    <strong>Prescription: {{ medication.dosage || '—' }}</strong>
-                    <strong>Frequency: {{ medication.frequency || '—' }}</strong>
-                  </div>
-                </article>
-              } @empty {
-                <p class="empty-copy">No medication records available yet.</p>
               }
             </div>
           </section>
@@ -249,8 +260,50 @@
                 }
               </div>
             } @else {
-              <p class="empty-copy">No prediction available yet.</p>
+              <p class="empty-copy">{{ preferences.t('noPredictionAvailable') }}</p>
             }
+          </section>
+
+          <section
+            class="panel medications-panel medications-panel--status medications-panel--interactive"
+            role="button"
+            tabindex="0"
+            (click)="openMedicationDrawer()"
+            (keydown.enter)="openMedicationDrawer()"
+            (keydown.space)="openMedicationDrawer()"
+          >
+            <div class="panel__header">
+              <h2>{{ medicationPanelTitle() }}</h2>
+            </div>
+
+            <div class="medication-status-list">
+              @for (medication of sortedMedications(); track medication.id) {
+                <article
+                  class="medication-status-item medication-status-item--summary"
+                  [class.medication-status-item--active]="isMedicationActive(medication)"
+                  [class.medication-status-item--inactive]="!isMedicationActive(medication)"
+                  [attr.data-medication-state]="isMedicationActive(medication) ? 'CURRENT' : 'INACTIVE'"
+                >
+                  <div class="medication-status-item__summary-content">
+                    <div class="medication-status-item__main">
+                      <strong>{{ sanitizeMedicationName(medication.medicationName) }}</strong>
+                    </div>
+
+                    <div class="medication-status-item__status">
+                      <small class="medication-status-item__badge">{{ medicationStatusLabel(medication) }}</small>
+                      <small class="medication-status-item__date">{{ medicationStatusDate(medication) }}</small>
+                    </div>
+                  </div>
+
+                  <div class="medication-status-item__hover-details">
+                    <strong>{{ preferences.t('dosage') }}: {{ medication.dosage || '—' }}</strong>
+                    <strong>{{ preferences.t('frequency') }}: {{ medication.frequency || '—' }}</strong>
+                  </div>
+                </article>
+              } @empty {
+                <p class="empty-copy">{{ preferences.t('noMedicationRecords') }}</p>
+              }
+            </div>
           </section>
         </div>
       </div>
@@ -266,17 +319,13 @@
         [attr.aria-expanded]="drawerOpen()"
         [attr.aria-label]="drawerOpen() ? preferences.t('closeDrawer') : preferences.t('openDrawer')"
       >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M15.7 5.3a1 1 0 0 1 0 1.4L10.41 12l5.29 5.3a1 1 0 0 1-1.42 1.4l-6-6a1 1 0 0 1 0-1.4l6-6a1 1 0 0 1 1.42 0Z"
-          />
-        </svg>
+        <span class="drawer-toggle__icon" aria-hidden="true">›</span>
         <span class="sr-only">{{ drawerOpen() ? preferences.t('closeDrawer') : preferences.t('openDrawer') }}</span>
       </button>
 
       <aside class="action-drawer" [class.open]="drawerOpen()">
         <div class="action-drawer__header">
-          <div class="action-tabs" role="tablist" aria-label="Clinical action tabs">
+          <div class="action-tabs" role="tablist" [attr.aria-label]="preferences.t('clinicalActionTabs')">
             <button
               type="button"
               class="action-tabs__tab"
@@ -293,7 +342,7 @@
               [attr.aria-selected]="actionTab() === 'medicine'"
               (click)="setActionTab('medicine')"
             >
-              Medicine
+              {{ preferences.t('medicineTab') }}
             </button>
             <button
               type="button"
@@ -302,7 +351,7 @@
               [attr.aria-selected]="actionTab() === 'history'"
               (click)="setActionTab('history')"
             >
-              History
+              {{ preferences.t('historyTab') }}
             </button>
           </div>
           <button type="button" (click)="toggleDrawer()">×</button>
@@ -312,20 +361,48 @@
           <section class="drawer-section">
             <form [formGroup]="noteForm" (ngSubmit)="saveNote()">
               <label>
-                <span>Subjective</span>
-                <textarea formControlName="subjective" rows="2"></textarea>
+                <span>{{ preferences.t('subjective') }}</span>
+                <textarea
+                  formControlName="subjective"
+                  rows="2"
+                  [class.field-error]="noteFieldHasError('subjective')"
+                ></textarea>
+                @if (noteFieldHasError('subjective')) {
+                  <small class="field-error-message">{{ noteFieldErrorMessage('subjective') }}</small>
+                }
               </label>
               <label>
-                <span>Objective</span>
-                <textarea formControlName="objective" rows="2"></textarea>
+                <span>{{ preferences.t('objective') }}</span>
+                <textarea
+                  formControlName="objective"
+                  rows="2"
+                  [class.field-error]="noteFieldHasError('objective')"
+                ></textarea>
+                @if (noteFieldHasError('objective')) {
+                  <small class="field-error-message">{{ noteFieldErrorMessage('objective') }}</small>
+                }
               </label>
               <label>
-                <span>Assessment</span>
-                <textarea formControlName="assessment" rows="2"></textarea>
+                <span>{{ preferences.t('assessment') }}</span>
+                <textarea
+                  formControlName="assessment"
+                  rows="2"
+                  [class.field-error]="noteFieldHasError('assessment')"
+                ></textarea>
+                @if (noteFieldHasError('assessment')) {
+                  <small class="field-error-message">{{ noteFieldErrorMessage('assessment') }}</small>
+                }
               </label>
               <label>
-                <span>Plan</span>
-                <textarea formControlName="plan" rows="2"></textarea>
+                <span>{{ preferences.t('plan') }}</span>
+                <textarea
+                  formControlName="plan"
+                  rows="2"
+                  [class.field-error]="noteFieldHasError('plan')"
+                ></textarea>
+                @if (noteFieldHasError('plan')) {
+                  <small class="field-error-message">{{ noteFieldErrorMessage('plan') }}</small>
+                }
               </label>
               <button type="submit" [disabled]="submittingNote()">{{ preferences.t('saveNote') }}</button>
             </form>
@@ -334,7 +411,7 @@
           <section class="drawer-section">
             <form [formGroup]="medicationForm" (ngSubmit)="saveMedication()">
               <label>
-                <span>Medication</span>
+                <span>{{ preferences.t('medication') }}</span>
                 <input type="text" formControlName="medicationQuery" autocomplete="off" />
               </label>
 
@@ -353,24 +430,60 @@
               }
 
               <label>
-                <span>Dosage</span>
-                <input type="text" formControlName="dosage" />
+                <span>{{ preferences.t('dosage') }}</span>
+                <input
+                  type="text"
+                  formControlName="dosage"
+                  [class.field-error]="medicationFieldHasError('dosage')"
+                />
+                @if (medicationFieldHasError('dosage')) {
+                  <small class="field-error-message">{{ medicationFieldErrorMessage('dosage') }}</small>
+                }
               </label>
               <label>
-                <span>Frequency</span>
-                <input type="text" formControlName="frequency" />
+                <span>{{ preferences.t('frequency') }}</span>
+                <input
+                  type="text"
+                  formControlName="frequency"
+                  [class.field-error]="medicationFieldHasError('frequency')"
+                />
+                @if (medicationFieldHasError('frequency')) {
+                  <small class="field-error-message">{{ medicationFieldErrorMessage('frequency') }}</small>
+                }
               </label>
               <label>
-                <span>Start date</span>
-                <input type="date" formControlName="startDate" />
+                <span>{{ preferences.t('startDate') }}</span>
+                <input
+                  type="date"
+                  formControlName="startDate"
+                  [class.field-error]="medicationFieldHasError('startDate')"
+                />
+                @if (medicationFieldHasError('startDate')) {
+                  <small class="field-error-message">{{ medicationFieldErrorMessage('startDate') }}</small>
+                }
               </label>
               <label>
-                <span>End date</span>
-                <input type="date" formControlName="endDate" />
+                <span>{{ preferences.t('endDate') }}</span>
+                <input
+                  type="date"
+                  formControlName="endDate"
+                  [class.field-error]="medicationFieldHasError('endDate')"
+                />
+                @if (medicationFieldHasError('endDate')) {
+                  <small class="field-error-message">{{ medicationFieldErrorMessage('endDate') }}</small>
+                }
               </label>
               <label>
-                <span>Prescription reason</span>
-                <textarea formControlName="reason" rows="3"></textarea>
+                <span>{{ preferences.t('prescriptionReason') }}</span>
+                <textarea
+                  formControlName="reason"
+                  class="drawer-textarea--compact"
+                  rows="2"
+                  [class.field-error]="medicationFieldHasError('reason')"
+                ></textarea>
+                @if (medicationFieldHasError('reason')) {
+                  <small class="field-error-message">{{ medicationFieldErrorMessage('reason') }}</small>
+                }
               </label>
               <button type="submit" [disabled]="submittingMedication()">
                 {{ saveMedicationLabel() }}
@@ -379,8 +492,8 @@
 
             <div class="drawer-stack">
               <div class="drawer-stack__header">
-                <h3>Current medication</h3>
-                <span>{{ sortedMedications().length }} entries</span>
+                <h3>{{ preferences.t('currentMedication') }}</h3>
+                <span>{{ sortedMedications().length }} {{ preferences.t('entries') }}</span>
               </div>
 
               <div class="drawer-medication-list">
@@ -391,24 +504,24 @@
                     [class.medication-status-item--inactive]="!isMedicationActive(medication)"
                   >
                     <div class="medication-status-item__main">
-                      <strong>{{ medication.medicationName }}</strong>
+                      <strong>{{ sanitizeMedicationName(medication.medicationName) }}</strong>
                       <span>
                         {{ formatDateOnly(medication.startDate) }}
                         @if (medication.endDate) {
                           - {{ formatDateOnly(medication.endDate) }}
                         } @else {
-                          - ongoing
+                          - {{ preferences.t('ongoing') }}
                         }
                       </span>
                     </div>
 
                     <div class="medication-status-item__meta">
                       <small>{{ medication.dosage || '—' }} | {{ medication.frequency || '—' }}</small>
-                      <small>{{ medication.status || 'Unknown' }}</small>
+                      <small>{{ formatMedicationStatus(medication.status) }}</small>
                     </div>
                   </article>
                 } @empty {
-                  <p class="empty-copy empty-copy--drawer">No medication saved yet.</p>
+                  <p class="empty-copy empty-copy--drawer">{{ preferences.t('noMedicationSaved') }}</p>
                 }
               </div>
             </div>
@@ -416,36 +529,43 @@
         } @else {
           <section class="drawer-section drawer-section--history">
             @for (note of sortedConsultNotes(); track note.id) {
-              <article class="history-card" tabindex="0">
-                <div class="history-card__summary">
-                  <strong>{{ formatDate(note.currentVersion.createdAt || note.createdAt) }}</strong>
+              <div class="history-entry">
+                <div class="history-card__trigger" aria-hidden="true">
+                  <span aria-hidden="true">›</span>
                 </div>
 
-                <div class="history-card__details">
-                  <div class="history-card__meta">
-                    <strong>{{ note.createdBy }}</strong>
+                <article class="history-card">
+                  <div class="history-card__summary">
+                    <strong>{{ formatDate(note.currentVersion.createdAt || note.createdAt) }}</strong>
                   </div>
 
-                  <div class="history-card__block">
-                    <small>Subjective</small>
-                    <p>{{ getConsultNotePreview(note.currentVersion.subjective) }}</p>
+                  <div class="history-card__details">
+                    <div class="history-card__meta">
+                      <strong>{{ formatDate(note.currentVersion.createdAt || note.createdAt) }}</strong>
+                      <span>{{ note.createdBy }}</span>
+                    </div>
+
+                    <div class="history-card__block">
+                      <small>{{ preferences.t('subjective') }}</small>
+                      <p>{{ getConsultNotePreview(note.currentVersion.subjective) }}</p>
+                    </div>
+                    <div class="history-card__block">
+                      <small>{{ preferences.t('objective') }}</small>
+                      <p>{{ getConsultNotePreview(note.currentVersion.objective) }}</p>
+                    </div>
+                    <div class="history-card__block">
+                      <small>{{ preferences.t('assessment') }}</small>
+                      <p>{{ getConsultNotePreview(note.currentVersion.assessment) }}</p>
+                    </div>
+                    <div class="history-card__block">
+                      <small>{{ preferences.t('plan') }}</small>
+                      <p>{{ getConsultNotePreview(note.currentVersion.plan) }}</p>
+                    </div>
                   </div>
-                  <div class="history-card__block">
-                    <small>Objective</small>
-                    <p>{{ getConsultNotePreview(note.currentVersion.objective) }}</p>
-                  </div>
-                  <div class="history-card__block">
-                    <small>Assessment</small>
-                    <p>{{ getConsultNotePreview(note.currentVersion.assessment) }}</p>
-                  </div>
-                  <div class="history-card__block">
-                    <small>Plan</small>
-                    <p>{{ getConsultNotePreview(note.currentVersion.plan) }}</p>
-                  </div>
-                </div>
-              </article>
+                </article>
+              </div>
             } @empty {
-              <p class="empty-copy empty-copy--drawer">No clinical notes saved yet.</p>
+              <p class="empty-copy empty-copy--drawer">{{ preferences.t('noClinicalNotesSaved') }}</p>
             }
           </section>
         }

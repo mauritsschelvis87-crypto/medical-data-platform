@@ -37,7 +37,7 @@ Run the pipeline wrapper instead of executing notebooks manually.
 From `apps/ai-service`:
 
 ```powershell
-venv\Scripts\python.exe scripts\run_notebook_pipeline.py --source full --export-name full
+venv\Scripts\python.exe scripts\run_notebook_pipeline.py
 ```
 
 What this script does:
@@ -46,8 +46,7 @@ What this script does:
 - mirrors them for notebook execution
 - runs all notebooks in sequence
 - synchronizes processed outputs into `data/processed` and `data/features`
-- writes backend-ready CSV files into `data/exports/backend-import-full`
-- keeps the 25-patient demo import under `data/exports/backend-import`
+- writes the 25-patient demo import into `data/exports/backend-import`
 
 ## Generated outputs
 
@@ -65,11 +64,6 @@ Backend-ready import outputs:
 - `data/exports/backend-import/vital_signs.csv`
 - `data/exports/backend-import/patient_features.csv`
 - `data/exports/backend-import/import_summary.csv`
-- `data/exports/backend-import-full/patient.csv`
-- `data/exports/backend-import-full/patient_address.csv`
-- `data/exports/backend-import-full/vital_signs.csv`
-- `data/exports/backend-import-full/patient_features.csv`
-- `data/exports/backend-import-full/import_summary.csv`
 
 ## Why the backend export folder matters
 
@@ -87,7 +81,7 @@ The export runner already converts notebook output to the backend contract:
 - `measuredAt` formatted for the Java importer
 - Dutch-localized patient identity and addresses for frontend presentation
 
-The `backend-import` folder is the compact demo scope used by the backend import script and contains 25 patients.
+The `backend-import` folder is the active demo scope used by the backend import script and contains 25 patients.
 
 ## Run the AI API
 

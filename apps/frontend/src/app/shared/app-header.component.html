@@ -2,7 +2,8 @@
   <a class="brand" routerLink="/">
     <span class="brand__mark">MD</span>
     <span class="brand__text">
-      <strong>Medical Data Platform</strong>
+      <strong>{{ text.t('appTitle') }}</strong>
+      <small class="brand__session">{{ text.t('demoSession') }}</small>
     </span>
   </a>
 
@@ -11,10 +12,9 @@
       <button class="doctor-card" type="button" (click)="toggleAccount()" [attr.aria-expanded]="accountOpen()">
         <div class="doctor-card__identity">
           <div class="doctor-card__headline">
-            <span class="doctor-card__name">{{ doctor.shortName }}</span>
-            <span class="doctor-card__badge">{{ doctor.status }}</span>
+            <span class="doctor-card__name">{{ doctor.shortName }} | {{ text.t('fullAccess') }}</span>
           </div>
-          <span class="doctor-card__role">{{ doctor.department }}</span>
+          <span class="doctor-card__role">{{ text.t('internalMedicineDepartment') }}</span>
         </div>
       </button>
 
@@ -37,9 +37,6 @@
             >
               {{ text.t('logout') }}
             </button>
-          </div>
-          <div class="account__meta">
-            <span>{{ doctor.accessLevel }}</span>
           </div>
         </div>
       }

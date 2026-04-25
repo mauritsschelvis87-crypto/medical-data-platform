@@ -19,7 +19,7 @@ export class App {
   protected readonly doctor = this.userSessionService.doctor;
   protected readonly loggedIn = this.userSessionService.loggedIn;
   protected readonly notice = this.noticeService.notice;
-  protected readonly title = computed(() => 'Medical Data Platform');
+  protected readonly title = computed(() => this.preferences.t('appTitle'));
 
   protected handleSessionAction(action: 'login' | 'logout'): void {
     if (action === 'login') {
