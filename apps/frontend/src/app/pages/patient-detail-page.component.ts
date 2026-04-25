@@ -2,12 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { catchError, combineLatest, forkJoin, of, switchMap } from 'rxjs';
+import { catchError, combineLatest, debounceTime, distinctUntilChanged, forkJoin, of, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PatientApiService } from '../api/patient-api.service';
 import {
   ConsultNote,
-  MedicationCatalogItem,
+  MedicationCatalogSearchItem,
   Patient,
   PatientAddress,
   PatientMedication,
@@ -60,8 +60,10 @@ export class PatientDetailPageComponent {
   protected readonly drawerOpen = signal(false);
   protected readonly actionTab = signal<'soap' | 'medicine' | 'history'>('soap');
   protected readonly editingAddress = signal(false);
-  protected readonly medicationLookup = signal<MedicationCatalogItem[]>([]);
+  protected readonly medicationLookup = signal<MedicationCatalogSearchItem[]>([]);
+  protected readonly medicationSuggestionsOpen = signal(false);
   protected readonly selectedMedicationId = signal<string | null>(null);
+  protected readonly selectedMedicationName = signal<string | null>(null);
   protected readonly submittingAddress = signal(false);
   protected readonly submittingNote = signal(false);
   protected readonly submittingMedication = signal(false);
@@ -140,7 +142,6 @@ export class PatientDetailPageComponent {
     objective: ['', Validators.required],
     assessment: ['', Validators.required],
     plan: ['', Validators.required],
-    changeReason: ['Initial consult documentation', Validators.required],
   });
 
   protected readonly medicationForm = this.fb.nonNullable.group({
@@ -186,8 +187,14 @@ export class PatientDetailPageComponent {
   protected readonly sortedConsultNotes = computed(() =>
     [...this.consultNotes()].sort(
       (left, right) =>
-        new Date(right.currentVersion?.createdAt ?? right.createdAt).getTime() -
-        new Date(left.currentVersion?.createdAt ?? left.createdAt).getTime(),
+        this.getConsultNoteSortTimestamp(right) - this.getConsultNoteSortTimestamp(left),
+    ),
+  );
+
+  protected readonly sortedMedications = computed(() =>
+    [...this.medications()].sort(
+      (left, right) =>
+        this.getMedicationSortTimestamp(right) - this.getMedicationSortTimestamp(left),
     ),
   );
 
@@ -235,20 +242,28 @@ export class PatientDetailPageComponent {
         },
       });
 
-    this.loadMedicationOptions();
-
     this.medicationForm.controls.medicationQuery.valueChanges
       .pipe(
+        debounceTime(250),
+        distinctUntilChanged(),
         switchMap((query) => {
-          if (!this.matchesSelectedMedicationQuery(query ?? '')) {
+          const normalizedQuery = (query ?? '').trim();
+
+          if (!this.matchesSelectedMedicationQuery(normalizedQuery)) {
             this.selectedMedicationId.set(null);
+            this.selectedMedicationName.set(null);
             this.medicationForm.patchValue({ medicationCatalogId: '' }, { emitEvent: false });
           }
-          return this.api.searchMedicationCatalog(query?.trim() ?? '');
+
+          if (!normalizedQuery || this.matchesSelectedMedicationQuery(normalizedQuery)) {
+            return of<MedicationCatalogSearchItem[]>([]);
+          }
+
+          return this.api.searchMedicationCatalog(normalizedQuery).pipe(catchError(() => of([])));
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((items) => this.medicationLookup.set(items));
+      .subscribe((items) => this.syncMedicationSuggestions(items));
   }
 
   protected toggleDrawer(): void {
@@ -299,27 +314,46 @@ export class PatientDetailPageComponent {
       });
   }
 
-  protected selectMedication(item: MedicationCatalogItem): void {
-    const displayName = this.getMedicationDisplayName(item);
-    this.medicationForm.patchValue({
-      medicationCatalogId: item.id,
-      medicationQuery: displayName,
-      dosage: item.defaultDosage ?? this.getRecommendedDosage(item),
-      frequency: this.getRecommendedFrequency(item),
-    });
-    this.selectedMedicationId.set(item.id);
+  protected selectMedication(item: MedicationCatalogSearchItem): void {
+    this.api
+      .getMedicationCatalogSelection(item.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((selection) => {
+        const displayName = this.getMedicationDisplayName(selection);
+        this.selectedMedicationId.set(selection.id);
+        this.selectedMedicationName.set(displayName);
+        this.medicationLookup.set([]);
+        this.medicationSuggestionsOpen.set(false);
+        this.medicationForm.patchValue(
+          {
+            medicationCatalogId: selection.id,
+            medicationQuery: displayName,
+            dosage: selection.defaultDosage ?? '',
+            frequency: selection.defaultFrequency ?? '',
+          },
+          { emitEvent: false },
+        );
+      });
   }
 
-  protected getMedicationDisplayName(item: MedicationCatalogItem): string {
-    return `${item.dutchName}${item.latinName ? ` (${item.latinName})` : ''}`;
+  protected getMedicationDisplayName(item: { name: string }): string {
+    return item.name;
   }
 
   protected hasMedicationSuggestions(): boolean {
-    return this.medicationLookup().length > 0;
+    return this.medicationSuggestionsOpen() && this.medicationLookup().length > 0;
   }
 
-  protected isSelectedMedication(item: MedicationCatalogItem): boolean {
+  protected isSelectedMedication(item: MedicationCatalogSearchItem): boolean {
     return this.selectedMedicationId() === item.id;
+  }
+
+  protected saveMedicationLabel(): string {
+    return this.submittingMedication()
+      ? this.preferences.language() === 'nl'
+        ? 'Medicatie wordt opgeslagen...'
+        : 'Saving medication...'
+      : this.preferences.t('saveMedication');
   }
 
   protected getConsultNotePreview(value?: string | null): string {
@@ -346,24 +380,37 @@ export class PatientDetailPageComponent {
         objective: this.noteForm.controls.objective.value,
         assessment: this.noteForm.controls.assessment.value,
         plan: this.noteForm.controls.plan.value,
-        changeReason: this.noteForm.controls.changeReason.value,
       })
       .pipe(
-        switchMap(() =>
-          combineLatest([this.api.getConsultNotes(patient.id), this.api.getTimeline(patient.id)]),
-        ),
+        switchMap((savedNote) => {
+          const fallbackConsultNotes = this.mergeConsultNoteIntoList(this.consultNotes(), savedNote);
+          this.consultNotes.set(fallbackConsultNotes);
+
+          return forkJoin({
+            consultNotes: this.api.getConsultNotes(patient.id).pipe(
+              catchError(() => of(fallbackConsultNotes)),
+            ),
+            timeline: this.api.getTimeline(patient.id).pipe(
+              catchError(() => of(this.timeline())),
+            ),
+            predictions: this.api.getLatestPredictions(patient.id).pipe(
+              catchError(() => of(this.predictions())),
+            ),
+          });
+        }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: ([consultNotes, timeline]) => {
+        next: ({ consultNotes, timeline, predictions }) => {
           this.consultNotes.set(consultNotes);
           this.timeline.set(timeline);
+          this.predictions.set(predictions);
+          this.actionTab.set('history');
           this.noteForm.reset({
             subjective: '',
             objective: '',
             assessment: '',
             plan: '',
-            changeReason: 'Clinical update',
           });
           this.submittingNote.set(false);
         },
@@ -390,18 +437,31 @@ export class PatientDetailPageComponent {
         prescribedBy: 'Dr. Jonathan Hyde',
       })
       .pipe(
-        switchMap(() =>
-          combineLatest([
-            this.api.getPatientMedications(patient.id),
-            this.api.getTimeline(patient.id),
-          ]),
-        ),
+        switchMap((savedMedication) => {
+          const fallbackMedications = this.mergeMedicationIntoList(this.medications(), savedMedication);
+          this.medications.set(fallbackMedications);
+          this.noticeService.show(this.getMedicationSavedNotice());
+
+          return forkJoin({
+            medications: this.api.getPatientMedications(patient.id).pipe(
+              catchError(() => of(fallbackMedications)),
+            ),
+            timeline: this.api.getTimeline(patient.id).pipe(
+              catchError(() => of(this.timeline())),
+            ),
+            predictions: this.api.getLatestPredictions(patient.id).pipe(
+              catchError(() => of(this.predictions())),
+            ),
+          });
+        }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: ([medications, timeline]) => {
+        next: ({ medications, timeline, predictions }) => {
           this.medications.set(medications);
           this.timeline.set(timeline);
+          this.predictions.set(predictions);
+          this.actionTab.set('medicine');
           this.medicationForm.reset({
             medicationCatalogId: '',
             medicationQuery: '',
@@ -412,10 +472,15 @@ export class PatientDetailPageComponent {
             reason: '',
           });
           this.selectedMedicationId.set(null);
-          this.loadMedicationOptions();
+          this.selectedMedicationName.set(null);
+          this.medicationLookup.set([]);
+          this.medicationSuggestionsOpen.set(false);
           this.submittingMedication.set(false);
         },
-        error: () => this.submittingMedication.set(false),
+        error: () => {
+          this.submittingMedication.set(false);
+          this.noticeService.show(this.getMedicationSaveErrorNotice());
+        },
       });
   }
 
@@ -604,6 +669,20 @@ export class PatientDetailPageComponent {
     return (medication.status || '').toLowerCase() === 'active';
   }
 
+  protected medicationStatusLabel(medication: PatientMedication): string {
+    return this.isMedicationActive(medication)
+      ? 'CURRENT'
+      : (medication.status || 'INACTIVE').replaceAll('_', ' ');
+  }
+
+  protected medicationStatusDate(medication: PatientMedication): string {
+    return this.formatDateOnly(medication.endDate || medication.startDate);
+  }
+
+  protected medicationPanelTitle(): string {
+    return 'Medication';
+  }
+
   protected isMedicationTimelineEventActive(event: TimelineEvent): boolean {
     const description = (event.description || '').toLowerCase();
     return (
@@ -664,7 +743,7 @@ export class PatientDetailPageComponent {
   }
 
   protected cleanPredictionExplanation(explanation?: string | null): string {
-    return this.removeFallbackText(explanation || '');
+    return this.capitalizeLeadingLetter(this.removeFallbackText(explanation || ''));
   }
 
   protected predictionDataFreshnessStatus(prediction: Prediction): 'CURRENT' | 'OUTDATED' {
@@ -772,11 +851,20 @@ export class PatientDetailPageComponent {
 
   private removeFallbackText(value: string): string {
     return value
+      .replace(/\bfallback backend prediction\b[.:\-\s]*/gi, '')
       .replace(/\bfallback backend prediction based on latest patient context\b[.:\-\s]*/gi, '')
       .replace(/\bfallback predictions?(?:\s+based\s+on\s+text)?\b[.:\-\s]*/gi, '')
       .replace(/\s{2,}/g, ' ')
       .replace(/^[\s.:-]+|[\s.:-]+$/g, '')
       .trim();
+  }
+
+  private capitalizeLeadingLetter(value: string): string {
+    if (!value) {
+      return '';
+    }
+
+    return value.charAt(0).toUpperCase() + value.slice(1);
   }
 
   private comparePredictionsByRisk(left: Prediction, right: Prediction): number {
@@ -1055,7 +1143,11 @@ export class PatientDetailPageComponent {
   }
 
   private formatRiskScore(value?: number | null): string {
-    return value == null ? '—' : `${value}%`;
+    if (value == null) {
+      return '—';
+    }
+    const percentage = value <= 1 ? value * 100 : value;
+    return `${percentage.toFixed(0)}%`;
   }
 
   private patchAddressForm(address?: PatientAddress | null): void {
@@ -1083,78 +1175,72 @@ export class PatientDetailPageComponent {
     return trimmed.length > 0 ? trimmed : null;
   }
 
-  private getRecommendedDosage(item: MedicationCatalogItem): string {
-    return item.defaultDosage?.trim() || 'Use standard dose';
-  }
-
-  private getRecommendedFrequency(item: MedicationCatalogItem): string {
-    const advice = item.advice?.toLowerCase() ?? '';
-    const medicationName = this.getMedicationDisplayName(item).toLowerCase();
-    const matchedAdviceFrequency = this.extractAdviceFrequency(advice);
-    if (matchedAdviceFrequency) {
-      return matchedAdviceFrequency;
-    }
-
-    if (medicationName.includes('inhaler') || medicationName.includes('metered dose')) {
-      return '2x daily';
-    }
-
-    if (
-      medicationName.includes('gel') ||
-      medicationName.includes('cream') ||
-      medicationName.includes('ointment') ||
-      medicationName.includes('topical')
-    ) {
-      return 'Apply 2x daily';
-    }
-
-    if (
-      medicationName.includes('injection') ||
-      medicationName.includes('prefilled syringe') ||
-      medicationName.includes('transdermal') ||
-      medicationName.includes('vaginal system') ||
-      medicationName.includes('pack')
-    ) {
-      return 'As prescribed';
-    }
-
-    return '1x daily';
-  }
-
-  private extractAdviceFrequency(advice: string): string | null {
-    if (!advice) {
-      return null;
-    }
-
-    if (advice.includes('4x') || advice.includes('four times')) {
-      return '4x daily';
-    }
-    if (advice.includes('3x') || advice.includes('three times')) {
-      return '3x daily';
-    }
-    if (advice.includes('2x') || advice.includes('twice')) {
-      return '2x daily';
-    }
-    if (advice.includes('once') || advice.includes('1x')) {
-      return '1x daily';
-    }
-
-    return null;
-  }
-
   private matchesSelectedMedicationQuery(query: string): boolean {
-    const selectedItem = this.medicationLookup().find((item) => item.id === this.selectedMedicationId());
-    if (!selectedItem) {
+    const selectedMedicationName = this.selectedMedicationName();
+    if (!selectedMedicationName) {
       return false;
     }
 
-    return this.getMedicationDisplayName(selectedItem) === query.trim();
+    return selectedMedicationName === query.trim();
   }
 
-  private loadMedicationOptions(): void {
-    this.api
-      .searchMedicationCatalog('')
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((items) => this.medicationLookup.set(items));
+  private syncMedicationSuggestions(items: MedicationCatalogSearchItem[]): void {
+    const query = this.medicationForm.controls.medicationQuery.value.trim();
+    this.medicationLookup.set(items);
+    this.medicationSuggestionsOpen.set(items.length > 0 && query.length > 0 && !this.matchesSelectedMedicationQuery(query));
+  }
+
+  private mergeMedicationIntoList(
+    medications: PatientMedication[],
+    savedMedication: PatientMedication,
+  ): PatientMedication[] {
+    return [savedMedication, ...medications.filter((medication) => medication.id !== savedMedication.id)];
+  }
+
+  private mergeConsultNoteIntoList(
+    consultNotes: ConsultNote[],
+    savedNote: ConsultNote,
+  ): ConsultNote[] {
+    return [savedNote, ...consultNotes.filter((note) => note.id !== savedNote.id)];
+  }
+
+  private getMedicationSavedNotice(): string {
+    return this.preferences.language() === 'nl' ? 'Medicatie opgeslagen.' : 'Medication saved.';
+  }
+
+  private getMedicationSaveErrorNotice(): string {
+    return this.preferences.language() === 'nl'
+      ? 'Medicatie kon niet worden opgeslagen.'
+      : 'Medication could not be saved.';
+  }
+
+  private getConsultNoteSortTimestamp(note: ConsultNote): number {
+    const versionTimestamp = note.currentVersion?.createdAt
+      ? new Date(note.currentVersion.createdAt).getTime()
+      : NaN;
+    if (Number.isFinite(versionTimestamp)) {
+      return versionTimestamp;
+    }
+
+    const createdAtTimestamp = note.createdAt ? new Date(note.createdAt).getTime() : NaN;
+    if (Number.isFinite(createdAtTimestamp)) {
+      return createdAtTimestamp;
+    }
+
+    return 0;
+  }
+
+  private getMedicationSortTimestamp(medication: PatientMedication): number {
+    const createdAtTimestamp = medication.createdAt ? new Date(medication.createdAt).getTime() : NaN;
+    if (Number.isFinite(createdAtTimestamp)) {
+      return createdAtTimestamp;
+    }
+
+    const startDateTimestamp = medication.startDate ? new Date(medication.startDate).getTime() : NaN;
+    if (Number.isFinite(startDateTimestamp)) {
+      return startDateTimestamp;
+    }
+
+    return 0;
   }
 }

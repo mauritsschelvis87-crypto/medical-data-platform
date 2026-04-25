@@ -18,6 +18,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -38,6 +40,7 @@ public class PatientImportService {
         int recordsProcessed = 0;
         int recordsFailed = 0;
         int skippedRecords = 0;
+        List<Patient> importedPatients = new ArrayList<>();
 
         try (Reader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
              CSVParser parser = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).setIgnoreEmptyLines(true).setTrim(true).build().parse(reader)) {
@@ -67,7 +70,8 @@ public class PatientImportService {
                         continue;
                     }
 
-                    patientRepository.save(patient);
+                    Patient savedPatient = patientRepository.save(patient);
+                    importedPatients.add(savedPatient);
                     recordsProcessed++;
                 } catch (RuntimeException exception) {
                     recordsFailed++;
@@ -77,7 +81,7 @@ public class PatientImportService {
             throw new CsvImportValidationException("Unable to read %s: %s".formatted(FILE_NAME, exception.getMessage()), exception);
         }
 
-        return new ImportResult(recordsReceived, recordsProcessed, recordsFailed, skippedRecords, recordsProcessed);
+        return new ImportResult(recordsReceived, recordsProcessed, recordsFailed, skippedRecords, recordsProcessed, importedPatients);
     }
 
     private Path resolveFile(String sourceDirectoryPath) {
@@ -136,7 +140,8 @@ public class PatientImportService {
             int recordsProcessed,
             int recordsFailed,
             int skippedRecords,
-            int importedCount
+            int importedCount,
+            List<Patient> importedPatients
     ) {
     }
 }

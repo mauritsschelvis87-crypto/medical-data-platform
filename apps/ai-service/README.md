@@ -47,6 +47,7 @@ What this script does:
 - runs all notebooks in sequence
 - synchronizes processed outputs into `data/processed` and `data/features`
 - writes backend-ready CSV files into `data/exports/backend-import-full`
+- keeps the 25-patient demo import under `data/exports/backend-import`
 
 ## Generated outputs
 
@@ -59,6 +60,11 @@ Notebook outputs:
 
 Backend-ready import outputs:
 
+- `data/exports/backend-import/patient.csv`
+- `data/exports/backend-import/patient_address.csv`
+- `data/exports/backend-import/vital_signs.csv`
+- `data/exports/backend-import/patient_features.csv`
+- `data/exports/backend-import/import_summary.csv`
 - `data/exports/backend-import-full/patient.csv`
 - `data/exports/backend-import-full/patient_address.csv`
 - `data/exports/backend-import-full/vital_signs.csv`
@@ -71,7 +77,7 @@ The Spring Boot backend does not import the raw files directly.
 
 It imports the generated normalized files from:
 
-- `data/exports/backend-import-full`
+- `data/exports/backend-import`
 
 The export runner already converts notebook output to the backend contract:
 
@@ -80,6 +86,8 @@ The export runner already converts notebook output to the backend contract:
 - vital sign types aligned with backend enums
 - `measuredAt` formatted for the Java importer
 - Dutch-localized patient identity and addresses for frontend presentation
+
+The `backend-import` folder is the compact demo scope used by the backend import script and contains 25 patients.
 
 ## Run the AI API
 

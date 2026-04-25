@@ -5,10 +5,12 @@ import com.mauri.backend.dto.dataset.DatasetImportDto;
 import com.mauri.backend.entity.DatasetImport;
 import com.mauri.backend.entity.Patient;
 import com.mauri.backend.entity.PatientAddress;
+import com.mauri.backend.repository.ConsultNoteRepository;
 import com.mauri.backend.entity.VitalSigns;
 import com.mauri.backend.enums.DatasetImportStatus;
 import com.mauri.backend.repository.DatasetImportRepository;
 import com.mauri.backend.repository.PatientAddressRepository;
+import com.mauri.backend.repository.PatientMedicationRepository;
 import com.mauri.backend.repository.PatientRepository;
 import com.mauri.backend.repository.VitalSignsRepository;
 import org.junit.jupiter.api.Test;
@@ -40,6 +42,12 @@ class DatasetImportServiceIntegrationTest {
 
     @Autowired
     private VitalSignsRepository vitalSignsRepository;
+
+    @Autowired
+    private ConsultNoteRepository consultNoteRepository;
+
+    @Autowired
+    private PatientMedicationRepository patientMedicationRepository;
 
     @Test
     void importNormalizedDatasetPersistsAllCoreRecords(@TempDir Path tempDir) throws IOException {
@@ -90,6 +98,8 @@ class DatasetImportServiceIntegrationTest {
         assertThat(addresses.getFirst().getPatient().getId()).isEqualTo(patients.getFirst().getId());
         assertThat(vitalSigns).hasSize(2);
         assertThat(vitalSigns).allMatch(v -> v.getPatient().getId().equals(patients.getFirst().getId()));
+        assertThat(consultNoteRepository.findByPatientOrderByCreatedAtDesc(patients.getFirst())).hasSize(2);
+        assertThat(patientMedicationRepository.findByPatientOrderByStartDateDesc(patients.getFirst())).hasSize(2);
     }
 
     private void write(Path path, String contents) throws IOException {

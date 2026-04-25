@@ -5,7 +5,6 @@ import com.mauri.backend.entity.Patient;
 import com.mauri.backend.entity.Prediction;
 import com.mauri.backend.enums.PredictionType;
 import com.mauri.backend.enums.RiskLevel;
-import com.mauri.backend.exception.ResourceNotFoundException;
 import com.mauri.backend.mapper.PredictionMapper;
 import com.mauri.backend.repository.PredictionRepository;
 import org.springframework.stereotype.Service;
@@ -94,29 +93,24 @@ public class PredictionService {
             RiskLevel currentLevel = prediction.getRiskLevel();
 
             prediction.setPreviousRiskLevel(prevLevel);
-            
-            // Vergelijk ordinals: LOW (0), MEDIUM (1), HIGH (2), CRITICAL (3)
+
             if (currentLevel.ordinal() > prevLevel.ordinal()) {
                 prediction.setRiskIncreased(true);
             }
         }
 
-        // 2. Bepaal of bevestiging van de arts nodig is (Warning System)
-        // Bevestiging is nodig als het risico is gestegen OF als het risico HIGH/CRITICAL is
-        if (prediction.isRiskIncreased() ||
-            prediction.getRiskLevel() == RiskLevel.HIGH ||
-            prediction.getRiskLevel() == RiskLevel.CRITICAL) {
-            prediction.setRequiresConfirmation(true);
-            prediction.setThresholdTriggered(true);
-        }
+        prediction.setRequiresConfirmation(false);
+        prediction.setConfirmed(false);
+        prediction.setConfirmedAt(null);
+        prediction.setConfirmedBy(null);
+        prediction.setThresholdTriggered(false);
 
         Prediction savedPrediction = predictionRepository.save(prediction);
 
-        // 3. Update de tijdlijn
-        String summary = String.format("Nieuwe %s voorspelling: %s risico", 
+        String summary = String.format("Nieuwe %s voorspelling: %s risico",
                 prediction.getPredictionType(), prediction.getRiskLevel());
         if (prediction.isRiskIncreased()) {
-            summary += " (RISICO GESTEGEN)";
+            summary += " (risico gestegen)";
         }
         timelineService.createEvent(
                 patient,
@@ -129,46 +123,6 @@ public class PredictionService {
         );
 
         return predictionMapper.toDto(savedPrediction);
-    }
-
-    @Transactional
-    public PredictionDto confirmPrediction(UUID patientId, UUID predictionId, String doctorName) {
-        Patient patient = patientService.getPatientEntityById(patientId);
-        Prediction prediction = predictionRepository.findById(predictionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Prediction not found with id: " + predictionId));
-
-        if (!prediction.getPatient().getId().equals(patient.getId())) {
-            throw new ResourceNotFoundException("Prediction does not belong to patient: " + patientId);
-        }
-
-        String normalizedDoctorName = doctorName == null ? "" : doctorName.trim();
-        if (normalizedDoctorName.isBlank()) {
-            throw new IllegalArgumentException("Doctor name is required to confirm a prediction.");
-        }
-
-        if (prediction.isConfirmed()) {
-            return predictionMapper.toDto(prediction);
-        }
-
-        prediction.setConfirmed(true);
-        prediction.setConfirmedAt(LocalDateTime.now());
-        prediction.setConfirmedBy(normalizedDoctorName);
-        prediction.setRequiresConfirmation(false);
-
-        Prediction updatedPrediction = predictionRepository.save(prediction);
-        
-        // Optioneel: Tijdlijn event voor bevestiging
-        timelineService.createEvent(
-                prediction.getPatient(),
-                com.mauri.backend.enums.TimelineEventType.PREDICTION_GENERATED,
-                updatedPrediction.getId(),
-                "Prediction",
-                "Prediction confirmed",
-                "Risk confirmed by physician: " + normalizedDoctorName,
-                updatedPrediction.getConfirmedAt()
-        );
-
-        return predictionMapper.toDto(updatedPrediction);
     }
 
     private void validatePrediction(PredictionDto predictionDto, Prediction prediction) {

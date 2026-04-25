@@ -43,6 +43,7 @@ public class ConsultNoteService {
         this.predictionWorkflowService = predictionWorkflowService;
     }
 
+    @Transactional(readOnly = true)
     public List<ConsultNoteDto> getConsultNotesForPatient(UUID patientId) {
         Patient patient = patientService.getPatientEntityById(patientId);
 
@@ -94,10 +95,12 @@ public class ConsultNoteService {
         return consultNoteMapper.toDto(updatedConsultNote);
     }
 
+    @Transactional(readOnly = true)
     public ConsultNoteDto getConsultNoteById(UUID consultNoteId) {
         return consultNoteMapper.toDto(getConsultNoteEntity(consultNoteId));
     }
 
+    @Transactional(readOnly = true)
     public List<ConsultNoteVersionDto> getVersionsForConsultNote(UUID consultNoteId) {
         ConsultNote consultNote = getConsultNoteEntity(consultNoteId);
         return consultNoteVersionRepository.findByConsultNoteOrderByCreatedAtDesc(consultNote)

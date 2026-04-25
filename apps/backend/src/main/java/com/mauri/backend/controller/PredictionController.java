@@ -7,7 +7,6 @@ import com.mauri.backend.service.PredictionService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -64,14 +63,5 @@ public class PredictionController {
     public List<PredictionDto> recalculatePredictions(@PathVariable UUID patientId,
                                                       @RequestParam(defaultValue = "MANUAL") String triggerSource) {
         return predictionWorkflowService.recalculatePredictions(patientId, triggerSource, null);
-    }
-
-    @PutMapping("/{predictionId}/confirm")
-    public PredictionDto confirmPrediction(
-            @PathVariable UUID patientId,
-            @PathVariable UUID predictionId,
-            @RequestParam String doctorName
-    ) {
-        return predictionService.confirmPrediction(patientId, predictionId, doctorName);
     }
 }

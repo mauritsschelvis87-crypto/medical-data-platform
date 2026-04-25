@@ -547,7 +547,7 @@ public class PredictionWorkflowService {
             return explanation.trim();
         }
         if ("backend-fallback".equals(modelVersion)) {
-            return "Fallback backend prediction based on age-aware vital interpretation and latest patient context";
+            return "Based on age-aware vital interpretation and the latest patient context";
         }
         return "AI prediction based on the latest patient context";
     }
@@ -555,15 +555,15 @@ public class PredictionWorkflowService {
     private String fallbackExplanation(PredictionType predictionType) {
         return switch (predictionType) {
             case CARDIOVASCULAR_RISK ->
-                    "Fallback backend prediction based on blood pressure, cholesterol and age-aware interpretation";
+                    "Based on blood pressure, cholesterol and age-aware interpretation";
             case DIABETES_RISK ->
-                    "Fallback backend prediction based on glucose, BMI and age-aware interpretation";
+                    "Based on glucose, BMI and age-aware interpretation";
             case GENERAL_DETERIORATION ->
-                    "Fallback backend prediction based on heart rate, temperature, oxygen saturation and recent consult activity";
+                    "Based on heart rate, temperature, oxygen saturation and recent consult activity";
             case SEPSIS_RISK ->
-                    "Fallback backend prediction based on temperature, heart rate and recent clinical activity";
+                    "Based on temperature, heart rate and recent clinical activity";
             case RESPIRATORY_RISK ->
-                    "Fallback backend prediction based on oxygen saturation and heart rate";
+                    "Based on oxygen saturation and heart rate";
         };
     }
 

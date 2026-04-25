@@ -92,12 +92,7 @@ export interface Prediction {
   predictionTimestamp: string;
   previousRiskLevel?: string | null;
   riskIncreased: boolean;
-  requiresConfirmation: boolean;
-  confirmed: boolean;
-  confirmedAt?: string | null;
-  confirmedBy?: string | null;
   modelVersion?: string | null;
-  thresholdTriggered: boolean;
 }
 
 export interface ConsultNoteVersion {
@@ -119,13 +114,16 @@ export interface ConsultNote {
   currentVersion: ConsultNoteVersion;
 }
 
-export interface MedicationCatalogItem {
+export interface MedicationCatalogSearchItem {
   id: string;
-  code: string;
-  dutchName: string;
-  latinName?: string | null;
+  name: string;
+}
+
+export interface MedicationCatalogSelection {
+  id: string;
+  name: string;
   defaultDosage?: string | null;
-  advice?: string | null;
+  defaultFrequency?: string | null;
 }
 
 export interface PatientMedication {
@@ -135,6 +133,7 @@ export interface PatientMedication {
   frequency: string;
   startDate: string;
   endDate?: string | null;
+  createdAt?: string | null;
   status: string;
 }
 
@@ -144,7 +143,6 @@ export interface CreateConsultNotePayload {
   objective: string;
   assessment: string;
   plan: string;
-  changeReason: string;
 }
 
 export interface CreateMedicationPayload {

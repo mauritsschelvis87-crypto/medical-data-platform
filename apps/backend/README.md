@@ -73,15 +73,15 @@ Expected import directory contents:
 
 The current working import directory is:
 
-- `C:\Users\mauri\Projects\medical-data-platform\apps\ai-service\data\exports\backend-import-full`
+- `C:\Users\mauri\Projects\medical-data-platform\apps\ai-service\data\exports\backend-import`
 
 Example import request:
 
 ```powershell
 $body = @{
-  sourceName = 'full-local-dutch'
+  sourceName = 'demo-local-dutch'
   datasetType = 'NORMALIZED_MEDICAL_DATA'
-  sourceDirectoryPath = 'C:\Users\mauri\Projects\medical-data-platform\apps\ai-service\data\exports\backend-import-full'
+  sourceDirectoryPath = 'C:\Users\mauri\Projects\medical-data-platform\apps\ai-service\data\exports\backend-import'
   notes = 'Generated via ai-service notebook pipeline'
   replaceExistingData = $true
 } | ConvertTo-Json
@@ -107,15 +107,14 @@ The frontend currently depends on:
 
 ## Current loaded scope
 
-After importing the full normalized dataset, these endpoints return real data:
+After importing the demo normalized dataset, these endpoints return real data:
 
 - patient search
 - patient detail
 - latest vitals
-
-These endpoints are available but may return empty arrays until additional data is created:
-
 - timeline
 - predictions
 - consult notes
 - medications
+
+The demo import scope is intentionally limited to 25 patients and now seeds historical consult notes plus current and past medications for those imported patients.

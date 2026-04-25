@@ -42,6 +42,7 @@ public class PatientMedicationService {
         this.predictionWorkflowService = predictionWorkflowService;
     }
 
+    @Transactional(readOnly = true)
     public List<PatientMedicationDto> getMedicationsForPatient(UUID patientId) {
         Patient patient = patientService.getPatientEntityById(patientId);
 
@@ -51,6 +52,7 @@ public class PatientMedicationService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<PatientMedicationDto> getMedicationsForPatientByStatus(UUID patientId, MedicationStatus status) {
         Patient patient = patientService.getPatientEntityById(patientId);
 

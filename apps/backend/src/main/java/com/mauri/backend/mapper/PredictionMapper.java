@@ -26,15 +26,10 @@ public class PredictionMapper {
         dto.setMainPrediction(prediction.isMainPrediction());
         dto.setPredictionTimestamp(prediction.getPredictionTimestamp());
 
-        // Risk comparison + warning system
+        // Risk comparison + model metadata
         dto.setPreviousRiskLevel(prediction.getPreviousRiskLevel() != null ? prediction.getPreviousRiskLevel().name() : null);
         dto.setRiskIncreased(prediction.isRiskIncreased());
-        dto.setRequiresConfirmation(prediction.isRequiresConfirmation());
-        dto.setConfirmed(prediction.isConfirmed());
-        dto.setConfirmedAt(prediction.getConfirmedAt());
-        dto.setConfirmedBy(prediction.getConfirmedBy());
         dto.setModelVersion(prediction.getModelVersion());
-        dto.setThresholdTriggered(prediction.isThresholdTriggered());
 
         return dto;
     }
@@ -57,12 +52,7 @@ public class PredictionMapper {
 
         entity.setPreviousRiskLevel(toRiskLevel(dto.getPreviousRiskLevel()));
         entity.setRiskIncreased(dto.isRiskIncreased());
-        entity.setRequiresConfirmation(dto.isRequiresConfirmation());
-        entity.setConfirmed(dto.isConfirmed());
-        entity.setConfirmedAt(dto.getConfirmedAt());
-        entity.setConfirmedBy(dto.getConfirmedBy());
         entity.setModelVersion(dto.getModelVersion());
-        entity.setThresholdTriggered(dto.isThresholdTriggered());
 
         return entity;
     }

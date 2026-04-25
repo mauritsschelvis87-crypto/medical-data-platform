@@ -26,6 +26,8 @@ public class DatasetImportService {
     private final PatientAddressImportService patientAddressImportService;
     private final VitalSignsImportService vitalSignsImportService;
     private final ImportSummaryService importSummaryService;
+    private final ClinicalDatasetReplacementService clinicalDatasetReplacementService;
+    private final ImportedPatientHistorySeedService importedPatientHistorySeedService;
 
     public DatasetImportService(DatasetImportRepository datasetImportRepository,
                                 DatasetImportMapper datasetImportMapper,
@@ -33,7 +35,9 @@ public class DatasetImportService {
                                 PatientImportService patientImportService,
                                 PatientAddressImportService patientAddressImportService,
                                 VitalSignsImportService vitalSignsImportService,
-                                ImportSummaryService importSummaryService) {
+                                ImportSummaryService importSummaryService,
+                                ClinicalDatasetReplacementService clinicalDatasetReplacementService,
+                                ImportedPatientHistorySeedService importedPatientHistorySeedService) {
         this.datasetImportRepository = datasetImportRepository;
         this.datasetImportMapper = datasetImportMapper;
         this.datasetImportPersistenceService = datasetImportPersistenceService;
@@ -41,6 +45,8 @@ public class DatasetImportService {
         this.patientAddressImportService = patientAddressImportService;
         this.vitalSignsImportService = vitalSignsImportService;
         this.importSummaryService = importSummaryService;
+        this.clinicalDatasetReplacementService = clinicalDatasetReplacementService;
+        this.importedPatientHistorySeedService = importedPatientHistorySeedService;
     }
 
     public List<DatasetImportDto> getAllImports() {
@@ -65,6 +71,10 @@ public class DatasetImportService {
         datasetImport = datasetImportPersistenceService.save(datasetImport);
 
         try {
+            if (replaceExistingData) {
+                clinicalDatasetReplacementService.replacePatientScopedData();
+            }
+
             ImportSummaryService.ImportSummary importSummary = importSummaryService
                     .readSummary(request.getSourceDirectoryPath())
                     .orElse(null);
@@ -75,6 +85,8 @@ public class DatasetImportService {
                     patientAddressImportService.importAddresses(request.getSourceDirectoryPath(), datasetImport, replaceExistingData);
             VitalSignsImportService.ImportResult vitalSignsResult =
                     vitalSignsImportService.importVitalSigns(request.getSourceDirectoryPath(), datasetImport, replaceExistingData);
+            ImportedPatientHistorySeedService.SeedResult historySeedResult =
+                    importedPatientHistorySeedService.seedHistory(patientResult.importedPatients(), replaceExistingData);
 
             int recordsReceived = coalesce(importSummary != null ? importSummary.recordsReceived() : null,
                     patientResult.recordsReceived() + addressResult.recordsReceived() + vitalSignsResult.recordsReceived());
@@ -94,6 +106,7 @@ public class DatasetImportService {
                     patientCount,
                     patientAddressCount,
                     vitalSignsCount,
+                    historySeedResult,
                     importSummary,
                     replaceExistingData
             ));
@@ -132,6 +145,7 @@ public class DatasetImportService {
                                      int patientCount,
                                      int patientAddressCount,
                                      int vitalSignsCount,
+                                     ImportedPatientHistorySeedService.SeedResult historySeedResult,
                                      ImportSummaryService.ImportSummary importSummary,
                                      boolean replaceExistingData) {
         StringBuilder notes = new StringBuilder();
@@ -141,7 +155,9 @@ public class DatasetImportService {
         notes.append("Replace existing data: ").append(replaceExistingData).append(System.lineSeparator());
         notes.append("Patients imported: ").append(patientCount).append(System.lineSeparator());
         notes.append("Addresses imported: ").append(patientAddressCount).append(System.lineSeparator());
-        notes.append("Vital signs imported: ").append(vitalSignsCount);
+        notes.append("Vital signs imported: ").append(vitalSignsCount).append(System.lineSeparator());
+        notes.append("Historical consult notes seeded: ").append(historySeedResult.consultNotesSeeded()).append(System.lineSeparator());
+        notes.append("Historical medications seeded: ").append(historySeedResult.medicationsSeeded());
         if (importSummary != null && importSummary.validationSummary() != null && !importSummary.validationSummary().isBlank()) {
             notes.append(System.lineSeparator()).append("Import summary: ").append(importSummary.validationSummary().trim());
         }

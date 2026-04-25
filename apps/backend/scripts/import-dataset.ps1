@@ -1,6 +1,5 @@
 param(
-    [Parameter(Mandatory = $true)]
-    [string]$SourceDirectoryPath,
+    [string]$SourceDirectoryPath = (Join-Path $PSScriptRoot "..\..\ai-service\data\exports\backend-import"),
 
     [string]$BackendUrl = "http://localhost:8081",
 

@@ -5,7 +5,8 @@ import {
   CreateConsultNotePayload,
   CreateMedicationPayload,
   CreateVitalSignsPayload,
-  MedicationCatalogItem,
+  MedicationCatalogSearchItem,
+  MedicationCatalogSelection,
   Patient,
   PatientMedication,
   PatientSearchResult,
@@ -74,7 +75,11 @@ export class PatientApiService {
 
   searchMedicationCatalog(query: string) {
     const params = new HttpParams().set('q', query);
-    return this.http.get<MedicationCatalogItem[]>(`${this.baseUrl}/medications/search`, { params });
+    return this.http.get<MedicationCatalogSearchItem[]>(`${this.baseUrl}/medications/search`, { params });
+  }
+
+  getMedicationCatalogSelection(medicationId: string) {
+    return this.http.get<MedicationCatalogSelection>(`${this.baseUrl}/medications/${medicationId}`);
   }
 
   createConsultNote(patientId: string, payload: CreateConsultNotePayload) {

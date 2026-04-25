@@ -4,9 +4,9 @@
 
 .detail-layout {
   --panel-gap: 1.5rem;
-  --detail-main-max-width: 1180px;
+  --detail-main-max-width: 1120px;
   --drawer-rail-width: 1.4rem;
-  --action-panel-width: calc((var(--detail-main-max-width) - (var(--panel-gap) * 2)) / 3);
+  --action-panel-width: clamp(17.5rem, calc((var(--detail-main-max-width) - (var(--panel-gap) * 2)) / 3.4), 19.5rem);
   --record-header-height: 7.7rem;
   position: relative;
   min-height: 100%;
@@ -443,11 +443,13 @@
 .medication-status-item__main {
   display: grid;
   gap: 0.22rem;
+  min-width: 0;
 }
 
 .medication-status-item__main strong {
   color: var(--text-primary);
   font-size: 0.98rem;
+  line-height: 1.25;
 }
 
 .medication-status-item__main span {
@@ -466,6 +468,102 @@
   color: var(--text-muted);
 }
 
+.medications-panel--status .medication-status-list {
+  gap: 0.7rem;
+}
+
+.medications-panel--status .medication-status-item--summary {
+  position: relative;
+  min-height: 4.7rem;
+  padding: 0.68rem 0.85rem;
+  border-radius: 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--medication-color, var(--border-soft)) 42%, transparent);
+  border-left-width: 1px;
+  background: linear-gradient(180deg, var(--medication-bg, var(--surface-soft)), var(--surface-soft));
+  overflow: hidden;
+}
+
+.medications-panel--status .medication-status-item--summary.medication-status-item--active {
+  --medication-color: var(--success-strong);
+  --medication-bg: var(--success-faint);
+}
+
+.medications-panel--status .medication-status-item--summary.medication-status-item--inactive {
+  --medication-color: var(--danger-strong);
+  --medication-bg: var(--danger-faint);
+}
+
+.medication-status-item__summary-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.medications-panel--status .medication-status-item__main {
+  align-self: center;
+}
+
+.medications-panel--status .medication-status-item__main strong {
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.medication-status-item__status {
+  display: grid;
+  justify-items: end;
+  gap: 0.25rem;
+  text-align: right;
+}
+
+.medication-status-item__badge,
+.medication-status-item__date {
+  color: var(--medication-color, var(--text-muted));
+}
+
+.medication-status-item__badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.medication-status-item__date {
+  font-size: 0.76rem;
+  font-weight: 500;
+}
+
+.medication-status-item__hover-details {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: stretch;
+  align-content: center;
+  gap: 0.28rem;
+  padding: 0.7rem 0.85rem;
+  background: color-mix(in srgb, var(--surface-elevated) 94%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  text-align: left;
+  transition: opacity 140ms ease;
+}
+
+.medications-panel--status .medication-status-item--summary:hover .medication-status-item__hover-details {
+  opacity: 1;
+}
+
+.medication-status-item__hover-details strong {
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.18;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 .risk-panel {
   padding-bottom: 1.2rem;
 }
@@ -479,7 +577,7 @@
 .risk-card__details {
   place-items: stretch;
   align-content: center;
-  gap: 0.18rem;
+  gap: 0.28rem;
   text-align: left;
 }
 
@@ -650,6 +748,35 @@
   border-bottom: 0;
 }
 
+.drawer-stack {
+  display: grid;
+  gap: 0.95rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.drawer-stack__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.drawer-stack__header h3 {
+  margin: 0;
+}
+
+.drawer-stack__header span {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.drawer-medication-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -722,6 +849,8 @@
   gap: 0.55rem;
   max-height: 14rem;
   overflow-y: auto;
+  padding-right: 0.15rem;
+  scrollbar-width: thin;
 }
 
 .lookup-list button {
@@ -735,32 +864,115 @@
   cursor: pointer;
 }
 
-.lookup-list button span {
-  color: var(--text-muted);
-  font-size: 0.78rem;
+.lookup-list button strong {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.drawer-section--history {
+  display: grid;
+  gap: 0.8rem;
 }
 
 .history-card {
   display: grid;
-  gap: 0.7rem;
+  gap: 0;
   padding: 0.9rem;
   border: 1px solid var(--border-subtle);
   border-radius: 0.8rem;
   background: var(--surface-soft);
+  overflow: hidden;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.history-card:hover,
+.history-card:focus-visible,
+.history-card:focus-within {
+  border-color: var(--accent-soft);
+  background: color-mix(in srgb, var(--surface-elevated) 78%, var(--surface-soft));
+  box-shadow: 0 12px 22px rgba(15, 23, 42, 0.12);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.history-card__summary {
+  display: flex;
+  align-items: center;
+  min-height: 1.7rem;
+}
+
+.history-card__summary strong {
+  color: var(--text-primary);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.history-card__details {
+  display: grid;
+  gap: 0.7rem;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(-0.45rem);
+  transition:
+    max-height 220ms ease,
+    opacity 160ms ease,
+    transform 220ms ease,
+    margin-top 220ms ease;
+}
+
+.history-card:hover .history-card__details,
+.history-card:focus-visible .history-card__details,
+.history-card:focus-within .history-card__details {
+  max-height: 24rem;
+  opacity: 1;
+  margin-top: 0.85rem;
+  transform: translateY(0);
 }
 
 .history-card__meta {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.history-card__meta strong {
+  color: var(--text-primary);
+  font-size: 0.84rem;
+}
+
+.history-card__meta span {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.history-card__block {
+  display: grid;
+  gap: 0.22rem;
 }
 
 .history-card__block small {
   color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .history-card__block p {
   margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.empty-copy--drawer {
+  padding: 0;
 }
 
 @media (max-width: 1500px) {

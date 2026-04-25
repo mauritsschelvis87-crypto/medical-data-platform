@@ -164,36 +164,36 @@
 
           <section class="panel medications-panel medications-panel--status">
             <div class="panel__header">
-              <h2>{{ preferences.t('activeMedication') }}</h2>
-              <span>{{ medications().length }} entries</span>
+              <h2>{{ medicationPanelTitle() }}</h2>
+              <span>{{ sortedMedications().length }} entries</span>
             </div>
 
             <div class="medication-status-list">
-              @for (medication of medications(); track medication.id) {
+              @for (medication of sortedMedications(); track medication.id) {
                 <article
-                  class="medication-status-item"
+                  class="medication-status-item medication-status-item--summary"
                   [class.medication-status-item--active]="isMedicationActive(medication)"
                   [class.medication-status-item--inactive]="!isMedicationActive(medication)"
+                  [attr.data-medication-state]="isMedicationActive(medication) ? 'CURRENT' : 'INACTIVE'"
                 >
-                  <div class="medication-status-item__main">
-                    <strong>{{ medication.medicationName }}</strong>
-                    <span>
-                      {{ formatDateOnly(medication.startDate) }}
-                      @if (medication.endDate) {
-                        - {{ formatDateOnly(medication.endDate) }}
-                      } @else {
-                        - ongoing
-                      }
-                    </span>
+                  <div class="medication-status-item__summary-content">
+                    <div class="medication-status-item__main">
+                      <strong>{{ medication.medicationName }}</strong>
+                    </div>
+
+                    <div class="medication-status-item__status">
+                      <small class="medication-status-item__badge">{{ medicationStatusLabel(medication) }}</small>
+                      <small class="medication-status-item__date">{{ medicationStatusDate(medication) }}</small>
+                    </div>
                   </div>
 
-                  <div class="medication-status-item__meta">
-                    <small>{{ medication.dosage || '—' }} | {{ medication.frequency || '—' }}</small>
-                    <small>{{ medication.status || 'Unknown' }}</small>
+                  <div class="medication-status-item__hover-details">
+                    <strong>Prescription: {{ medication.dosage || '—' }}</strong>
+                    <strong>Frequency: {{ medication.frequency || '—' }}</strong>
                   </div>
                 </article>
               } @empty {
-                <p class="empty-copy">No medication records available.</p>
+                <p class="empty-copy">No medication records available yet.</p>
               }
             </div>
           </section>
@@ -238,6 +238,9 @@
                     </div>
 
                     <div class="metric-card__derived risk-card__details">
+                      @if (cleanPredictionExplanation(prediction.explanation)) {
+                        <small>{{ cleanPredictionExplanation(prediction.explanation) }}</small>
+                      }
                       @for (sourceLine of getPredictionSourceLines(prediction); track sourceLine) {
                         <small>{{ sourceLine }}</small>
                       }
@@ -324,10 +327,6 @@
                 <span>Plan</span>
                 <textarea formControlName="plan" rows="2"></textarea>
               </label>
-              <label>
-                <span>Change reason</span>
-                <input type="text" formControlName="changeReason" />
-              </label>
               <button type="submit" [disabled]="submittingNote()">{{ preferences.t('saveNote') }}</button>
             </form>
           </section>
@@ -343,17 +342,11 @@
                 <div class="lookup-list">
                   @for (item of medicationLookup(); track item.id) {
                     <button
-                      type="button"
+                  type="button"
                       [class.lookup-list__item--selected]="isSelectedMedication(item)"
                       (click)="selectMedication(item)"
                     >
-                      <strong>{{ item.dutchName }}</strong>
-                      <span>
-                        @if (item.latinName) {
-                          {{ item.latinName }} |
-                        }
-                        {{ item.defaultDosage || 'Recommended dose follows selection' }}
-                      </span>
+                      <strong>{{ item.name }}</strong>
                     </button>
                   }
                 </div>
@@ -379,32 +372,76 @@
                 <span>Prescription reason</span>
                 <textarea formControlName="reason" rows="3"></textarea>
               </label>
-              <button type="submit" [disabled]="submittingMedication()">{{ preferences.t('saveMedication') }}</button>
+              <button type="submit" [disabled]="submittingMedication()">
+                {{ saveMedicationLabel() }}
+              </button>
             </form>
+
+            <div class="drawer-stack">
+              <div class="drawer-stack__header">
+                <h3>Current medication</h3>
+                <span>{{ sortedMedications().length }} entries</span>
+              </div>
+
+              <div class="drawer-medication-list">
+                @for (medication of sortedMedications(); track medication.id) {
+                  <article
+                    class="medication-status-item"
+                    [class.medication-status-item--active]="isMedicationActive(medication)"
+                    [class.medication-status-item--inactive]="!isMedicationActive(medication)"
+                  >
+                    <div class="medication-status-item__main">
+                      <strong>{{ medication.medicationName }}</strong>
+                      <span>
+                        {{ formatDateOnly(medication.startDate) }}
+                        @if (medication.endDate) {
+                          - {{ formatDateOnly(medication.endDate) }}
+                        } @else {
+                          - ongoing
+                        }
+                      </span>
+                    </div>
+
+                    <div class="medication-status-item__meta">
+                      <small>{{ medication.dosage || '—' }} | {{ medication.frequency || '—' }}</small>
+                      <small>{{ medication.status || 'Unknown' }}</small>
+                    </div>
+                  </article>
+                } @empty {
+                  <p class="empty-copy empty-copy--drawer">No medication saved yet.</p>
+                }
+              </div>
+            </div>
           </section>
         } @else {
           <section class="drawer-section drawer-section--history">
             @for (note of sortedConsultNotes(); track note.id) {
-              <article class="history-card">
-                <div class="history-card__meta">
-                  <strong>{{ note.createdBy }}</strong>
-                  <span>{{ formatDate(note.currentVersion.createdAt || note.createdAt) }}</span>
+              <article class="history-card" tabindex="0">
+                <div class="history-card__summary">
+                  <strong>{{ formatDate(note.currentVersion.createdAt || note.createdAt) }}</strong>
                 </div>
-                <div class="history-card__block">
-                  <small>Subjective</small>
-                  <p>{{ getConsultNotePreview(note.currentVersion.subjective) }}</p>
-                </div>
-                <div class="history-card__block">
-                  <small>Objective</small>
-                  <p>{{ getConsultNotePreview(note.currentVersion.objective) }}</p>
-                </div>
-                <div class="history-card__block">
-                  <small>Assessment</small>
-                  <p>{{ getConsultNotePreview(note.currentVersion.assessment) }}</p>
-                </div>
-                <div class="history-card__block">
-                  <small>Plan</small>
-                  <p>{{ getConsultNotePreview(note.currentVersion.plan) }}</p>
+
+                <div class="history-card__details">
+                  <div class="history-card__meta">
+                    <strong>{{ note.createdBy }}</strong>
+                  </div>
+
+                  <div class="history-card__block">
+                    <small>Subjective</small>
+                    <p>{{ getConsultNotePreview(note.currentVersion.subjective) }}</p>
+                  </div>
+                  <div class="history-card__block">
+                    <small>Objective</small>
+                    <p>{{ getConsultNotePreview(note.currentVersion.objective) }}</p>
+                  </div>
+                  <div class="history-card__block">
+                    <small>Assessment</small>
+                    <p>{{ getConsultNotePreview(note.currentVersion.assessment) }}</p>
+                  </div>
+                  <div class="history-card__block">
+                    <small>Plan</small>
+                    <p>{{ getConsultNotePreview(note.currentVersion.plan) }}</p>
+                  </div>
                 </div>
               </article>
             } @empty {
