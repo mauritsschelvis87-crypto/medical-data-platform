@@ -25,7 +25,7 @@ import java.util.List;
 public class ImportedPatientHistorySeedService {
 
     private static final List<String> DOCTORS = List.of(
-            "Dr. Jonathan Hyde",
+            "Dr. Jeckyll Hyde",
             "Dr. Marieke van Dijk",
             "Dr. Sophie de Boer",
             "Dr. Lars Meijer"
