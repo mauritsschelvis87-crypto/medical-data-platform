@@ -135,9 +135,9 @@
                               type="number"
                               step="0.1"
                               formControlName="primaryValue"
-                              [class.metric-edit__input--error]="hasVitalFieldError(metric, 'primary')"
+                              [class.metric-edit__input--error]="hasVitalFieldError('primary')"
                             />
-                            @for (feedback of getVitalFieldFeedback(metric, 'primary'); track feedback.message) {
+                            @for (feedback of getVitalFieldFeedback('primary'); track feedback.message) {
                               <small
                                 class="metric-edit__field-feedback"
                                 [class.metric-edit__field-feedback--warning]="feedback.tone === 'warning'"
@@ -154,9 +154,9 @@
                                 type="number"
                                 step="0.1"
                                 formControlName="secondaryValue"
-                                [class.metric-edit__input--error]="hasVitalFieldError(metric, 'secondary')"
+                                [class.metric-edit__input--error]="hasVitalFieldError('secondary')"
                               />
-                              @for (feedback of getVitalFieldFeedback(metric, 'secondary'); track feedback.message) {
+                              @for (feedback of getVitalFieldFeedback('secondary'); track feedback.message) {
                                 <small
                                   class="metric-edit__field-feedback"
                                   [class.metric-edit__field-feedback--warning]="feedback.tone === 'warning'"
@@ -177,9 +177,9 @@
                           </button>
                         </div>
 
-                        @if (getVitalFormFeedback(metric).length > 0 || vitalEditApiError()) {
+                        @if (getVitalFormFeedback().length > 0 || vitalEditApiError()) {
                           <div class="metric-edit__feedback">
-                            @for (feedback of getVitalFormFeedback(metric); track feedback.message) {
+                            @for (feedback of getVitalFormFeedback(); track feedback.message) {
                               <small
                                 class="metric-edit__feedback-message"
                                 [class.metric-edit__feedback-message--warning]="feedback.tone === 'warning'"
@@ -268,9 +268,9 @@
             class="panel medications-panel medications-panel--status medications-panel--interactive"
             role="button"
             tabindex="0"
-            (click)="openMedicationDrawer()"
-            (keydown.enter)="openMedicationDrawer()"
-            (keydown.space)="openMedicationDrawer()"
+            (click)="showMedicationTab()"
+            (keydown.enter)="showMedicationTab()"
+            (keydown.space)="showMedicationTab()"
           >
             <div class="panel__header">
               <h2>{{ medicationPanelTitle() }}</h2>
@@ -280,9 +280,8 @@
               @for (medication of sortedMedications(); track medication.id) {
                 <article
                   class="medication-status-item medication-status-item--summary"
-                  [class.medication-status-item--active]="isMedicationActive(medication)"
-                  [class.medication-status-item--inactive]="!isMedicationActive(medication)"
-                  [attr.data-medication-state]="isMedicationActive(medication) ? 'CURRENT' : 'INACTIVE'"
+                  [ngClass]="getMedicationItemClasses(medication)"
+                  [attr.data-medication-state]="medicationStateAttribute(medication)"
                 >
                   <div class="medication-status-item__summary-content">
                     <div class="medication-status-item__main">
@@ -290,7 +289,9 @@
                     </div>
 
                     <div class="medication-status-item__status">
-                      <small class="medication-status-item__badge">{{ medicationStatusLabel(medication) }}</small>
+                      <small class="medication-status-item__badge" [ngClass]="getMedicationStatusTextClasses(medication)">
+                        {{ medicationStatusLabel(medication) }}
+                      </small>
                       <small class="medication-status-item__date">{{ medicationStatusDate(medication) }}</small>
                     </div>
                   </div>
@@ -307,58 +308,50 @@
           </section>
         </div>
       </div>
-
     </div>
 
-    <div class="action-sidebar" [class.open]="drawerOpen()">
-      <button
-        class="drawer-toggle"
-        type="button"
-        (click)="toggleDrawer()"
-        [class.open]="drawerOpen()"
-        [attr.aria-expanded]="drawerOpen()"
-        [attr.aria-label]="drawerOpen() ? preferences.t('closeDrawer') : preferences.t('openDrawer')"
-      >
-        <span class="drawer-toggle__icon" aria-hidden="true">›</span>
-        <span class="sr-only">{{ drawerOpen() ? preferences.t('closeDrawer') : preferences.t('openDrawer') }}</span>
-      </button>
-
-      <aside class="action-drawer" [class.open]="drawerOpen()">
-        <div class="action-drawer__header">
-          <div class="action-tabs" role="tablist" [attr.aria-label]="preferences.t('clinicalActionTabs')">
+    <aside class="detail-sidebar" [attr.aria-label]="preferences.t('clinicalActionTabs')">
+      <section class="detail-sidebar__panel panel">
+        <div class="detail-sidebar__header">
+          <div class="detail-sidebar__tabs" role="tablist" [attr.aria-label]="preferences.t('clinicalActionTabs')">
             <button
               type="button"
-              class="action-tabs__tab"
-              [class.active]="actionTab() === 'soap'"
-              [attr.aria-selected]="actionTab() === 'soap'"
-              (click)="setActionTab('soap')"
+              class="detail-sidebar__tab"
+              role="tab"
+              [class.active]="sidebarTab() === 'soap'"
+              [attr.aria-selected]="sidebarTab() === 'soap'"
+              [attr.id]="'detail-sidebar-tab-soap'"
+              (click)="setSidebarTab('soap')"
             >
               SOAP
             </button>
             <button
               type="button"
-              class="action-tabs__tab"
-              [class.active]="actionTab() === 'medicine'"
-              [attr.aria-selected]="actionTab() === 'medicine'"
-              (click)="setActionTab('medicine')"
+              class="detail-sidebar__tab"
+              role="tab"
+              [class.active]="sidebarTab() === 'medicine'"
+              [attr.aria-selected]="sidebarTab() === 'medicine'"
+              [attr.id]="'detail-sidebar-tab-medicine'"
+              (click)="setSidebarTab('medicine')"
             >
               {{ preferences.t('medicineTab') }}
             </button>
             <button
               type="button"
-              class="action-tabs__tab"
-              [class.active]="actionTab() === 'history'"
-              [attr.aria-selected]="actionTab() === 'history'"
-              (click)="setActionTab('history')"
+              class="detail-sidebar__tab"
+              role="tab"
+              [class.active]="sidebarTab() === 'history'"
+              [attr.aria-selected]="sidebarTab() === 'history'"
+              [attr.id]="'detail-sidebar-tab-history'"
+              (click)="setSidebarTab('history')"
             >
               {{ preferences.t('historyTab') }}
             </button>
           </div>
-          <button type="button" (click)="toggleDrawer()">×</button>
         </div>
 
-        @if (actionTab() === 'soap') {
-          <section class="drawer-section">
+        @if (sidebarTab() === 'soap') {
+          <section class="sidebar-section" role="tabpanel" [attr.aria-labelledby]="'detail-sidebar-tab-soap'">
             <form [formGroup]="noteForm" (ngSubmit)="saveNote()">
               <label>
                 <span>{{ preferences.t('subjective') }}</span>
@@ -407,8 +400,8 @@
               <button type="submit" [disabled]="submittingNote()">{{ preferences.t('saveNote') }}</button>
             </form>
           </section>
-        } @else if (actionTab() === 'medicine') {
-          <section class="drawer-section">
+        } @else if (sidebarTab() === 'medicine') {
+          <section class="sidebar-section" role="tabpanel" [attr.aria-labelledby]="'detail-sidebar-tab-medicine'">
             <form [formGroup]="medicationForm" (ngSubmit)="saveMedication()">
               <label>
                 <span>{{ preferences.t('medication') }}</span>
@@ -419,7 +412,7 @@
                 <div class="lookup-list">
                   @for (item of medicationLookup(); track item.id) {
                     <button
-                  type="button"
+                      type="button"
                       [class.lookup-list__item--selected]="isSelectedMedication(item)"
                       (click)="selectMedication(item)"
                     >
@@ -477,7 +470,7 @@
                 <span>{{ preferences.t('prescriptionReason') }}</span>
                 <textarea
                   formControlName="reason"
-                  class="drawer-textarea--compact"
+                  class="sidebar-textarea--compact"
                   rows="2"
                   [class.field-error]="medicationFieldHasError('reason')"
                 ></textarea>
@@ -490,18 +483,17 @@
               </button>
             </form>
 
-            <div class="drawer-stack">
-              <div class="drawer-stack__header">
+            <div class="sidebar-stack">
+              <div class="sidebar-stack__header">
                 <h3>{{ preferences.t('currentMedication') }}</h3>
                 <span>{{ sortedMedications().length }} {{ preferences.t('entries') }}</span>
               </div>
 
-              <div class="drawer-medication-list">
+              <div class="sidebar-medication-list">
                 @for (medication of sortedMedications(); track medication.id) {
                   <article
                     class="medication-status-item"
-                    [class.medication-status-item--active]="isMedicationActive(medication)"
-                    [class.medication-status-item--inactive]="!isMedicationActive(medication)"
+                    [ngClass]="getMedicationItemClasses(medication)"
                   >
                     <div class="medication-status-item__main">
                       <strong>{{ sanitizeMedicationName(medication.medicationName) }}</strong>
@@ -517,23 +509,25 @@
 
                     <div class="medication-status-item__meta">
                       <small>{{ medication.dosage || '—' }} | {{ medication.frequency || '—' }}</small>
-                      <small>{{ formatMedicationStatus(medication.status) }}</small>
+                      <small [ngClass]="getMedicationStatusTextClasses(medication)">
+                        {{ medicationStatusLabel(medication) }}
+                      </small>
                     </div>
                   </article>
                 } @empty {
-                  <p class="empty-copy empty-copy--drawer">{{ preferences.t('noMedicationSaved') }}</p>
+                  <p class="empty-copy">{{ preferences.t('noMedicationRecords') }}</p>
                 }
               </div>
             </div>
           </section>
         } @else {
-          <section class="drawer-section drawer-section--history">
+          <section
+            class="sidebar-section sidebar-section--history"
+            role="tabpanel"
+            [attr.aria-labelledby]="'detail-sidebar-tab-history'"
+          >
             @for (note of sortedConsultNotes(); track note.id) {
               <div class="history-entry">
-                <div class="history-card__trigger" aria-hidden="true">
-                  <span aria-hidden="true">›</span>
-                </div>
-
                 <article class="history-card">
                   <div class="history-card__summary">
                     <strong>{{ formatDate(note.currentVersion.createdAt || note.createdAt) }}</strong>
@@ -541,7 +535,6 @@
 
                   <div class="history-card__details">
                     <div class="history-card__meta">
-                      <strong>{{ formatDate(note.currentVersion.createdAt || note.createdAt) }}</strong>
                       <span>{{ note.createdBy }}</span>
                     </div>
 
@@ -565,11 +558,11 @@
                 </article>
               </div>
             } @empty {
-              <p class="empty-copy empty-copy--drawer">{{ preferences.t('noClinicalNotesSaved') }}</p>
+              <p class="empty-copy empty-copy--sidebar">{{ preferences.t('noClinicalNotesSaved') }}</p>
             }
           </section>
         }
-      </aside>
-    </div>
+      </section>
+    </aside>
   </section>
 }

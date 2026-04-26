@@ -133,6 +133,7 @@ export interface PatientMedication {
   frequency: string;
   startDate: string;
   endDate?: string | null;
+  active?: boolean | null;
   createdAt?: string | null;
   status: string;
 }

@@ -52,6 +52,8 @@ interface VitalEditFeedback {
   blocksSave: boolean;
 }
 
+type MedicationDisplayState = 'active' | 'stopped' | 'neutral';
+
 @Component({
   selector: 'app-patient-detail-page',
   imports: [CommonModule, ReactiveFormsModule],
@@ -68,8 +70,7 @@ export class PatientDetailPageComponent {
   protected readonly preferences = inject(AppPreferencesService);
 
   protected readonly loading = signal(true);
-  protected readonly drawerOpen = signal(false);
-  protected readonly actionTab = signal<'soap' | 'medicine' | 'history'>('soap');
+  protected readonly sidebarTab = signal<'soap' | 'medicine' | 'history'>('soap');
   protected readonly editingAddress = signal(false);
   protected readonly medicationLookup = signal<MedicationCatalogSearchItem[]>([]);
   protected readonly medicationSuggestionsOpen = signal(false);
@@ -81,6 +82,8 @@ export class PatientDetailPageComponent {
   protected readonly editingVitalKey = signal<VitalMetricKey | null>(null);
   protected readonly savingVitalKey = signal<VitalMetricKey | null>(null);
   protected readonly vitalEditApiError = signal<string | null>(null);
+  protected readonly vitalEditFeedback = signal<VitalEditFeedback[]>([]);
+  protected readonly vitalEditValidationActive = signal(false);
 
   protected readonly patient = signal<Patient | null>(null);
   protected readonly timeline = signal<TimelineEvent[]>([]);
@@ -96,6 +99,16 @@ export class PatientDetailPageComponent {
     'SEPSIS_RISK',
     'RESPIRATORY_RISK',
   ] as const;
+
+  private readonly activeMedicationStatuses = new Set(['ACTIVE', 'CURRENT', 'ONGOING']);
+  private readonly stoppedMedicationStatuses = new Set([
+    'STOPPED',
+    'INACTIVE',
+    'ENDED',
+    'DISCONTINUED',
+    'COMPLETED',
+    'CANCELLED',
+  ]);
 
   protected readonly vitalMetricConfigs: VitalMetricConfig[] = [
     {
@@ -276,19 +289,22 @@ export class PatientDetailPageComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((items) => this.syncMedicationSuggestions(items));
+
+    this.vitalEditForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.vitalEditValidationActive()) {
+          this.refreshVitalEditFeedback();
+        }
+      });
   }
 
-  protected toggleDrawer(): void {
-    this.drawerOpen.update((open) => !open);
+  protected setSidebarTab(tab: 'soap' | 'medicine' | 'history'): void {
+    this.sidebarTab.set(tab);
   }
 
-  protected setActionTab(tab: 'soap' | 'medicine' | 'history'): void {
-    this.actionTab.set(tab);
-  }
-
-  protected openMedicationDrawer(): void {
-    this.actionTab.set('medicine');
-    this.drawerOpen.set(true);
+  protected showMedicationTab(): void {
+    this.sidebarTab.set('medicine');
   }
 
   protected toggleAddressEdit(): void {
@@ -532,7 +548,7 @@ export class PatientDetailPageComponent {
           this.consultNotes.set(consultNotes);
           this.timeline.set(timeline);
           this.predictions.set(predictions);
-          this.actionTab.set('history');
+          this.sidebarTab.set('history');
           this.noteForm.reset({
             subjective: '',
             objective: '',
@@ -588,7 +604,7 @@ export class PatientDetailPageComponent {
           this.medications.set(medications);
           this.timeline.set(timeline);
           this.predictions.set(predictions);
-          this.actionTab.set('medicine');
+          this.sidebarTab.set('medicine');
           this.medicationForm.reset({
             medicationCatalogId: '',
             medicationQuery: '',
@@ -710,6 +726,8 @@ export class PatientDetailPageComponent {
 
     this.editingVitalKey.set(config.key);
     this.vitalEditApiError.set(null);
+    this.vitalEditValidationActive.set(false);
+    this.vitalEditFeedback.set([]);
     this.vitalEditForm.reset({
       primaryValue: this.getVitalRow(config.primaryType)?.value?.toString() ?? '',
       secondaryValue: config.secondaryType ? this.getVitalRow(config.secondaryType)?.value?.toString() ?? '' : '',
@@ -719,6 +737,8 @@ export class PatientDetailPageComponent {
   protected cancelVitalEdit(): void {
     this.vitalEditApiError.set(null);
     this.editingVitalKey.set(null);
+    this.vitalEditValidationActive.set(false);
+    this.vitalEditFeedback.set([]);
     this.vitalEditForm.reset({ primaryValue: '', secondaryValue: '' });
   }
 
@@ -728,28 +748,18 @@ export class PatientDetailPageComponent {
       return;
     }
 
-    const primaryValue = Number(this.vitalEditForm.controls.primaryValue.value);
-    const secondaryValue = Number(this.vitalEditForm.controls.secondaryValue.value);
     this.vitalEditApiError.set(null);
-    if (!Number.isFinite(primaryValue) || (config.secondaryType && !Number.isFinite(secondaryValue))) {
-      this.vitalEditForm.markAllAsTouched();
-      const errorMessage = this.preferences.language() === 'nl'
-        ? 'Voer geldige getallen in voor deze meting.'
-        : 'Enter valid numeric values for this measurement.';
-      this.vitalEditApiError.set(errorMessage);
-      this.noticeService.show(errorMessage);
-      return;
-    }
-
-    const feedback = this.getVitalEditFeedback(config);
+    this.vitalEditValidationActive.set(true);
+    this.refreshVitalEditFeedback();
+    const feedback = this.vitalEditFeedback();
     if (feedback.some((item) => item.blocksSave)) {
       this.vitalEditForm.markAllAsTouched();
-      const blockingMessage = feedback.find((item) => item.blocksSave)?.message ?? '';
-      this.vitalEditApiError.set(blockingMessage);
-      this.noticeService.show(blockingMessage);
+      this.vitalEditApiError.set(null);
       return;
     }
 
+    const primaryValue = Number(this.vitalEditForm.controls.primaryValue.value);
+    const secondaryValue = Number(this.vitalEditForm.controls.secondaryValue.value);
     const requests = [
       this.api.createVitalSign(patient.id, {
         type: config.primaryType,
@@ -794,18 +804,35 @@ export class PatientDetailPageComponent {
           this.savingVitalKey.set(null);
           const errorMessage = this.extractVitalSaveErrorMessage(error);
           this.vitalEditApiError.set(errorMessage);
-          this.noticeService.show(errorMessage);
         },
       });
   }
 
-  protected getVitalEditFeedback(config: VitalMetricConfig): VitalEditFeedback[] {
+  protected getVitalFieldFeedback(field: 'primary' | 'secondary'): VitalEditFeedback[] {
+    if (!this.vitalEditValidationActive()) {
+      return [];
+    }
+    return this.vitalEditFeedback().filter((feedback) => feedback.field === field || feedback.field === 'both');
+  }
+
+  protected getVitalFormFeedback(): VitalEditFeedback[] {
+    if (!this.vitalEditValidationActive()) {
+      return [];
+    }
+    return this.vitalEditFeedback().filter((feedback) => feedback.field === 'form');
+  }
+
+  protected hasVitalFieldError(field: 'primary' | 'secondary'): boolean {
+    return this.getVitalFieldFeedback(field).some((feedback) => feedback.tone === 'error');
+  }
+
+  private buildVitalEditFeedback(config: VitalMetricConfig): VitalEditFeedback[] {
     if (this.editingVitalKey() !== config.key) {
       return [];
     }
 
-    const primaryRaw = this.vitalEditForm.controls.primaryValue.value.trim();
-    const secondaryRaw = this.vitalEditForm.controls.secondaryValue.value.trim();
+    const primaryRaw = this.normalizeVitalEditValue(this.vitalEditForm.controls.primaryValue.value);
+    const secondaryRaw = this.normalizeVitalEditValue(this.vitalEditForm.controls.secondaryValue.value);
     if (!primaryRaw && !secondaryRaw) {
       return [];
     }
@@ -814,7 +841,7 @@ export class PatientDetailPageComponent {
     const secondaryValue = Number(secondaryRaw);
     const feedback: VitalEditFeedback[] = [];
 
-    if (!Number.isFinite(primaryValue)) {
+    if (!primaryRaw || !Number.isFinite(primaryValue)) {
       feedback.push({
         field: 'primary',
         tone: 'error',
@@ -826,7 +853,7 @@ export class PatientDetailPageComponent {
       return feedback;
     }
 
-    if (config.secondaryType && !Number.isFinite(secondaryValue)) {
+    if (config.secondaryType && (!secondaryRaw || !Number.isFinite(secondaryValue))) {
       feedback.push({
         field: 'secondary',
         tone: 'error',
@@ -867,18 +894,6 @@ export class PatientDetailPageComponent {
     return feedback;
   }
 
-  protected getVitalFieldFeedback(config: VitalMetricConfig, field: 'primary' | 'secondary'): VitalEditFeedback[] {
-    return this.getVitalEditFeedback(config).filter((feedback) => feedback.field === field || feedback.field === 'both');
-  }
-
-  protected getVitalFormFeedback(config: VitalMetricConfig): VitalEditFeedback[] {
-    return this.getVitalEditFeedback(config).filter((feedback) => feedback.field === 'form');
-  }
-
-  protected hasVitalFieldError(config: VitalMetricConfig, field: 'primary' | 'secondary'): boolean {
-    return this.getVitalFieldFeedback(config, field).some((feedback) => feedback.tone === 'error');
-  }
-
   protected patientStreetLine(): string {
     const address = this.patient()?.address;
     return address?.addressLine?.trim() || this.preferences.t('notAvailable');
@@ -894,26 +909,45 @@ export class PatientDetailPageComponent {
     return parts.length > 0 ? parts.join(', ') : this.preferences.t('notAvailable');
   }
 
-  protected isMedicationActive(medication: PatientMedication): boolean {
-    return (medication.status || '').toLowerCase() === 'active';
-  }
-
   protected medicationStatusLabel(medication: PatientMedication): string {
-    return this.isMedicationActive(medication)
-      ? this.preferences.t('current')
-      : this.translateStatusToken(medication.status || 'INACTIVE');
+    switch (this.getMedicationDisplayState(medication)) {
+      case 'active':
+        return this.preferences.t('active');
+      case 'stopped':
+        return this.preferences.t('stopped');
+      default:
+        return this.translateStatusToken(medication.status || 'UNKNOWN');
+    }
   }
 
   protected medicationStatusDate(medication: PatientMedication): string {
     return this.formatDateOnly(medication.endDate || medication.startDate);
   }
 
-  protected medicationPanelTitle(): string {
-    return this.preferences.t('medication');
+  protected medicationStateAttribute(medication: PatientMedication): string {
+    return this.getMedicationDisplayState(medication).toUpperCase();
   }
 
-  protected formatMedicationStatus(status?: string | null): string {
-    return this.translateStatusToken(status || 'UNKNOWN');
+  protected getMedicationItemClasses(medication: PatientMedication): Record<string, boolean> {
+    const state = this.getMedicationDisplayState(medication);
+    return {
+      'medication-status-item--state-active': state === 'active',
+      'medication-status-item--state-stopped': state === 'stopped',
+      'medication-status-item--state-neutral': state === 'neutral',
+    };
+  }
+
+  protected getMedicationStatusTextClasses(medication: PatientMedication): Record<string, boolean> {
+    const state = this.getMedicationDisplayState(medication);
+    return {
+      'medication-status-text--state-active': state === 'active',
+      'medication-status-text--state-stopped': state === 'stopped',
+      'medication-status-text--state-neutral': state === 'neutral',
+    };
+  }
+
+  protected medicationPanelTitle(): string {
+    return this.preferences.t('medication');
   }
 
   protected isMedicationTimelineEventActive(event: TimelineEvent): boolean {
@@ -1355,6 +1389,32 @@ export class PatientDetailPageComponent {
     return `${value}${unit ? ` ${unit}` : ''}`;
   }
 
+  private refreshVitalEditFeedback(): void {
+    const config = this.getEditingVitalConfig();
+    this.vitalEditFeedback.set(
+      config && this.vitalEditValidationActive()
+        ? this.buildVitalEditFeedback(config)
+        : [],
+    );
+  }
+
+  private getEditingVitalConfig(): VitalMetricConfig | null {
+    const editingKey = this.editingVitalKey();
+    if (!editingKey) {
+      return null;
+    }
+
+    return this.vitalMetricConfigs.find((config) => config.key === editingKey) ?? null;
+  }
+
+  private normalizeVitalEditValue(value: unknown): string {
+    if (value == null) {
+      return '';
+    }
+
+    return String(value).trim();
+  }
+
   private formatNumericValue(value?: number | null, suffix = ''): string {
     if (value == null) {
       return '—';
@@ -1727,6 +1787,52 @@ export class PatientDetailPageComponent {
   private normalizeFreshnessStatus(status?: string | null): string {
     const normalizedStatus = (status || 'UNKNOWN').toUpperCase();
     return normalizedStatus === 'CURRENT' ? 'CURRENT' : normalizedStatus;
+  }
+
+  private getMedicationDisplayState(medication: PatientMedication): MedicationDisplayState {
+    const normalizedStatus = this.normalizeMedicationStateToken(medication.status);
+
+    if (this.isMedicationStopped(medication, normalizedStatus)) {
+      return 'stopped';
+    }
+
+    if (
+      medication.active === true ||
+      this.activeMedicationStatuses.has(normalizedStatus) ||
+      (!normalizedStatus && !medication.endDate)
+    ) {
+      return 'active';
+    }
+
+    return 'neutral';
+  }
+
+  private isMedicationStopped(medication: PatientMedication, normalizedStatus: string): boolean {
+    return (
+      medication.active === false ||
+      this.hasMedicationEnded(medication) ||
+      this.stoppedMedicationStatuses.has(normalizedStatus)
+    );
+  }
+
+  private hasMedicationEnded(medication: PatientMedication): boolean {
+    if (!medication.endDate) {
+      return false;
+    }
+
+    const endDate = new Date(medication.endDate);
+    if (Number.isNaN(endDate.getTime())) {
+      return false;
+    }
+
+    const medicationEndDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+    const today = new Date();
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return medicationEndDate < startOfToday;
+  }
+
+  private normalizeMedicationStateToken(status?: string | null): string {
+    return (status || '').trim().toUpperCase();
   }
 
   private formatRiskScore(value?: number | null): string {
