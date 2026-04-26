@@ -84,6 +84,7 @@ public class RangeBasedVitalInterpreterService implements VitalSignInterpreter {
             case INSUFFICIENT_CONTEXT -> "More patient context is required to interpret " + label + ".";
             case NOT_APPLICABLE -> label + " is not clinically interpreted for this context.";
             case UNKNOWN -> "Clinical interpretation is unavailable for " + label + ".";
+            case NEUTRAL -> label + " is within the healthy range for " + context.ageGroup() + ". " + rule.contextNote();
         };
     }
 

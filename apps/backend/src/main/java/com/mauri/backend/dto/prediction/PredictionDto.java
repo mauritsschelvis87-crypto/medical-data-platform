@@ -25,6 +25,11 @@ public class PredictionDto {
     private boolean riskIncreased;
 
     private String modelVersion;
+    
+    // New exact 4-state visible fields
+    private boolean visibleInSummary;
+    private String displayRiskText;
+    private String statusColor;
 
     public UUID getId() {
         return id;
@@ -112,5 +117,29 @@ public class PredictionDto {
 
     public void setModelVersion(String modelVersion) {
         this.modelVersion = modelVersion;
+    }
+
+    public boolean isVisibleInSummary() {
+        return visibleInSummary;
+    }
+
+    public void setVisibleInSummary(boolean visibleInSummary) {
+        this.visibleInSummary = visibleInSummary;
+    }
+
+    public String getDisplayRiskText() {
+        return displayRiskText;
+    }
+
+    public void setDisplayRiskText(String displayRiskText) {
+        this.displayRiskText = displayRiskText;
+    }
+
+    public String getStatusColor() {
+        return statusColor;
+    }
+
+    public void setStatusColor(String statusColor) {
+        this.statusColor = statusColor;
     }
 }

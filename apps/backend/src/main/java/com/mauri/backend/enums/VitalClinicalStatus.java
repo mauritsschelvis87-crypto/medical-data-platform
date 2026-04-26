@@ -1,6 +1,7 @@
 package com.mauri.backend.enums;
 
 public enum VitalClinicalStatus {
+    NEUTRAL,
     LOW,
     MEDIUM,
     HIGH,
