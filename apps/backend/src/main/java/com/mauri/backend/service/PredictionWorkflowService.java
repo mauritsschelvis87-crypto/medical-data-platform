@@ -5,7 +5,6 @@ import com.mauri.backend.dto.prediction.PredictionItemDto;
 import com.mauri.backend.dto.prediction.PredictionRequestDto;
 import com.mauri.backend.dto.prediction.PredictionResponseDto;
 import com.mauri.backend.entity.ConsultNote;
-import com.mauri.backend.entity.ConsultNoteVersion;
 import com.mauri.backend.entity.Patient;
 import com.mauri.backend.entity.PatientMedication;
 import com.mauri.backend.entity.VitalSigns;
@@ -84,6 +83,7 @@ public class PredictionWorkflowService {
         Map<PredictionType, PredictionResolution> resolvedPredictions = resolvePredictions(request, requestedTypes);
 
         List<PredictionDto> savedPredictions = new ArrayList<>();
+
         if (resolvedPredictions.isEmpty()) {
             return savedPredictions;
         }
@@ -91,24 +91,24 @@ public class PredictionWorkflowService {
         for (int index = 0; index < requestedTypes.size(); index++) {
             PredictionType predictionType = requestedTypes.get(index);
             PredictionResolution resolution = resolvedPredictions.get(predictionType);
+
             if (resolution == null || resolution.item() == null) {
                 continue;
             }
 
             PredictionItemDto item = resolution.item();
+            double score = item.getRiskScore() != null ? item.getRiskScore() : 0.0;
+            RiskLevel riskLevel = resolveRiskLevel(score);
+
             PredictionDto predictionDto = new PredictionDto();
             predictionDto.setPredictionType(predictionType.name());
-            
-            // Important: Use score-based resolution for consistent 4-state mapping
-            double score = item.getRiskScore();
-            RiskLevel riskLevel = resolveRiskLevel(score);
             predictionDto.setRiskLevel(riskLevel.name());
-            
             predictionDto.setRiskScore(toBigDecimal(score));
             predictionDto.setConfidence(toBigDecimal(item.getConfidence()));
-            predictionDto.setExplanation(resolveExplanation(item.getExplanation(), resolution.modelVersion()));
+            predictionDto.setExplanation(resolveExplanation(item.getExplanation()));
             predictionDto.setMainPrediction(index == 0);
             predictionDto.setModelVersion(resolution.modelVersion());
+
             savedPredictions.add(predictionService.savePrediction(patientId, predictionDto, triggeredByReferenceId));
         }
 
@@ -137,10 +137,16 @@ public class PredictionWorkflowService {
         List<VitalSigns> recentVitals = vitalSignsRepository.findLatestPerTypeByPatient(patient);
         Map<VitalSignType, VitalSigns> latestByType = new HashMap<>();
         Map<String, Object> vitalInterpretations = new LinkedHashMap<>();
+
         for (VitalSigns vitalSigns : recentVitals) {
+            if (vitalSigns == null || vitalSigns.getType() == null) {
+                continue;
+            }
+
             latestByType.putIfAbsent(vitalSigns.getType(), vitalSigns);
+
             VitalInterpretationResult interpretation = vitalInterpretationService.interpret(vitalSigns, recentVitals);
-            vitalInterpretations.put(vitalSigns.getType().name(), interpretationPayload(vitalSigns, interpretation));
+            vitalInterpretations.put(vitalSigns.getType().name(), interpretationPayload(interpretation));
         }
 
         features.put("bloodPressureSystolic", numericValueIfUsable(latestByType.get(VitalSignType.BLOOD_PRESSURE_SYSTOLIC), vitalInterpretations, VitalSignType.BLOOD_PRESSURE_SYSTOLIC));
@@ -176,12 +182,14 @@ public class PredictionWorkflowService {
 
         for (PredictionType predictionType : requestedTypes) {
             PredictionItemDto aiItem = aiPredictions.get(predictionType);
+
             if (aiItem != null) {
                 resolvedPredictions.put(predictionType, new PredictionResolution(aiItem, "ai-service"));
                 continue;
             }
 
             PredictionItemDto fallbackItem = fallbackPredictions.get(predictionType);
+
             if (fallbackItem != null) {
                 resolvedPredictions.put(predictionType, new PredictionResolution(fallbackItem, "backend-fallback"));
             }
@@ -192,6 +200,7 @@ public class PredictionWorkflowService {
 
     private Map<PredictionType, PredictionItemDto> loadAiPredictions(PredictionRequestDto request) {
         PredictionResponseDto response;
+
         try {
             response = aiService.calculatePredictions(request);
         } catch (Exception exception) {
@@ -204,22 +213,29 @@ public class PredictionWorkflowService {
         }
 
         Map<PredictionType, PredictionItemDto> aiPredictions = new LinkedHashMap<>();
+
         for (PredictionItemDto item : response.getPredictions()) {
-            if (!isUsableAiItem(item)) continue;
+            if (!isUsableAiItem(item)) {
+                continue;
+            }
+
             try {
                 PredictionType type = PredictionType.valueOf(item.getPredictionType().trim().toUpperCase(Locale.ROOT));
                 aiPredictions.put(type, item);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         return aiPredictions;
     }
 
     private boolean isUsableAiItem(PredictionItemDto item) {
-        return item != null && item.getPredictionType() != null && item.getRiskScore() != null;
+        return item != null
+                && item.getPredictionType() != null
+                && item.getRiskScore() != null;
     }
 
-    private Map<String, Object> interpretationPayload(VitalSigns vitalSigns, VitalInterpretationResult interpretation) {
+    private Map<String, Object> interpretationPayload(VitalInterpretationResult interpretation) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("status", interpretation.status().name());
         payload.put("message", interpretation.message());
@@ -236,10 +252,12 @@ public class PredictionWorkflowService {
     }
 
     private List<PredictionType> requestedPredictionTypes(PredictionRequestDto request) {
-        if (request.getPredictionTypes() == null || request.getPredictionTypes().isEmpty()) {
+        if (request == null || request.getPredictionTypes() == null || request.getPredictionTypes().isEmpty()) {
             return List.of();
         }
-        return request.getPredictionTypes().stream()
+
+        return request.getPredictionTypes()
+                .stream()
                 .map(type -> PredictionType.valueOf(type.trim().toUpperCase(Locale.ROOT)))
                 .toList();
     }
@@ -247,9 +265,11 @@ public class PredictionWorkflowService {
     private Map<PredictionType, PredictionItemDto> buildFallbackPredictions(Map<String, Object> features,
                                                                             List<PredictionType> predictionTypes) {
         Map<PredictionType, PredictionItemDto> predictions = new LinkedHashMap<>();
+
         for (PredictionType predictionType : predictionTypes) {
             predictions.put(predictionType, buildFallbackPrediction(predictionType, features));
         }
+
         return predictions;
     }
 
@@ -262,132 +282,199 @@ public class PredictionWorkflowService {
             case RESPIRATORY_RISK -> calculateRespiratoryScore(features);
         };
 
+        RiskLevel riskLevel = resolveRiskLevel(score);
+
         PredictionItemDto item = new PredictionItemDto();
         item.setPredictionType(predictionType.name());
         item.setRiskScore(round(score));
-        item.setConfidence(0.85); // Reasonable fallback confidence
-        item.setRiskLevel(resolveRiskLevel(score).name());
+        item.setConfidence(0.85);
+        item.setRiskLevel(riskLevel.name());
         item.setExplanation(fallbackExplanation(predictionType));
         item.setIsMainPrediction(Boolean.FALSE);
+
         return item;
     }
 
     private double calculateCardiovascularScore(Map<String, Object> features) {
-        double score = 0.02; // Minimal baseline (Neutral)
-        score += interpretationContribution(features, VitalSignType.BLOOD_PRESSURE_SYSTOLIC, 0.12, 0.25);
-        score += interpretationContribution(features, VitalSignType.BLOOD_PRESSURE_DIASTOLIC, 0.10, 0.20);
-        score += interpretationContribution(features, VitalSignType.CHOLESTEROL, 0.10, 0.20);
-        score += interpretationContribution(features, VitalSignType.BMI, 0.05, 0.15);
+        double score = 0.02;
+
+        score += interpretationContribution(features, VitalSignType.BLOOD_PRESSURE_SYSTOLIC, 0.03, 0.10, 0.22);
+        score += interpretationContribution(features, VitalSignType.BLOOD_PRESSURE_DIASTOLIC, 0.03, 0.08, 0.18);
+        score += interpretationContribution(features, VitalSignType.CHOLESTEROL, 0.03, 0.08, 0.18);
+        score += interpretationContribution(features, VitalSignType.BMI, 0.02, 0.06, 0.14);
+        score += interpretationContribution(features, VitalSignType.HEART_RATE, 0.02, 0.05, 0.10);
+
         return Math.min(score, 0.95);
     }
 
     private double calculateDiabetesScore(Map<String, Object> features) {
-        double score = 0.02; // Minimal baseline (Neutral)
-        score += interpretationContribution(features, VitalSignType.GLUCOSE, 0.20, 0.40);
-        score += interpretationContribution(features, VitalSignType.BMI, 0.08, 0.18);
+        double score = 0.02;
+
+        score += interpretationContribution(features, VitalSignType.GLUCOSE, 0.04, 0.12, 0.26);
+        score += interpretationContribution(features, VitalSignType.BMI, 0.02, 0.06, 0.14);
+
         return Math.min(score, 0.92);
     }
 
     private double calculateGeneralScore(Map<String, Object> features) {
-        double score = 0.03; // Minimal baseline (Neutral)
-        score += interpretationContribution(features, VitalSignType.HEART_RATE, 0.10, 0.20);
-        score += interpretationContribution(features, VitalSignType.BODY_TEMPERATURE, 0.10, 0.20);
-        score += interpretationContribution(features, VitalSignType.OXYGEN_SATURATION, 0.15, 0.30);
+        double score = 0.02;
+
+        score += interpretationContribution(features, VitalSignType.HEART_RATE, 0.03, 0.08, 0.16);
+        score += interpretationContribution(features, VitalSignType.BODY_TEMPERATURE, 0.03, 0.08, 0.16);
+        score += interpretationContribution(features, VitalSignType.OXYGEN_SATURATION, 0.04, 0.10, 0.22);
+        score += interpretationContribution(features, VitalSignType.BLOOD_PRESSURE_SYSTOLIC, 0.02, 0.06, 0.12);
+        score += interpretationContribution(features, VitalSignType.GLUCOSE, 0.02, 0.05, 0.10);
+
         return Math.min(score, 0.90);
     }
 
     private double calculateSepsisScore(Map<String, Object> features) {
-        double score = 0.02; // Clean baseline, no 16% sepsis anymore
-        
-        // Critical sepsis indicators (multiplicative effect would be better, but sum is fine for fallback)
-        double tempContrib = interpretationContribution(features, VitalSignType.BODY_TEMPERATURE, 0.15, 0.35);
-        double hrContrib = interpretationContribution(features, VitalSignType.HEART_RATE, 0.12, 0.25);
-        double spo2Contrib = interpretationContribution(features, VitalSignType.OXYGEN_SATURATION, 0.10, 0.20);
-        double bpContrib = interpretationContribution(features, VitalSignType.BLOOD_PRESSURE_SYSTOLIC, 0.10, 0.20);
-        
-        score += tempContrib + hrContrib + spo2Contrib + bpContrib;
+        double score = 0.02;
+
+        int relevantSignals = 0;
+
+        relevantSignals += countIfRelevant(features, VitalSignType.BODY_TEMPERATURE);
+        relevantSignals += countIfRelevant(features, VitalSignType.HEART_RATE);
+        relevantSignals += countIfRelevant(features, VitalSignType.OXYGEN_SATURATION);
+        relevantSignals += countIfRelevant(features, VitalSignType.BLOOD_PRESSURE_SYSTOLIC);
+        relevantSignals += countIfRelevant(features, VitalSignType.GLUCOSE);
+
+        if (relevantSignals < 2) {
+            return 0.02;
+        }
+
+        score += interpretationContribution(features, VitalSignType.BODY_TEMPERATURE, 0.02, 0.10, 0.25);
+        score += interpretationContribution(features, VitalSignType.HEART_RATE, 0.02, 0.08, 0.20);
+        score += interpretationContribution(features, VitalSignType.OXYGEN_SATURATION, 0.03, 0.10, 0.25);
+        score += interpretationContribution(features, VitalSignType.BLOOD_PRESSURE_SYSTOLIC, 0.02, 0.08, 0.20);
+        score += interpretationContribution(features, VitalSignType.GLUCOSE, 0.01, 0.05, 0.12);
+
         return Math.min(score, 0.94);
     }
 
     private double calculateRespiratoryScore(Map<String, Object> features) {
-        double score = 0.02; // Minimal baseline
-        score += interpretationContribution(features, VitalSignType.OXYGEN_SATURATION, 0.20, 0.40);
-        score += interpretationContribution(features, VitalSignType.HEART_RATE, 0.06, 0.12);
+        double score = 0.02;
+
+        score += interpretationContribution(features, VitalSignType.OXYGEN_SATURATION, 0.04, 0.12, 0.28);
+        score += interpretationContribution(features, VitalSignType.HEART_RATE, 0.02, 0.05, 0.10);
+
         return Math.min(score, 0.92);
     }
 
     private double interpretationContribution(Map<String, Object> features,
                                               VitalSignType vitalType,
+                                              double lowContribution,
                                               double mediumContribution,
                                               double highContribution) {
         String status = interpretationStatus(features, vitalType);
-        if (status == null) return 0.0;
+
+        if (status == null) {
+            return 0.0;
+        }
+
         return switch (status) {
+            case "LOW" -> lowContribution;
             case "MEDIUM" -> mediumContribution;
             case "HIGH", "CRITICAL" -> highContribution;
-            default -> 0.0; // NEUTRAL and LOW (mild) contribute 0.0 here to keep summary clean
+            default -> 0.0;
+        };
+    }
+
+    private int countIfRelevant(Map<String, Object> features, VitalSignType type) {
+        String status = interpretationStatus(features, type);
+
+        if (status == null) {
+            return 0;
+        }
+
+        return switch (status) {
+            case "MEDIUM", "HIGH", "CRITICAL" -> 1;
+            default -> 0;
         };
     }
 
     private String interpretationStatus(Map<String, Object> features, VitalSignType vitalType) {
         Object interpretationsObject = features.get("vitalInterpretations");
+
         if (interpretationsObject instanceof Map<?, ?> interpretations) {
             Object payload = interpretations.get(vitalType.name());
+
             if (payload instanceof Map<?, ?> map) {
                 Object status = map.get("status");
                 return status instanceof String string ? string : null;
             }
         }
+
         return null;
     }
 
     private RiskLevel resolveRiskLevel(double score) {
-        // Exact thresholds as requested:
-        // 0.0% – 4.9% = NEUTRAL
-        // 5.0% – 14.9% = LOW
-        // 15.0% – 29.9% = MEDIUM
-        // ≥30.0% = HIGH
-        if (score >= 0.30) return RiskLevel.HIGH;
-        if (score >= 0.15) return RiskLevel.MEDIUM;
-        if (score >= 0.05) return RiskLevel.LOW;
+        if (score >= 0.30) {
+            return RiskLevel.HIGH;
+        }
+
+        if (score >= 0.15) {
+            return RiskLevel.MEDIUM;
+        }
+
+        if (score >= 0.05) {
+            return RiskLevel.LOW;
+        }
+
         return RiskLevel.NEUTRAL;
     }
 
     private double round(double value) {
-        return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).doubleValue();
+        return BigDecimal.valueOf(value)
+                .setScale(2, RoundingMode.HALF_UP)
+                .doubleValue();
     }
 
     private BigDecimal toBigDecimal(Double value) {
-        if (value == null) return null;
-        return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP);
+        if (value == null) {
+            return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+        }
+
+        return BigDecimal.valueOf(value)
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     private Double numericValueIfUsable(VitalSigns vitalSigns,
                                         Map<String, Object> interpretations,
                                         VitalSignType vitalType) {
-        if (vitalSigns == null || vitalSigns.getValue() == null) return null;
-        
+        if (vitalSigns == null || vitalSigns.getValue() == null) {
+            return null;
+        }
+
         Object payload = interpretations.get(vitalType.name());
+
         if (payload instanceof Map<?, ?> map) {
-            String status = (String) map.get("status");
-            if ("OUT_OF_RANGE".equals(status) || "INSUFFICIENT_CONTEXT".equals(status)) {
+            Object rawStatus = map.get("status");
+            String status = rawStatus instanceof String string ? string : null;
+
+            if (VitalClinicalStatus.OUT_OF_RANGE.name().equals(status)
+                    || VitalClinicalStatus.INSUFFICIENT_CONTEXT.name().equals(status)) {
                 return null;
             }
         }
+
         return vitalSigns.getValue().doubleValue();
     }
 
-    private String resolveExplanation(String explanation, String modelVersion) {
-        if (explanation != null && !explanation.isBlank()) return explanation.trim();
+    private String resolveExplanation(String explanation) {
+        if (explanation != null && !explanation.isBlank()) {
+            return explanation.trim();
+        }
+
         return "Based on age-aware vital interpretation and patient context";
     }
 
     private String fallbackExplanation(PredictionType predictionType) {
         return switch (predictionType) {
-            case CARDIOVASCULAR_RISK -> "Based on blood pressure, cholesterol and BMI interpretation";
+            case CARDIOVASCULAR_RISK -> "Based on blood pressure, cholesterol, BMI and heart rate interpretation";
             case DIABETES_RISK -> "Based on glucose and BMI interpretation";
             case GENERAL_DETERIORATION -> "Based on core vital signs stability";
-            case SEPSIS_RISK -> "Based on temperature, heart rate and blood pressure signals";
+            case SEPSIS_RISK -> "Based on temperature, heart rate, blood pressure, oxygen saturation and glucose signals";
             case RESPIRATORY_RISK -> "Based on oxygen saturation and heart rate";
         };
     }

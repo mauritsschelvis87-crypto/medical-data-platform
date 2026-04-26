@@ -27,16 +27,38 @@ public record VitalRangeRule(
         if (value == null) {
             return VitalClinicalStatus.INSUFFICIENT_CONTEXT;
         }
+
         if (isBelow(value, plausibleMinimum) || isAbove(value, plausibleMaximum)) {
             return VitalClinicalStatus.OUT_OF_RANGE;
         }
+
         if (isBelow(value, criticalMinimum) || isAbove(value, criticalMaximum)) {
             return VitalClinicalStatus.HIGH;
         }
-        if (isBelow(value, expectedMinimum) || isAbove(value, expectedMaximum)) {
+
+        if (isModeratelyOutsideExpectedRange(value)) {
             return VitalClinicalStatus.MEDIUM;
         }
-        return VitalClinicalStatus.LOW;
+
+        if (isBelow(value, expectedMinimum) || isAbove(value, expectedMaximum)) {
+            return VitalClinicalStatus.LOW;
+        }
+
+        return VitalClinicalStatus.NEUTRAL;
+    }
+
+    private boolean isModeratelyOutsideExpectedRange(BigDecimal value) {
+        if (expectedMinimum != null && criticalMinimum != null && value.compareTo(expectedMinimum) < 0) {
+            BigDecimal midpoint = expectedMinimum.add(criticalMinimum).divide(BigDecimal.valueOf(2));
+            return value.compareTo(midpoint) <= 0;
+        }
+
+        if (expectedMaximum != null && criticalMaximum != null && value.compareTo(expectedMaximum) > 0) {
+            BigDecimal midpoint = expectedMaximum.add(criticalMaximum).divide(BigDecimal.valueOf(2));
+            return value.compareTo(midpoint) >= 0;
+        }
+
+        return false;
     }
 
     private boolean isBelow(BigDecimal value, BigDecimal threshold) {

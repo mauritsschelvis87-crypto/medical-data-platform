@@ -43,18 +43,23 @@ public class VitalSignsMapper {
         dto.setValue(vitalSigns.getValue());
         dto.setUnit(vitalSigns.getUnit());
         dto.setMeasuredAt(vitalSigns.getMeasuredAt());
+
         dto.setClinicalStatus(interpretation.status().name());
-        dto.setFreshnessStatus(freshnessStatus.name());
         dto.setClinicalMessage(interpretation.message());
+
+        dto.setFreshnessStatus(freshnessStatus.name());
         dto.setFreshnessMessage(vitalSignsStatusService.resolveFreshnessMessage(vitalSigns.getMeasuredAt(), freshnessStatus));
+
         dto.setAgeGroup(interpretation.ageGroup().name());
         dto.setInterpretationStatus(interpretation.status().name());
         dto.setInterpretationMessage(interpretation.message());
         dto.setContextComplete(interpretation.contextComplete());
+
         dto.setEditable(vitalSigns.getType() != VitalSignType.BMI);
         dto.setSource(vitalSigns.getSource() != null ? vitalSigns.getSource().name() : null);
         dto.setSourceObservationCode(vitalSigns.getSourceObservationCode());
         dto.setSourceDescription(vitalSigns.getSourceDescription());
+
         return dto;
     }
 
@@ -62,6 +67,7 @@ public class VitalSignsMapper {
         if (type == null) {
             return "Vital sign";
         }
+
         return switch (type) {
             case BLOOD_PRESSURE_SYSTOLIC -> "Systolic blood pressure";
             case BLOOD_PRESSURE_DIASTOLIC -> "Diastolic blood pressure";
