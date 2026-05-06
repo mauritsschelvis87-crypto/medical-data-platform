@@ -1,0 +1,10 @@
+.git
+.idea
+target
+logs
+runtime-logs
+backend-run.err
+backend-run.log
+backend-run.out
+tmp-backend.err.log
+tmp-backend.out.log

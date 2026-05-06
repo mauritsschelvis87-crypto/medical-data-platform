@@ -5,10 +5,16 @@ class RiskEvaluationService:
 
     @staticmethod
     def evaluate(score: float) -> RiskLevel:
-        if score > 0.8:
-            return RiskLevel.CRITICAL
-        if score > 0.6:
+        if score is None:
+            return RiskLevel.NEUTRAL
+
+        if score >= 0.30:
             return RiskLevel.HIGH
-        if score > 0.4:
+
+        if score >= 0.15:
             return RiskLevel.MEDIUM
-        return RiskLevel.LOW
+
+        if score >= 0.05:
+            return RiskLevel.LOW
+
+        return RiskLevel.NEUTRAL

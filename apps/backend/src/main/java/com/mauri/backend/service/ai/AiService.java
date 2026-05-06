@@ -35,15 +35,11 @@ public class AiService {
                     .bodyToMono(PredictionResponseDto.class)
                     .block();
         } catch (WebClientResponseException ex) {
-            log.warn("AI service returned {} for patient {} and trigger {}.",
-                    ex.getStatusCode(),
-                    requestDto.getPatientId(),
-                    requestDto.getTriggerSource());
+            log.warn("AI service returned {}. Falling back to backend prediction flow.",
+                    ex.getStatusCode());
             throw new IllegalStateException("AI service returned an error: " + ex.getStatusCode(), ex);
         } catch (Exception ex) {
-            log.warn("AI service is unavailable for patient {} and trigger {}.",
-                    requestDto.getPatientId(),
-                    requestDto.getTriggerSource());
+            log.warn("AI service is unavailable. Falling back to backend prediction flow.");
             throw new IllegalStateException("AI service is unavailable", ex);
         }
     }

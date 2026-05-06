@@ -12,5 +12,6 @@ app = FastAPI(
     version=settings.app_version
 )
 
-app.include_router(health_router, prefix=settings.api_v1_prefix)
+app.include_router(health_router)
+app.include_router(health_router, prefix=settings.api_v1_prefix, include_in_schema=False)
 app.include_router(prediction_router, prefix=settings.api_v1_prefix)

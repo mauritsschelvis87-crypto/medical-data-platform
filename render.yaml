@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: medical-data-platform-backend
+    runtime: docker
+    rootDir: apps/backend
+    dockerContext: ./apps/backend
+    dockerfilePath: ./apps/backend/Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: SPRING_DATASOURCE_PREPARE_THRESHOLD
+        value: "0"
+      - key: AI_SERVICE_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: MEDICATION_CATALOG_SOURCE_PATH
+        value: ""
+
+  - type: web
+    name: medical-data-platform-ai-service
+    runtime: docker
+    rootDir: apps/ai-service
+    dockerContext: ./apps/ai-service
+    dockerfilePath: ./apps/ai-service/Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: MODEL_PATH
+        value: /app/models

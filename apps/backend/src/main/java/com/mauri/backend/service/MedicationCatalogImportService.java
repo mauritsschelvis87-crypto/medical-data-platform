@@ -45,6 +45,10 @@ public class MedicationCatalogImportService {
             return;
         }
 
+        if (catalogSourcePath == null || catalogSourcePath.isBlank()) {
+            return;
+        }
+
         Path sourcePath = Paths.get(catalogSourcePath).normalize();
         if (!sourcePath.isAbsolute()) {
             sourcePath = Paths.get("").toAbsolutePath().resolve(sourcePath).normalize();

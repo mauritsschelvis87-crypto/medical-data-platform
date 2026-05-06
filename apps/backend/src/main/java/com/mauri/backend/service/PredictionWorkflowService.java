@@ -204,7 +204,7 @@ public class PredictionWorkflowService {
         try {
             response = aiService.calculatePredictions(request);
         } catch (Exception exception) {
-            log.warn("AI service unavailable for patient {}. Using backend fallback.", request.getPatientId());
+            log.warn("AI service unavailable. Using backend fallback predictions.");
             return Map.of();
         }
 

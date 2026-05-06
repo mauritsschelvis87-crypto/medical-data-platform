@@ -139,8 +139,7 @@ public class VitalSignsService {
             vitalMeasurementValidationService.validateForPersistence(bmiVital);
             vitalSignsRepository.save(bmiVital);
         } catch (IllegalArgumentException exception) {
-            log.warn("Skipping derived BMI for patient {} because the calculated value is implausible: {}",
-                    patient.getId(),
+            log.warn("Skipping derived BMI because the calculated value is implausible: {}",
                     exception.getMessage());
         }
     }

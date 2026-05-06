@@ -102,7 +102,7 @@ public class GlobalExceptionHandler {
             return nestedResponse;
         }
 
-        log.error("Unhandled exception while processing {} {}", request.getMethod(), request.getRequestURI(), exception);
+        log.error("Unhandled exception while processing API request.", exception);
 
         ApiErrorResponse response = buildErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,

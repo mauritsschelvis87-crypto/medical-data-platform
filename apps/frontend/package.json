@@ -3,13 +3,19 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "prestart": "node scripts/write-angular-env.mjs",
     "start": "ng serve",
+    "prebuild": "node scripts/write-angular-env.mjs",
     "build": "ng build",
+    "build:vercel": "npm run build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
   "private": true,
   "packageManager": "npm@10.9.2",
+  "engines": {
+    "node": ">=22 <23"
+  },
   "dependencies": {
     "@angular/common": "^21.2.0",
     "@angular/compiler": "^21.2.0",
