@@ -7,20 +7,25 @@ const projectRoot = path.resolve(__dirname, '..');
 const environmentsDir = path.join(projectRoot, 'src', 'environments');
 
 const defaultDevelopmentUrl = 'http://localhost:8081/api';
-const resolvedProductionUrl = normalizeApiBaseUrl(process.env.API_BASE_URL || defaultDevelopmentUrl);
+const defaultProductionUrl = '/api';
+const resolvedProductionUrl = normalizeApiBaseUrl(process.env.API_BASE_URL || defaultProductionUrl);
 
 await mkdir(environmentsDir, { recursive: true });
 
 await Promise.all([
   writeEnvironmentFile(path.join(environmentsDir, 'environment.ts'), false, defaultDevelopmentUrl),
   writeEnvironmentFile(path.join(environmentsDir, 'environment.development.ts'), false, defaultDevelopmentUrl),
+  writeEnvironmentFile(path.join(environmentsDir, 'environment.prod.ts'), true, resolvedProductionUrl),
   writeEnvironmentFile(path.join(environmentsDir, 'environment.production.ts'), true, resolvedProductionUrl),
 ]);
 
 function normalizeApiBaseUrl(value) {
   const normalized = value.trim().replace(/\/+$/, '');
+  if (normalized.startsWith('/')) {
+    return normalized;
+  }
   if (!/^https?:\/\//.test(normalized)) {
-    throw new Error('API_BASE_URL must start with http:// or https://');
+    throw new Error('API_BASE_URL must start with http://, https://, or /');
   }
   return normalized;
 }

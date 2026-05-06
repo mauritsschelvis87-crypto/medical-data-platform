@@ -77,10 +77,19 @@ public class PredictionWorkflowService {
 
     @Transactional
     public List<PredictionDto> recalculatePredictions(UUID patientId, String triggerSource, UUID triggeredByReferenceId) {
+        PredictionRequestDto request = new PredictionRequestDto();
+        request.setTriggerSource(triggerSource);
+        return calculatePredictions(patientId, request, triggeredByReferenceId);
+    }
+
+    @Transactional
+    public List<PredictionDto> calculatePredictions(UUID patientId,
+                                                    PredictionRequestDto request,
+                                                    UUID triggeredByReferenceId) {
         Patient patient = patientService.getPatientEntityById(patientId);
-        PredictionRequestDto request = buildRequest(patient, triggerSource);
-        List<PredictionType> requestedTypes = requestedPredictionTypes(request);
-        Map<PredictionType, PredictionResolution> resolvedPredictions = resolvePredictions(request, requestedTypes);
+        PredictionRequestDto effectiveRequest = prepareRequest(patient, request);
+        List<PredictionType> requestedTypes = requestedPredictionTypes(effectiveRequest);
+        Map<PredictionType, PredictionResolution> resolvedPredictions = resolvePredictions(effectiveRequest, requestedTypes);
 
         List<PredictionDto> savedPredictions = new ArrayList<>();
 
@@ -115,13 +124,20 @@ public class PredictionWorkflowService {
         return savedPredictions;
     }
 
-    private PredictionRequestDto buildRequest(Patient patient, String triggerSource) {
-        PredictionRequestDto request = new PredictionRequestDto();
-        request.setPatientId(patient.getId().toString());
-        request.setTriggerSource(triggerSource);
-        request.setPredictionTypes(EnumSet.allOf(PredictionType.class).stream().map(Enum::name).toList());
-        request.setFeatures(buildFeatures(patient));
-        return request;
+    private PredictionRequestDto prepareRequest(Patient patient, PredictionRequestDto request) {
+        PredictionRequestDto effectiveRequest = request != null ? request : new PredictionRequestDto();
+        effectiveRequest.setPatientId(patient.getId().toString());
+
+        if (effectiveRequest.getTriggerSource() == null || effectiveRequest.getTriggerSource().isBlank()) {
+            effectiveRequest.setTriggerSource("MANUAL");
+        }
+
+        if (effectiveRequest.getPredictionTypes() == null || effectiveRequest.getPredictionTypes().isEmpty()) {
+            effectiveRequest.setPredictionTypes(EnumSet.allOf(PredictionType.class).stream().map(Enum::name).toList());
+        }
+
+        effectiveRequest.setFeatures(buildFeatures(patient));
+        return effectiveRequest;
     }
 
     private Map<String, Object> buildFeatures(Patient patient) {

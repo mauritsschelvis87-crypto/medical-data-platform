@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { map } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
   ConsultNote,
@@ -54,15 +55,37 @@ export class PatientApiService {
   }
 
   getLatestPredictions(patientId: string) {
-    return this.http.get<Prediction[]>(`${this.baseUrl}/patients/${patientId}/predictions/latest`);
+    return this.http
+      .get<any>(`${this.baseUrl}/patients/${patientId}/predictions/latest`)
+      .pipe(
+        map((res: any) => this.mapPredictionResponse(res)),
+      );
   }
 
   recalculatePredictions(patientId: string, triggerSource = 'DETAIL_VIEW') {
-    const params = new HttpParams().set('triggerSource', triggerSource);
-    return this.http.post<Prediction[]>(
-      `${this.baseUrl}/patients/${patientId}/predictions/recalculate`,
-      null,
-      { params },
+    return this.http.post<any>(
+      `${this.baseUrl}/patients/${patientId}/predictions/calculate`,
+      {
+        patientId,
+        triggerSource,
+        predictionTypes: [
+          'DIABETES_RISK',
+          'CARDIOVASCULAR_RISK',
+          'GENERAL_DETERIORATION',
+        ],
+        features: {},
+      },
+    ).pipe(
+      map((res: any) => this.mapPredictionResponse(res)),
+    );
+  }
+
+  calculatePredictions(patientId: string, payload: any) {
+    return this.http.post<any>(
+      `${this.baseUrl}/patients/${patientId}/predictions/calculate`,
+      payload,
+    ).pipe(
+      map((res: any) => this.mapPredictionResponse(res)),
     );
   }
 
@@ -95,5 +118,18 @@ export class PatientApiService {
       `${this.baseUrl}/patients/${patientId}/medications`,
       payload,
     );
+  }
+
+  private mapPredictionResponse(res: any): Prediction[] {
+    const predictions = Array.isArray(res?.predictions)
+      ? res.predictions
+      : Array.isArray(res)
+        ? res
+        : [];
+
+    return predictions.map((prediction: any) => ({
+      ...prediction,
+      mainPrediction: prediction?.mainPrediction ?? prediction?.isMainPrediction ?? false,
+    }));
   }
 }

@@ -20,7 +20,7 @@ public class AiService {
     private final String aiServiceUrl;
 
     public AiService(RestTemplate restTemplate,
-                     @Value("${ai.service.url:http://localhost:8001}") String aiServiceUrl) {
+                     @Value("${ai.service.url}") String aiServiceUrl) {
         this.restTemplate = restTemplate;
         this.aiServiceUrl = normalizeBaseUrl(aiServiceUrl);
     }
@@ -44,7 +44,7 @@ public class AiService {
 
     private String normalizeBaseUrl(String url) {
         if (url == null || url.isBlank()) {
-            return "http://localhost:8001";
+            throw new IllegalArgumentException("ai.service.url must be configured");
         }
 
         return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;

@@ -1,6 +1,7 @@
 package com.mauri.backend.controller;
 
 import com.mauri.backend.dto.prediction.PredictionDto;
+import com.mauri.backend.dto.prediction.PredictionRequestDto;
 import com.mauri.backend.enums.PredictionType;
 import com.mauri.backend.service.PredictionWorkflowService;
 import com.mauri.backend.service.PredictionService;
@@ -57,6 +58,12 @@ public class PredictionController {
             @RequestBody PredictionDto predictionDto
     ) {
         return predictionService.savePrediction(patientId, predictionDto);
+    }
+
+    @PostMapping("/calculate")
+    public List<PredictionDto> calculatePredictions(@PathVariable UUID patientId,
+                                                    @RequestBody PredictionRequestDto request) {
+        return predictionWorkflowService.calculatePredictions(patientId, request, null);
     }
 
     @PostMapping("/recalculate")
