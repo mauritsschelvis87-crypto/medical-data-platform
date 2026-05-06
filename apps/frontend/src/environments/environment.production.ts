@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiBaseUrl: '/api',
+  apiBaseUrl: 'https://medical-backend.onrender.com/api',
 };

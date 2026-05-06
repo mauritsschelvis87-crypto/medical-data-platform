@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'http://localhost:8081/api',
+  apiBaseUrl: 'https://medical-backend.onrender.com/api',
 };
