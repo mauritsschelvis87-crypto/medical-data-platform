@@ -23,7 +23,7 @@ import {
 })
 export class PatientApiService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = environment.apiBaseUrl;
+  private readonly baseUrl = environment.apiUrl;
 
   searchPatients(query: string) {
     const params = new HttpParams().set('q', query);

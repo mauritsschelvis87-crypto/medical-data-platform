@@ -6,8 +6,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const environmentsDir = path.join(projectRoot, 'src', 'environments');
 
-const defaultDevelopmentUrl = 'https://medical-backend.onrender.com/api';
-const defaultProductionUrl = 'https://medical-backend.onrender.com/api';
+const defaultDevelopmentUrl = '/api';
+const defaultProductionUrl = '/api';
 const resolvedProductionUrl = normalizeApiBaseUrl(process.env.API_BASE_URL || defaultProductionUrl);
 
 await mkdir(environmentsDir, { recursive: true });
@@ -21,8 +21,11 @@ await Promise.all([
 
 function normalizeApiBaseUrl(value) {
   const normalized = value.trim().replace(/\/+$/, '');
+  if (normalized.startsWith('/')) {
+    return normalized;
+  }
   if (!/^https?:\/\//.test(normalized)) {
-    throw new Error('API_BASE_URL must start with http:// or https://');
+    throw new Error('API_BASE_URL must start with http://, https://, or /');
   }
   return normalized;
 }
@@ -30,7 +33,7 @@ function normalizeApiBaseUrl(value) {
 async function writeEnvironmentFile(filePath, production, apiBaseUrl) {
   const content = `export const environment = {
   production: ${production},
-  apiBaseUrl: '${apiBaseUrl}',
+  apiUrl: '${apiBaseUrl}',
 };
 `;
   await writeFile(filePath, content, 'utf8');
