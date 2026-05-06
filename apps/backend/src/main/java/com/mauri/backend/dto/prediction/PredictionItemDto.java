@@ -7,8 +7,8 @@ public class PredictionItemDto {
 
     private String predictionType;
     private String riskLevel;
-    private Double riskScore;
-    private Double confidence;
+    private Number riskScore;
+    private Number confidence;
     private String explanation;
     private Boolean isMainPrediction;
 }

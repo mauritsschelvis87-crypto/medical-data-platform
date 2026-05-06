@@ -97,7 +97,7 @@ public class PredictionWorkflowService {
             }
 
             PredictionItemDto item = resolution.item();
-            double score = item.getRiskScore() != null ? item.getRiskScore() : 0.0;
+            double score = toDouble(item.getRiskScore());
             RiskLevel riskLevel = resolveRiskLevel(score);
 
             PredictionDto predictionDto = new PredictionDto();
@@ -117,7 +117,7 @@ public class PredictionWorkflowService {
 
     private PredictionRequestDto buildRequest(Patient patient, String triggerSource) {
         PredictionRequestDto request = new PredictionRequestDto();
-        request.setPatientId(patient.getId());
+        request.setPatientId(patient.getId().toString());
         request.setTriggerSource(triggerSource);
         request.setPredictionTypes(EnumSet.allOf(PredictionType.class).stream().map(Enum::name).toList());
         request.setFeatures(buildFeatures(patient));
@@ -437,6 +437,19 @@ public class PredictionWorkflowService {
 
         return BigDecimal.valueOf(value)
                 .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal toBigDecimal(Number value) {
+        if (value == null) {
+            return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+        }
+
+        return BigDecimal.valueOf(value.doubleValue())
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private double toDouble(Number value) {
+        return value == null ? 0.0 : value.doubleValue();
     }
 
     private Double numericValueIfUsable(VitalSigns vitalSigns,

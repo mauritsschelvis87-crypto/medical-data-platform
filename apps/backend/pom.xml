@@ -28,12 +28,6 @@
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
 
-		<!-- WebClient (AI service communicatie) -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webflux</artifactId>
-		</dependency>
-
 		<!-- JPA (database) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
