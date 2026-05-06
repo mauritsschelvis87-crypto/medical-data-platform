@@ -17,11 +17,12 @@ WORKDIR /app
 RUN groupadd --system spring && useradd --system --gid spring spring
 
 ENV SPRING_PROFILES_ACTIVE=prod
+ENV PORT=10000
 
 COPY --from=build /app/target/*.jar /app/app.jar
 
 USER spring
 
-EXPOSE 8080
+EXPOSE 10000
 
 ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar /app/app.jar"]
