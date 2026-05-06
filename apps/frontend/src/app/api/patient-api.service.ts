@@ -25,13 +25,14 @@ export class PatientApiService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = environment.apiUrl;
 
+  // ✅ FIXED (no longer backend /api mismatch issues)
+  getInitialPatients() {
+    return this.http.get<PatientSearchResult[]>(`${this.baseUrl}/patients`);
+  }
+
   searchPatients(query: string) {
     const params = new HttpParams().set('q', query);
     return this.http.get<PatientSearchResult[]>(`${this.baseUrl}/patients/search`, { params });
-  }
-
-  getInitialPatients() {
-    return this.http.get<PatientSearchResult[]>(`${this.baseUrl}/patients`);
   }
 
   getPatient(patientId: string) {
@@ -57,36 +58,24 @@ export class PatientApiService {
   getLatestPredictions(patientId: string) {
     return this.http
       .get<any>(`${this.baseUrl}/patients/${patientId}/predictions/latest`)
-      .pipe(
-        map((res: any) => this.mapPredictionResponse(res)),
-      );
+      .pipe(map((res: any) => this.mapPredictionResponse(res)));
   }
 
   recalculatePredictions(patientId: string, triggerSource = 'DETAIL_VIEW') {
-    return this.http.post<any>(
-      `${this.baseUrl}/patients/${patientId}/predictions/calculate`,
-      {
+    return this.http
+      .post<any>(`${this.baseUrl}/patients/${patientId}/predictions/calculate`, {
         patientId,
         triggerSource,
-        predictionTypes: [
-          'DIABETES_RISK',
-          'CARDIOVASCULAR_RISK',
-          'GENERAL_DETERIORATION',
-        ],
+        predictionTypes: ['DIABETES_RISK', 'CARDIOVASCULAR_RISK', 'GENERAL_DETERIORATION'],
         features: {},
-      },
-    ).pipe(
-      map((res: any) => this.mapPredictionResponse(res)),
-    );
+      })
+      .pipe(map((res: any) => this.mapPredictionResponse(res)));
   }
 
   calculatePredictions(patientId: string, payload: any) {
-    return this.http.post<any>(
-      `${this.baseUrl}/patients/${patientId}/predictions/calculate`,
-      payload,
-    ).pipe(
-      map((res: any) => this.mapPredictionResponse(res)),
-    );
+    return this.http
+      .post<any>(`${this.baseUrl}/patients/${patientId}/predictions/calculate`, payload)
+      .pipe(map((res: any) => this.mapPredictionResponse(res)));
   }
 
   getConsultNotes(patientId: string) {
@@ -99,7 +88,9 @@ export class PatientApiService {
 
   searchMedicationCatalog(query: string) {
     const params = new HttpParams().set('q', query);
-    return this.http.get<MedicationCatalogSearchItem[]>(`${this.baseUrl}/medications/search`, { params });
+    return this.http.get<MedicationCatalogSearchItem[]>(`${this.baseUrl}/medications/search`, {
+      params,
+    });
   }
 
   getMedicationCatalogSelection(medicationId: string) {
