@@ -1,8 +1,8 @@
 export interface PatientSearchResult {
   id: string;
-  patientNumber: string;
-  fullName: string;
-  birthDate: string;
+  patientNumber?: string;
+  name: string;
+  birthDate?: string;
 }
 
 export interface PatientAddress {

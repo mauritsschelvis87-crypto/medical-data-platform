@@ -110,12 +110,4 @@ export class PatientSearchPageComponent {
       }
     }
   }
-
-  protected formatDate(value: string): string {
-    return new Intl.DateTimeFormat(this.preferences.language() === 'en' ? 'en-GB' : 'nl-NL', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    }).format(new Date(value));
-  }
 }
