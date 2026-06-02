@@ -86,6 +86,10 @@ export class PatientSearchPageComponent {
     this.router.navigate(['/patients', patientId]);
   }
 
+  protected clearSearch(): void {
+    this.searchControl.setValue('');
+  }
+
   protected onKeydown(event: KeyboardEvent): void {
     const results = this.results();
     if (results.length === 0) {
