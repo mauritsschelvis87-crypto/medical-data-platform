@@ -1,28 +1,27 @@
-FROM maven:3.9.11-eclipse-temurin-21 AS build
+FROM eclipse-temurin:21-jdk AS build
 
-WORKDIR /app
+WORKDIR /workspace
 
-COPY .mvn/ .mvn/
-COPY mvnw pom.xml ./
-RUN chmod +x mvnw
-RUN ./mvnw -q -DskipTests dependency:go-offline
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+COPY src src
 
-COPY src/ src/
-RUN ./mvnw -q -DskipTests clean package
+RUN chmod +x mvnw && ./mvnw -B -DskipTests package
 
 FROM eclipse-temurin:21-jre
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-RUN groupadd --system spring && useradd --system --gid spring spring
+COPY --from=build /workspace/target/*.jar app.jar
 
-ENV SPRING_PROFILES_ACTIVE=prod
-ENV PORT=10000
+EXPOSE 8081
 
-COPY --from=build /app/target/*.jar /app/app.jar
+HEALTHCHECK --interval=15s --timeout=5s --start-period=90s --retries=5 \
+  CMD curl -fsS http://127.0.0.1:8081/api/health || exit 1
 
-USER spring
-
-EXPOSE 10000
-
-ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar /app/app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

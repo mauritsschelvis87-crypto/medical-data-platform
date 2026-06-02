@@ -1,0 +1,103 @@
+name: medical-data-platform
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: medical-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - medical-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  ai-service:
+    image: ghcr.io/mauritsschelvis87-crypto/medical-ai-service:latest
+    container_name: medical-ai-service
+    restart: unless-stopped
+    networks:
+      - medical-net
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8001/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  backend:
+    image: ghcr.io/mauritsschelvis87-crypto/medical-backend:latest
+    container_name: medical-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ai-service:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS}
+    volumes:
+      - ../apps/ai-service/data/exports/backend-import:/import/backend-import:ro
+      - ../apps/ai-service/data/raw/medications.csv:/data/medications.csv:ro
+    networks:
+      - medical-net
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8081/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+
+  dataset-import:
+    image: curlimages/curl:8.12.1
+    container_name: medical-dataset-import
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      BACKEND_URL: http://backend:8081
+      IMPORT_DIR: /import/backend-import
+      DATASET_SOURCE_NAME: ${DATASET_SOURCE_NAME}
+      DATASET_IMPORT_ON_START: ${DATASET_IMPORT_ON_START}
+    volumes:
+      - ../apps/ai-service/data/exports/backend-import:/import/backend-import:ro
+      - ./scripts/bootstrap-import.sh:/bootstrap-import.sh:ro
+    entrypoint: ["/bin/sh", "/bootstrap-import.sh"]
+    networks:
+      - medical-net
+    restart: "no"
+
+  frontend:
+    image: ghcr.io/mauritsschelvis87-crypto/medical-frontend:latest
+    container_name: medical-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - medical-net
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+networks:
+  medical-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
